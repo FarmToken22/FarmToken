@@ -17,7 +17,7 @@
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
       overflow-x: hidden;
-      padding-bottom: 80px;
+      padding-bottom: 120px; /* Increased to accommodate bottom ad */
       min-height: 100vh;
     }
 
@@ -173,7 +173,6 @@
       background-color: #f3f3f3;
     }
 
-    /* Enhanced Navigation Styles */
     .nav-btn {
       position: relative;
       display: flex;
@@ -211,12 +210,6 @@
       box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
     }
 
-    .nav-text {
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-    }
-
     .nav-badge {
       position: absolute;
       top: 6px;
@@ -234,6 +227,58 @@
     @keyframes bounce {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-3px); }
+    }
+
+    .ad-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .ad-modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      position: relative;
+      max-width: 750px;
+      width: 100%;
+    }
+
+    .ad-modal-content p {
+      margin-bottom: 10px;
+      font-size: 16px;
+      color: #333;
+    }
+
+    .close-ad {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #555;
+    }
+
+    .bottom-ad {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: #f9fafb;
+      border-top: 1px solid #e5e7eb;
+      position: fixed;
+      bottom: 60px; /* Above footer */
+      left: 0;
+      right: 0;
+      z-index: 10;
     }
 
     @media (max-width: 640px) {
@@ -257,6 +302,14 @@
       .nav-text {
         font-size: 11px;
       }
+      .ad-modal-content {
+        max-width: 340px;
+      }
+      .bottom-ad iframe {
+        width: 100%;
+        max-width: 320px;
+        height: 50px;
+      }
     }
   </style>
 </head>
@@ -266,6 +319,15 @@
   </div>
 
   <div id="notification" class="notification"></div>
+
+  <!-- Ad Modal for Claim -->
+  <div id="adModal" class="ad-modal">
+    <div class="ad-modal-content">
+      <span class="close-ad" onclick="closeAdModal()">&times;</span>
+      <p>Thank you for claiming your reward!</p>
+      <div id="claimAd"></div>
+    </div>
+  </div>
 
   <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-10">
     <div class="flex items-center gap-2">
@@ -416,6 +478,9 @@
     </div>
   </section>
 
+  <!-- Bottom Ad -->
+  <div class="bottom-ad" id="bottomAd"></div>
+
   <footer class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-20">
     <div class="relative max-w-lg mx-auto">
       <div class="nav-indicator" id="navIndicator"></div>
@@ -445,6 +510,79 @@
   </footer>
 
   <script>
+    // Ad configurations
+    const adConfigs = [
+      {
+        key: '63718988f07bc6d276f3c6a441757cae',
+        format: 'iframe',
+        height: 90,
+        width: 728,
+        src: '//www.highperformanceformat.com/63718988f07bc6d276f3c6a441757cae/invoke.js'
+      },
+      {
+        key: 'c620af328467e6de19dc04af696ee0fb',
+        format: 'iframe',
+        height: 250,
+        width: 300,
+        src: '//www.highperformanceformat.com/c620af328467e6de19dc04af696ee0fb/invoke.js'
+      },
+      {
+        key: '78ade24182729fceea8e45203dad915b',
+        format: 'iframe',
+        height: 50,
+        width: 320,
+        src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js'
+      }
+    ];
+
+    // Function to get a random ad configuration
+    function getRandomAdConfig() {
+      const index = Math.floor(Math.random() * adConfigs.length);
+      return adConfigs[index];
+    }
+
+    // Function to load an ad into a container
+    function loadAd(containerId, adConfig) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = ''; // Clear previous content
+      const script1 = document.createElement('script');
+      script1.type = 'text/javascript';
+      script1.innerHTML = `
+        atOptions = {
+          'key': '${adConfig.key}',
+          'format': '${adConfig.format}',
+          'height': ${adConfig.height},
+          'width': ${adConfig.width},
+          'params': {}
+        };
+      `;
+      const script2 = document.createElement('script');
+      script2.type = 'text/javascript';
+      script2.src = adConfig.src;
+      container.appendChild(script1);
+      container.appendChild(script2);
+    }
+
+    // Show ad modal
+    function showAdModal() {
+      const adModal = document.getElementById('adModal');
+      loadAd('claimAd', getRandomAdConfig());
+      adModal.style.display = 'flex';
+      setTimeout(() => {
+        closeAdModal();
+      }, 5000); // Auto-close after 5 seconds
+    }
+
+    // Close ad modal
+    window.closeAdModal = function() {
+      document.getElementById('adModal').style.display = 'none';
+    };
+
+    // Load bottom ad on page load
+    window.addEventListener('load', () => {
+      loadAd('bottomAd', getRandomAdConfig());
+    });
+
     // Navigation Indicator Enhancement
     const navIndicator = document.getElementById('navIndicator');
     const navBtns = {
@@ -463,8 +601,6 @@
       navIndicator.style.width = `${width}px`;
     }
 
-    // Update indicator on navigation
-    const originalNavHandlers = {};
     Object.keys(navBtns).forEach(key => {
       navBtns[key].addEventListener('click', function() {
         setTimeout(() => {
@@ -479,7 +615,6 @@
       });
     });
 
-    // Initialize on load
     window.addEventListener('load', () => {
       setTimeout(() => {
         const activeBtn = document.querySelector('.nav-btn.active') || navBtns.home;
@@ -487,7 +622,6 @@
       }, 100);
     });
 
-    // Update on resize
     window.addEventListener('resize', () => {
       const activeBtn = document.querySelector('.nav-btn.active');
       if (activeBtn) updateNavIndicator(activeBtn);
