@@ -30,6 +30,86 @@ const REFERRAL_BONUS = 5; // Bonus for referrals
 const REFERRAL_MILESTONE = 100; // Tokens mined by referee for referrer bonus
 const MINIMUM_WITHDRAWAL = 300; // Minimum tokens required for withdrawal
 
+// Ad configurations
+const adConfigs = [
+  {
+    key: '63718988f07bc6d276f3c6a441757cae',
+    format: 'iframe',
+    height: 90,
+    width: 728,
+    src: '//www.highperformanceformat.com/63718988f07bc6d276f3c6a441757cae/invoke.js'
+  },
+  {
+    key: 'c620af328467e6de19dc04af696ee0fb',
+    format: 'iframe',
+    height: 250,
+    width: 300,
+    src: '//www.highperformanceformat.com/c620af328467e6de19dc04af696ee0fb/invoke.js'
+  },
+  {
+    key: '78ade24182729fceea8e45203dad915b',
+    format: 'iframe',
+    height: 50,
+    width: 320,
+    src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js'
+  }
+];
+
+// Function to get a random ad configuration
+function getRandomAdConfig() {
+  const index = Math.floor(Math.random() * adConfigs.length);
+  return adConfigs[index];
+}
+
+// Function to load an ad into a container
+function loadAd(containerId, adConfig) {
+  const container = document.getElementById(containerId);
+  if (!container) {
+    console.error(`Ad container ${containerId} not found`);
+    return;
+  }
+  container.innerHTML = ''; // Clear previous content
+  const script1 = document.createElement('script');
+  script1.type = 'text/javascript';
+  script1.innerHTML = `
+    atOptions = {
+      'key': '${adConfig.key}',
+      'format': '${adConfig.format}',
+      'height': ${adConfig.height},
+      'width': ${adConfig.width},
+      'params': {}
+    };
+  `;
+  const script2 = document.createElement('script');
+  script2.type = 'text/javascript';
+  script2.src = adConfig.src;
+  container.appendChild(script1);
+  container.appendChild(script2);
+}
+
+// Show ad modal
+function showAdModal() {
+  const adModal = document.getElementById('adModal');
+  if (!adModal) {
+    console.error('Ad modal not found');
+    showNotification('Error displaying ad.', 'error');
+    return;
+  }
+  loadAd('claimAd', getRandomAdConfig());
+  adModal.style.display = 'flex';
+  setTimeout(() => {
+    closeAdModal();
+  }, 5000); // Auto-close after 5 seconds
+}
+
+// Close ad modal
+function closeAdModal() {
+  const adModal = document.getElementById('adModal');
+  if (adModal) {
+    adModal.style.display = 'none';
+  }
+}
+
 const el = {
   loading: document.getElementById('loading'),
   authBtn: document.getElementById('authBtn'),
@@ -382,7 +462,6 @@ async function checkReferralMilestones(refereeId) {
       timestamp: Date.now()
     });
 
-    // Update referee's milestone tracking
     await update(refereeRef, {
       referralMilestones: { ...refereeData.referralMilestones || {}, [referrerId]: milestonesAchieved }
     });
@@ -420,7 +499,6 @@ async function claimMiningReward() {
       timestamp: Date.now()
     });
 
-    // Check if this user is a referee and update referrer's rewards
     if (userData.referredBy) {
       await checkReferralMilestones(currentUser.uid);
     }
@@ -429,6 +507,7 @@ async function claimMiningReward() {
     el.miningBtn.querySelector('.timer-display').textContent = 'Start Mining';
     el.miningStatusEl.textContent = 'Inactive';
     showNotification(`Claimed ${userData.currentEarned.toFixed(6)} FT!`);
+    showAdModal(); // Show random ad after successful claim
     updateUI();
   } catch (err) {
     console.error('Claim error:', err);
@@ -579,7 +658,6 @@ async function initiateWithdrawal() {
   const amount = parseFloat(el.withdrawalAmount.value);
   const walletAddress = el.walletAddress.value.trim();
 
-  // Validate input
   if (!amount || amount <= 0) {
     showStatus(el.withdrawalStatus, 'Please enter a valid amount.', true);
     return;
@@ -595,11 +673,10 @@ async function initiateWithdrawal() {
     return;
   }
 
-  // Show "Withdraw not active" message without processing the withdrawal
   showStatus(el.withdrawalStatus, 'Withdraw not active', true);
   showNotification('Withdrawal feature is currently disabled.', 'error');
-  el.withdrawalAmount.value = ''; // Clear input
-  el.walletAddress.value = ''; // Clear input
+  el.withdrawalAmount.value = '';
+  el.walletAddress.value = '';
 }
 
 // Navigate to settings page
@@ -662,11 +739,13 @@ async function initializeUserData(user) {
   });
 }
 
-// Event listeners
+// Load bottom ad on page load
 window.addEventListener('load', () => {
+  loadAd('bottomAd', getRandomAdConfig());
   el.loading.style.display = 'none';
 });
 
+// Event listeners
 el.homeBtn.addEventListener('click', () => switchSection('home'));
 el.profileBtn.addEventListener('click', () => switchSection('profile'));
 el.walletBtn.addEventListener('click', () => switchSection('wallet'));
@@ -695,3 +774,6 @@ onAuthStateChanged(auth, user => {
     window.location.href = 'login.html';
   }
 });
+
+// Expose closeAdModal globally for HTML onclick
+window.closeAdModal = closeAdModal;
