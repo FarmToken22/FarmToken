@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="VIP FarmToken - Contact Support">
+  <title>VIP FarmToken - Connect</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-color: #f9fafb;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 2px;
+    }
+
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #28a745;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      font-weight: 500;
+    }
+
+    .notification.show {
+      opacity: 1;
+    }
+
+    .notification.error {
+      background: #dc3545;
+    }
+
+    .notification-card {
+      border-left: 4px solid #28a745;
+      background: #f0fdf4;
+      transition: all 0.3s ease;
+    }
+
+    .notification-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .ad-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 1rem auto;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    @media (max-width: 640px) {
+      .notification {
+        top: 10px;
+        right: 10px;
+        padding: 10px 20px;
+        font-size: 14px;
+      }
+
+      .ad-container {
+        max-width: 320px;
+      }
+    }
+  </style>
+</head>
+<body class="flex flex-col">
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <div id="notification" class="notification"></div>
+
+  <header class="flex items-center justify-between px-4 py-3 shadow bg-gradient-to-r from-green-600 to-teal-500 sticky top-0 z-10">
+    <div class="flex items-center gap-2">
+      <img src="Logo.png" alt="VIP FarmToken Logo" class="h-10 w-10 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold text-white">VIP FarmToken</h1>
+        <p class="text-xs text-green-100">Contact Support</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 sm:gap-3">
+      <a href="index.html" class="p-2 hover:bg-green-700 rounded-lg transition-colors text-white">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <section class="p-3 sm:p-4 max-w-2xl mx-auto w-full space-y-4 sm:space-y-6">
+    <!-- Ad Section -->
+    <div id="adContainer" class="ad-container"></div>
+
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-green-500 to-teal-400 rounded-2xl p-6 sm:p-8 text-white text-center">
+      <h2 class="text-2xl sm:text-3xl font-bold mb-2">Need Help?</h2>
+      <p class="text-sm sm:text-base opacity-90">Contact us. We are here to assist you 24/7.</p>
+    </div>
+
+    <!-- Notifications Section -->
+    <div class="bg-white shadow rounded-xl p-4 sm:p-6">
+      <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Notifications</h3>
+      <div id="notificationsList" class="space-y-4">
+        <p class="text-center text-gray-500 py-8">Loading notifications...</p>
+      </div>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="bg-white shadow-lg rounded-xl p-4 sm:p-6">
+      <h3 class="text-lg sm:text-xl font-semibold mb-4 text-center text-gray-800">Submit Your Query</h3>
+      
+      <form id="contactForm" class="space-y-4">
+        <div>
+          <label for="userName" class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+          <input type="text" id="userName" required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+            placeholder="Enter your name">
+        </div>
+
+        <div>
+          <label for="userEmail" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+          <input type="email" id="userEmail" required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+            placeholder="your@email.com">
+        </div>
+
+        <div>
+          <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+          <input type="text" id="subject" required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+            placeholder="What is your query about?">
+        </div>
+
+        <div>
+          <label for="problemDescription" class="block text-sm font-medium text-gray-700 mb-2">Describe Your Problem</label>
+          <textarea id="problemDescription" required rows="6"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all resize-none"
+            placeholder="Please describe your issue in detail..."></textarea>
+          <p class="text-xs text-gray-500 mt-1">Please provide a detailed description of your issue</p>
+        </div>
+
+        <button type="submit" id="submitBtn"
+          class="w-full bg-gradient-to-r from-green-500 to-teal-400 text-white py-3 px-6 rounded-lg font-semibold text-base sm:text-lg hover:from-green-600 hover:to-teal-500 transition-all transform hover:scale-[1.02] shadow-md">
+          Submit Request
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { getDatabase, ref, push, set, onValue, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAH9-GEeIVDe98wCziPHnDv5Q84BoQFXOQ",
+      authDomain: "farmtoken.firebaseapp.com",
+      databaseURL: "https://farmtoken-default-rtdb.firebaseio.com",
+      projectId: "farmtoken",
+      storageBucket: "farmtoken.firebasestorage.app",
+      messagingSenderId: "873508490805",
+      appId: "1:873508490805:web:6d2676c41aa60a289cab7c",
+      measurementId: "G-YZPTK2CP47"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    let currentUser = null;
+
+    const el = {
+      loading: document.getElementById('loading'),
+      notification: document.getElementById('notification'),
+      contactForm: document.getElementById('contactForm'),
+      userName: document.getElementById('userName'),
+      userEmail: document.getElementById('userEmail'),
+      subject: document.getElementById('subject'),
+      problemDescription: document.getElementById('problemDescription'),
+      submitBtn: document.getElementById('submitBtn'),
+      notificationsList: document.getElementById('notificationsList'),
+      adContainer: document.getElementById('adContainer')
+    };
+
+    // Ad configurations
+    const adConfigs = [
+      {
+        key: '63718988f07bc6d276f3c6a441757cae',
+        format: 'iframe',
+        height: 90,
+        width: 728,
+        params: {},
+        scriptSrc: '//www.highperformanceformat.com/63718988f07bc6d276f3c6a441757cae/invoke.js'
+      },
+      {
+        key: 'c620af328467e6de19dc04af696ee0fb',
+        format: 'iframe',
+        height: 250,
+        width: 300,
+        params: {},
+        scriptSrc: '//www.highperformanceformat.com/c620af328467e6de19dc04af696ee0fb/invoke.js'
+      },
+      {
+        key: '78ade24182729fceea8e45203dad915b',
+        format: 'iframe',
+        height: 50,
+        width: 320,
+        params: {},
+        scriptSrc: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js'
+      }
+    ];
+
+    // Function to load a random ad
+    function loadRandomAd() {
+      const randomIndex = Math.floor(Math.random() * adConfigs.length);
+      const selectedAd = adConfigs[randomIndex];
+
+      // Set global atOptions for the selected ad
+      window.atOptions = {
+        key: selectedAd.key,
+        format: selectedAd.format,
+        height: selectedAd.height,
+        width: selectedAd.width,
+        params: selectedAd.params
+      };
+
+      // Create and append the ad script
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = selectedAd.scriptSrc;
+      script.async = true;
+
+      // Clear the ad container and append the script
+      el.adContainer.innerHTML = '';
+      el.adContainer.appendChild(script);
+    }
+
+    function showNotification(message, isError = false) {
+      el.notification.textContent = message;
+      el.notification.classList.toggle('error', isError);
+      el.notification.classList.add('show');
+      setTimeout(() => {
+        el.notification.classList.remove('show');
+      }, 3000);
+    }
+
+    function formatDate(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+
+    async function fetchNotifications() {
+      const notificationsRef = ref(db, 'VIPFarmToken/notifications');
+      onValue(notificationsRef, async snapshot => {
+        el.notificationsList.innerHTML = '';
+        const notifications = [];
+        const data = snapshot.val();
+        if (data) {
+          Object.entries(data).forEach(([id, notif]) => {
+            if (notif.status === 'active') {
+              notifications.push({ id, ...notif });
+            }
+          });
+        }
+
+        if (notifications.length === 0) {
+          el.notificationsList.innerHTML = '<p class="text-center text-gray-500 py-8">No notifications available.</p>';
+          return;
+        }
+
+        for (const notif of notifications) {
+          let shouldDisplay = false;
+          if (notif.target === 'all') {
+            shouldDisplay = true;
+          } else if (currentUser && (notif.target === currentUser.uid || notif.target === currentUser.email)) {
+            shouldDisplay = true;
+          }
+
+          if (shouldDisplay) {
+            const card = document.createElement('div');
+            card.className = 'notification-card p-4 rounded-lg shadow';
+            card.innerHTML = `
+              <div class="flex flex-col gap-2">
+                <h4 class="text-md font-semibold text-gray-800">${notif.title || 'Notification'}</h4>
+                <p class="text-sm text-gray-600">${notif.message}</p>
+                <p class="text-xs text-gray-500">Posted: ${formatDate(notif.timestamp)}</p>
+              </div>
+            `;
+            el.notificationsList.appendChild(card);
+          }
+        }
+      }, error => {
+        showNotification('Failed to load notifications: ' + error.message, true);
+      });
+    }
+
+    el.contactForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const userName = el.userName.value.trim();
+      const userEmail = el.userEmail.value.trim();
+      const subject = el.subject.value.trim();
+      const problem = el.problemDescription.value.trim();
+
+      if (!userName || !userEmail || !subject || !problem) {
+        showNotification('Please fill in all fields', true);
+        return;
+      }
+
+      el.loading.style.display = 'flex';
+      el.submitBtn.disabled = true;
+
+      try {
+        const supportRef = ref(db, 'support_requests');
+        const newRequestRef = push(supportRef);
+
+        await set(newRequestRef, {
+          userName: userName,
+          userEmail: userEmail,
+          subject: subject,
+          problem: problem,
+          userId: currentUser ? currentUser.uid : 'guest',
+          timestamp: Date.now(),
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        });
+
+        showNotification('Request submitted successfully!');
+        el.contactForm.reset();
+      } catch (error) {
+        console.error('Error submitting request:', error);
+        showNotification('Failed to submit request. Please try again.', true);
+      } finally {
+        el.loading.style.display = 'none';
+        el.submitBtn.disabled = false;
+      }
+    });
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        currentUser = user;
+        el.userEmail.value = user.email || '';
+        fetchNotifications();
+      } else {
+        fetchNotifications(); // Fetch global notifications for guests
+      }
+    });
+
+    window.addEventListener('load', () => {
+      el.loading.style.display = 'none';
+      loadRandomAd(); // Load a random ad when the page loads
+    });
+  </script>
+</body>
+</html>
