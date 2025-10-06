@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="VIP FarmToken - Admin Panel">
+  <title>VIP FarmToken - Admin Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-color: #f9fafb;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 3px;
+    }
+
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #dc2626;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      font-weight: 500;
+    }
+
+    .notification.show {
+      opacity: 1;
+    }
+
+    .notification.error {
+      background: #dc3545;
+    }
+
+    .request-card {
+      transition: all 0.3s ease;
+      border-left: 4px solid #fbbf24;
+    }
+
+    .request-card:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .request-card.pending {
+      border-left-color: #fbbf24;
+      background: #fffbeb;
+    }
+
+    .request-card.approved {
+      border-left-color: #10b981;
+      background: #f0fdf4;
+      opacity: 0.7;
+    }
+
+    .request-card.rejected {
+      border-left-color: #dc3545;
+      background: #fef2f2;
+      opacity: 0.7;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge.pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge.approved {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge.rejected {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .filter-btn.active {
+      background: #dc2626;
+      color: white;
+    }
+
+    .filter-btn {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .filter-btn:hover {
+      background: #d1d5db;
+    }
+
+    @media (max-width: 640px) {
+      .notification {
+        top: 10px;
+        right: 10px;
+        padding: 10px 20px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body class="flex flex-col">
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <div id="notification" class="notification"></div>
+
+  <header class="flex items-center justify-between px-4 py-3 shadow bg-gradient-to-r from-red-600 to-red-700 sticky top-0 z-10">
+    <div class="flex items-center gap-2">
+      <img src="Logo.png" alt="VIP FarmToken Logo" class="h-10 w-10 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%23dc2626%22/></svg>'">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold text-white">VIP FarmToken</h1>
+        <p class="text-xs text-red-100">Admin Control Panel</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 sm:gap-3">
+      <button id="refreshBtn" class="p-2 hover:bg-red-800 rounded-lg transition-colors text-white" title="Refresh Data">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </button>
+      <a href="index.html" class="p-2 hover:bg-red-800 rounded-lg transition-colors text-white" title="Home">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <section class="p-3 sm:p-4 max-w-6xl mx-auto w-full space-y-4 sm:space-y-6">
+    <!-- Notification Form -->
+    <div class="bg-white shadow rounded-xl p-4 sm:p-6">
+      <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Send Notification</h3>
+      <form id="notificationForm" class="space-y-4">
+        <div>
+          <label for="notificationTitle" class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+          <input type="text" id="notificationTitle" required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+            placeholder="Enter notification title">
+        </div>
+        <div>
+          <label for="notificationMessage" class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+          <textarea id="notificationMessage" required rows="4"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all resize-none"
+            placeholder="Enter notification message"></textarea>
+        </div>
+        <div>
+          <label for="notificationTarget" class="block text-sm font-medium text-gray-700 mb-2">Target</label>
+          <select id="notificationTarget" class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all">
+            <option value="all">All Users</option>
+            <option value="specific">Specific User</option>
+          </select>
+        </div>
+        <div id="specificTargetInput" class="hidden">
+          <label for="targetId" class="block text-sm font-medium text-gray-700 mb-2">User ID or Email</label>
+          <input type="text" id="targetId"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+            placeholder="Enter user ID or email">
+        </div>
+        <button type="submit" id="sendNotificationBtn"
+          class="w-full bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-6 rounded-lg font-semibold text-base sm:text-lg hover:from-red-600 hover:to-red-700 transition-all transform hover:scale-[1.02] shadow-md">
+          Send Notification
+        </button>
+      </form>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+      <div class="stat-card">
+        <div class="text-3xl sm:text-4xl font-bold" id="totalRequests">0</div>
+        <div class="text-sm opacity-90 mt-1">Total Requests</div>
+      </div>
+      <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+        <div class="text-3xl sm:text-4xl font-bold" id="pendingRequests">0</div>
+        <div class="text-sm opacity-90 mt-1">Pending</div>
+      </div>
+      <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+        <div class="text-3xl sm:text-4xl font-bold" id="approvedRequests">0</div>
+        <div class="text-sm opacity-90 mt-1">Approved</div>
+      </div>
+      <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+        <div class="text-3xl sm:text-4xl font-bold" id="rejectedRequests">0</div>
+        <div class="text-sm opacity-90 mt-1">Rejected</div>
+      </div>
+      <div class="stat-card" style="background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
+        <div class="text-3xl sm:text-4xl font-bold" id="onlineUsers">0</div>
+        <div class="text-sm opacity-90 mt-1">Online Users</div>
+      </div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="bg-white shadow rounded-xl p-3 sm:p-4">
+      <div class="flex flex-wrap gap-2">
+        <button class="filter-btn active px-4 py-2 rounded-lg font-semibold text-sm transition-all" data-filter="all">
+          All Requests
+        </button>
+        <button class="filter-btn px-4 py-2 rounded-lg font-semibold text-sm transition-all" data-filter="pending">
+          Pending Only
+        </button>
+        <button class="filter-btn px-4 py-2 rounded-lg font-semibold text-sm transition-all" data-filter="approved">
+          Approved Only
+        </button>
+        <button class="filter-btn px-4 py-2 rounded-lg font-semibold text-sm transition-all" data-filter="rejected">
+          Rejected Only
+        </button>
+      </div>
+    </div>
+
+    <!-- Withdrawal Requests List -->
+    <div class="bg-white shadow rounded-xl p-4 sm:p-6">
+      <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Withdrawal Requests</h3>
+      <div id="requestsList" class="space-y-4">
+        <p class="text-center text-gray-500 py-8">Loading requests...</p>
+      </div>
+    </div>
+
+    <!-- Users Management -->
+    <div class="bg-white shadow rounded-xl p-4 sm:p-6">
+      <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Users Management</h3>
+      <div id="usersList" class="space-y-4">
+        <p class="text-center text-gray-500 py-8">Loading users...</p>
+      </div>
+    </div>
+
+    <!-- Multiple Accounts -->
+    <div class="bg-white shadow rounded-xl p-4 sm:p-6">
+      <h3 class="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Users with Multiple Accounts</h3>
+      <div id="multiplesList" class="space-y-4">
+        <p class="text-center text-gray-500 py-8">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Suspicious Users -->
+    <div class="bg-white shadow rounded-xl p-4 sm:p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg sm:text-xl font-semibold text-gray-800">Suspicious Users (Illegal Balance)</h3>
+        <button id="scanCheatersBtn" class="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors">
+          Scan for Cheaters
+        </button>
+      </div>
+      <div id="suspiciousList" class="space-y-4">
+        <p class="text-center text-gray-500 py-8">Click scan to check for suspicious balances.</p>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="VIP.js"></script>
+</body>
+</html>
