@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getDatabase, ref, onValue, update, get, push, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+import { getDatabase, ref, onValue, update, get, push, set, remove } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAH9-GEeIVDe98wCziPHnDv5Q84BoQFXOQ",
@@ -41,16 +41,18 @@ const el = {
   usersList: document.getElementById('usersList'),
   multiplesList: document.getElementById('multiplesList'),
   suspiciousList: document.getElementById('suspiciousList'),
-  scanCheatersBtn: document.getElementById('scanCheatersBtn')
+  scanCheatersBtn: document.getElementById('scanCheatersBtn'),
+  userMessagesList: document.getElementById('userMessagesList')
 };
 
-function showNotification(message, isError = false) {
+function showNotification(message, type = 'success') {
   el.notification.textContent = message;
-  el.notification.classList.toggle('error', isError);
+  el.notification.classList.remove('success', 'error', 'info');
+  el.notification.classList.add(type);
   el.notification.classList.add('show');
   setTimeout(() => {
     el.notification.classList.remove('show');
-  }, 3000);
+  }, 4000);
 }
 
 async function checkAdminStatus(uid) {
@@ -127,7 +129,13 @@ function updateStats() {
 async function renderRequests() {
   el.requestsList.innerHTML = '';
   if (allRequests.length === 0) {
-    el.requestsList.innerHTML = '<p class="text-center text-gray-500 py-8">No withdrawal requests found.</p>';
+    el.requestsList.innerHTML = `
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="font-medium">No withdrawal requests found.</p>
+      </div>`;
     return;
   }
 
@@ -139,11 +147,11 @@ async function renderRequests() {
   for (const req of filteredRequests) {
     const userEmail = await fetchUserEmail(req.userId);
     const card = document.createElement('div');
-    card.className = `request-card p-4 rounded-lg shadow ${req.status}`;
+    card.className = `request-card p-4 sm:p-5 ${req.status}`;
     card.innerHTML = `
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h4 class="text-md font-semibold text-gray-800">Withdrawal Request</h4>
+          <h4 class="text-lg font-semibold text-gray-800">Withdrawal Request</h4>
           <p class="text-sm text-gray-600 mt-1">${req.description}</p>
           <p class="text-sm text-gray-600 mt-1">Amount: ${req.amount.toFixed(2)} FT</p>
           <p class="text-sm text-gray-600 mt-1">Wallet: ${req.walletAddress}</p>
@@ -151,15 +159,11 @@ async function renderRequests() {
           <p class="text-xs text-gray-500">User ID: ${req.userId}</p>
           <p class="text-xs text-gray-500">User Email: ${userEmail}</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-3">
           <span class="badge ${req.status}">${req.status.charAt(0).toUpperCase() + req.status.slice(1)}</span>
           ${req.status === 'pending' ? `
-            <button class="approve-btn px-3 py-1 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition-colors" data-id="${req.id}">
-              Approve
-            </button>
-            <button class="reject-btn px-3 py-1 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors" data-id="${req.id}">
-              Reject
-            </button>
+            <button class="action-btn approve" data-id="${req.id}">Approve</button>
+            <button class="action-btn reject" data-id="${req.id}">Reject</button>
           ` : ''}
         </div>
       </div>
@@ -171,7 +175,7 @@ async function renderRequests() {
 async function approveWithdrawal(id) {
   const request = allRequests.find(req => req.id === id);
   if (!request || request.status !== 'pending') {
-    showNotification('Invalid request or already processed.', true);
+    showNotification('Invalid request or already processed.', 'error');
     return;
   }
 
@@ -179,13 +183,13 @@ async function approveWithdrawal(id) {
     const userRef = ref(db, `users/${request.userId}`);
     const userSnapshot = await get(userRef);
     if (!userSnapshot.exists()) {
-      showNotification('User not found.', true);
+      showNotification('User not found.', 'error');
       return;
     }
 
     const userData = userSnapshot.val();
     if (userData.balance < request.amount) {
-      showNotification('User has insufficient balance.', true);
+      showNotification('User has insufficient balance.', 'error');
       return;
     }
 
@@ -202,19 +206,19 @@ async function approveWithdrawal(id) {
     };
 
     await update(ref(db, '/'), updates);
-    showNotification(`Withdrawal of ${request.amount.toFixed(2)} FT approved`);
+    showNotification(`Withdrawal of ${request.amount.toFixed(2)} FT approved`, 'success');
     request.status = 'approved';
     updateStats();
     renderRequests();
   } catch (error) {
-    showNotification('Failed to approve withdrawal: ' + error.message, true);
+    showNotification('Failed to approve withdrawal: ' + error.message, 'error');
   }
 }
 
 async function rejectWithdrawal(id) {
   const request = allRequests.find(req => req.id === id);
   if (!request || request.status !== 'pending') {
-    showNotification('Invalid request or already processed.', true);
+    showNotification('Invalid request or already processed.', 'error');
     return;
   }
 
@@ -230,12 +234,12 @@ async function rejectWithdrawal(id) {
     };
 
     await update(ref(db, '/'), updates);
-    showNotification(`Withdrawal request rejected`);
+    showNotification(`Withdrawal request rejected`, 'success');
     request.status = 'rejected';
     updateStats();
     renderRequests();
   } catch (error) {
-    showNotification('Failed to reject withdrawal: ' + error.message, true);
+    showNotification('Failed to reject withdrawal: ' + error.message, 'error');
   }
 }
 
@@ -248,12 +252,12 @@ async function sendNotification(e) {
   let targetId = targetType === 'specific' ? el.targetId.value.trim() : 'all';
 
   if (!title || !message) {
-    showNotification('Please fill in title and message.', true);
+    showNotification('Please fill in title and message.', 'error');
     return;
   }
 
   if (targetType === 'specific' && !targetId) {
-    showNotification('Please enter a user ID or email.', true);
+    showNotification('Please enter a user ID or email.', 'error');
     return;
   }
 
@@ -264,7 +268,7 @@ async function sendNotification(e) {
     if (targetType === 'specific' && targetId.includes('@')) {
       const userId = await findUserByEmail(targetId);
       if (!userId) {
-        showNotification('User not found with this email.', true);
+        showNotification('User not found with this email.', 'error');
         el.loading.style.display = 'none';
         el.sendNotificationBtn.disabled = false;
         return;
@@ -282,12 +286,12 @@ async function sendNotification(e) {
       status: 'active'
     });
 
-    showNotification('Notification sent successfully!');
+    showNotification('Notification sent successfully!', 'success');
     el.notificationForm.reset();
     el.specificTargetInput.classList.add('hidden');
     el.notificationTarget.value = 'all';
   } catch (error) {
-    showNotification('Failed to send notification: ' + error.message, true);
+    showNotification('Failed to send notification: ' + error.message, 'error');
   } finally {
     el.loading.style.display = 'none';
     el.sendNotificationBtn.disabled = false;
@@ -302,7 +306,13 @@ async function getPresence(uid) {
 async function renderUsers() {
   el.usersList.innerHTML = '';
   if (allUsers.length === 0) {
-    el.usersList.innerHTML = '<p class="text-center text-gray-500 py-8">No users found.</p>';
+    el.usersList.innerHTML = `
+      <div class="empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        <p class="font-medium">No users found.</p>
+      </div>`;
     return;
   }
 
@@ -310,23 +320,19 @@ async function renderUsers() {
     const isOnline = await getPresence(user.uid);
     const isBlocked = user.blocked || false;
     const card = document.createElement('div');
-    card.className = `request-card p-4 rounded-lg shadow ${isBlocked ? 'rejected' : ''}`;
+    card.className = `user-card ${isBlocked ? 'rejected' : ''}`;
     card.innerHTML = `
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h4 class="text-md font-semibold text-gray-800">User: ${user.email || 'Unknown'}</h4>
+          <h4 class="text-lg font-semibold text-gray-800">User: ${user.email || 'Unknown'}</h4>
           <p class="text-sm text-gray-600 mt-1">UID: ${user.uid}</p>
           <p class="text-sm text-gray-600 mt-1">Balance: ${user.balance?.toFixed(2) || 0} FT</p>
           <p class="text-sm text-gray-600 mt-1">Online: ${isOnline ? 'Yes' : 'No'}</p>
           <p class="text-sm text-gray-600 mt-1">Blocked: ${isBlocked ? 'Yes' : 'No'}</p>
         </div>
-        <div class="flex items-center gap-2">
-          <button class="audit-btn px-3 py-1 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors" data-uid="${user.uid}">
-            Audit Balance
-          </button>
-          <button class="${isBlocked ? 'unblock-btn' : 'block-btn'} px-3 py-1 bg-${isBlocked ? 'green' : 'red'}-600 text-white rounded-lg text-sm hover:bg-${isBlocked ? 'green' : 'red'}-700 transition-colors" data-uid="${user.uid}">
-            ${isBlocked ? 'Unblock' : 'Block'}
-          </button>
+        <div class="flex items-center gap-3">
+          <button class="action-btn approve" data-uid="${user.uid}">Audit Balance</button>
+          <button class="action-btn ${isBlocked ? 'approve' : 'reject'}" data-uid="${user.uid}">${isBlocked ? 'Unblock' : 'Block'}</button>
         </div>
       </div>
     `;
@@ -337,17 +343,20 @@ async function renderUsers() {
 function renderMultiples(multiples) {
   el.multiplesList.innerHTML = '';
   if (multiples.length === 0) {
-    el.multiplesList.innerHTML = '<p class="text-center text-gray-500 py-8">No multiple accounts detected.</p>';
+    el.multiplesList.innerHTML = `
+      <div class="empty-state">
+        <p class="font-medium">No multiple accounts detected.</p>
+      </div>`;
     return;
   }
 
   multiples.forEach(group => {
     const groupDiv = document.createElement('div');
-    groupDiv.className = 'p-4 rounded-lg shadow bg-yellow-50 border-l-4 border-yellow-400';
-    groupDiv.innerHTML = `<h4 class="text-md font-semibold text-gray-800">Group with IP: ${group[0].ip || 'Unknown'}</h4>`;
+    groupDiv.className = 'user-card';
+    groupDiv.innerHTML = `<h4 class="text-lg font-semibold text-gray-800">Group with IP: ${group[0].ip || 'Unknown'}</h4>`;
     group.forEach(user => {
       groupDiv.innerHTML += `
-        <p class="text-sm text-gray-600"> - ${user.email || 'Unknown'} (UID: ${user.uid}, Balance: ${user.balance?.toFixed(2) || 0})</p>
+        <p class="text-sm text-gray-600 mt-1"> - ${user.email || 'Unknown'} (UID: ${user.uid}, Balance: ${user.balance?.toFixed(2) || 0})</p>
       `;
     });
     el.multiplesList.appendChild(groupDiv);
@@ -357,30 +366,127 @@ function renderMultiples(multiples) {
 function renderSuspicious(suspicious) {
   el.suspiciousList.innerHTML = '';
   if (suspicious.length === 0) {
-    el.suspiciousList.innerHTML = '<p class="text-center text-green-500 py-8">No suspicious users found.</p>';
+    el.suspiciousList.innerHTML = `
+      <div class="empty-state">
+        <p class="font-medium text-green-500">No suspicious users found.</p>
+      </div>`;
     return;
   }
 
   suspicious.forEach(user => {
     const card = document.createElement('div');
-    card.className = 'request-card p-4 rounded-lg shadow rejected';
+    card.className = 'user-card rejected';
     card.innerHTML = `
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h4 class="text-md font-semibold text-gray-800">User: ${user.email || 'Unknown'}</h4>
+          <h4 class="text-lg font-semibold text-gray-800">User: ${user.email || 'Unknown'}</h4>
           <p class="text-sm text-gray-600 mt-1">UID: ${user.uid}</p>
           <p class="text-sm text-gray-600 mt-1">Current Balance: ${user.current.toFixed(2)} FT</p>
           <p class="text-sm text-gray-600 mt-1">Expected Balance: ${user.expected.toFixed(2)} FT</p>
         </div>
-        <div class="flex items-center gap-2">
-          <button class="block-btn px-3 py-1 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors" data-uid="${user.uid}">
-            Block
-          </button>
+        <div class="flex items-center gap-3">
+          <button class="action-btn reject" data-uid="${user.uid}">Block</button>
         </div>
       </div>
     `;
     el.suspiciousList.appendChild(card);
   });
+}
+
+// ✅ FIXED: User Messages Rendering Function
+async function renderUserMessages() {
+  try {
+    console.log('Starting to render user messages...');
+    const messagesRef = ref(db, 'VIPFarmToken/messages');
+    
+    onValue(messagesRef, async snapshot => {
+      console.log('Messages snapshot received');
+      el.userMessagesList.innerHTML = '';
+      
+      const messages = [];
+      const data = snapshot.val();
+      
+      console.log('Raw messages data:', data);
+      
+      if (data) {
+        Object.entries(data).forEach(([id, msg]) => {
+          // Filter out deleted messages
+          if (!msg.status || msg.status !== 'deleted') {
+            messages.push({ id, ...msg });
+          }
+        });
+      }
+      
+      console.log('Filtered messages:', messages);
+      
+      if (messages.length === 0) {
+        el.userMessagesList.innerHTML = `
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            <p class="font-medium">No user messages found.</p>
+          </div>`;
+        return;
+      }
+
+      // Sort messages by timestamp (newest first)
+      messages.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+      for (const msg of messages) {
+        const userEmail = await fetchUserEmail(msg.userId);
+        const card = document.createElement('div');
+        card.className = 'message-card';
+        card.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h4 class="text-lg font-semibold text-gray-800">Message from ${userEmail}</h4>
+              <p class="text-sm text-gray-600 mt-1"><strong>Subject:</strong> ${msg.subject || 'No Subject'}</p>
+              <p class="text-sm text-gray-600 mt-1"><strong>Message:</strong> ${msg.message || 'No message content'}</p>
+              <p class="text-xs text-gray-500 mt-2">Submitted: ${formatDate(msg.timestamp || Date.now())}</p>
+              <p class="text-xs text-gray-500">User ID: ${msg.userId}</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <button class="action-btn reject delete-msg-btn" data-msgid="${msg.id}">Delete</button>
+            </div>
+          </div>
+        `;
+        el.userMessagesList.appendChild(card);
+      }
+      
+      console.log('Messages rendered successfully');
+    }, error => {
+      console.error('Messages fetch error:', error);
+      showNotification('Failed to load user messages: ' + error.message, 'error');
+      el.userMessagesList.innerHTML = `
+        <div class="empty-state">
+          <p class="font-medium text-red-500">Error loading messages. Check console for details.</p>
+        </div>`;
+    });
+  } catch (error) {
+    console.error('Error in renderUserMessages:', error);
+    showNotification('Failed to initialize messages: ' + error.message, 'error');
+  }
+}
+
+// ✅ FIXED: Delete Message Function
+async function deleteMessage(id) {
+  try {
+    console.log('Deleting message:', id);
+    const messageRef = ref(db, `VIPFarmToken/messages/${id}`);
+    
+    // Option 1: Actually delete the message
+    await remove(messageRef);
+    
+    // Option 2: Mark as deleted (if you want to keep history)
+    // await update(messageRef, { status: 'deleted' });
+    
+    showNotification('Message deleted successfully', 'success');
+    console.log('Message deleted:', id);
+  } catch (error) {
+    console.error('Delete error:', error);
+    showNotification('Failed to delete message: ' + error.message, 'error');
+  }
 }
 
 async function auditUser(uid) {
@@ -405,22 +511,22 @@ async function auditUser(uid) {
     const isSuspicious = Math.abs(expected - current) > 0.01;
     showNotification(
       `User ${uid}: ${isSuspicious ? `Suspicious: Expected ${expected.toFixed(2)}, Current ${current.toFixed(2)}` : 'Balance OK'}`,
-      isSuspicious
+      isSuspicious ? 'error' : 'success'
     );
   } catch (error) {
-    showNotification('Audit failed: ' + error.message, true);
+    showNotification('Audit failed: ' + error.message, 'error');
   }
 }
 
 async function blockUser(uid, block = true) {
   try {
     await update(ref(db, `users/${uid}`), { blocked: block });
-    showNotification(`User ${block ? 'blocked' : 'unblocked'}`);
+    showNotification(`User ${block ? 'blocked' : 'unblocked'}`, 'success');
     const user = allUsers.find(u => u.uid === uid);
     if (user) user.blocked = block;
     renderUsers();
-  } catch (e) {
-    showNotification('Operation failed: ' + e.message, true);
+  } catch (error) {
+    showNotification('Operation failed: ' + error.message, 'error');
   }
 }
 
@@ -474,7 +580,7 @@ function fetchRequests() {
     el.loading.style.display = 'none';
   }, error => {
     console.error('Withdrawal fetch error:', error);
-    showNotification('Failed to load withdrawal requests: ' + error.message, true);
+    showNotification('Failed to load withdrawal requests: ' + error.message, 'error');
     el.loading.style.display = 'none';
   });
 }
@@ -491,7 +597,6 @@ function fetchUsers() {
     }
     await renderUsers();
 
-    // Compute multiples
     const multipleAccounts = new Map();
     allUsers.forEach(user => {
       const ip = user.ip || 'unknown';
@@ -503,6 +608,7 @@ function fetchUsers() {
   });
 }
 
+// ✅ FIXED: Event Listeners Setup
 function setupEventListeners() {
   document.querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -518,22 +624,38 @@ function setupEventListeners() {
     fetchRequests();
   });
 
+  // Use event delegation for dynamically added buttons
   document.addEventListener('click', e => {
-    if (e.target.classList.contains('approve-btn')) {
+    // Handle delete message button
+    if (e.target.classList.contains('delete-msg-btn')) {
+      const msgId = e.target.dataset.msgid;
+      if (msgId) {
+        console.log('Delete button clicked for message:', msgId);
+        if (confirm('Are you sure you want to delete this message?')) {
+          deleteMessage(msgId);
+        }
+      }
+      return;
+    }
+
+    // Handle other action buttons
+    if (e.target.classList.contains('action-btn')) {
       const id = e.target.dataset.id;
-      approveWithdrawal(id);
-    } else if (e.target.classList.contains('reject-btn')) {
-      const id = e.target.dataset.id;
-      rejectWithdrawal(id);
-    } else if (e.target.classList.contains('audit-btn')) {
       const uid = e.target.dataset.uid;
-      auditUser(uid);
-    } else if (e.target.classList.contains('block-btn')) {
-      const uid = e.target.dataset.uid;
-      blockUser(uid, true);
-    } else if (e.target.classList.contains('unblock-btn')) {
-      const uid = e.target.dataset.uid;
-      blockUser(uid, false);
+      
+      if (e.target.classList.contains('approve') && id) {
+        approveWithdrawal(id);
+      } else if (e.target.classList.contains('reject') && id) {
+        rejectWithdrawal(id);
+      } else if (e.target.classList.contains('approve') && uid) {
+        if (e.target.textContent === 'Audit Balance') {
+          auditUser(uid);
+        } else {
+          blockUser(uid, false);
+        }
+      } else if (e.target.classList.contains('reject') && uid) {
+        blockUser(uid, true);
+      }
     }
   });
 
@@ -557,7 +679,7 @@ onAuthStateChanged(auth, async user => {
     console.log('Is Admin:', isAdmin);
     
     if (!isAdmin) {
-      showNotification('Access denied. Admin privileges required.', true);
+      showNotification('Access denied. Admin privileges required.', 'error');
       setTimeout(() => {
         window.location.href = 'index.html';
       }, 2000);
@@ -566,6 +688,7 @@ onAuthStateChanged(auth, async user => {
     
     fetchRequests();
     fetchUsers();
+    renderUserMessages(); // ✅ Now properly called
     updateOnlineCount();
     setupEventListeners();
   } else {
