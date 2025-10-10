@@ -96,7 +96,7 @@
         </div>
       </div>
 
-      <div class="mb-3">
+      <div class="mb-4">
         <label for="signupConfirm" class="text-sm font-medium text-gray-700">Confirm Password</label>
         <div class="relative">
           <input id="signupConfirm" type="password" placeholder="Confirm Password"
@@ -108,13 +108,6 @@
             </svg>
           </button>
         </div>
-      </div>
-
-      <div class="mb-4">
-        <label for="signupRef" class="text-sm font-medium text-gray-700">Referral Code (optional)</label>
-        <input id="signupRef" type="text" placeholder="If you have one"
-          class="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none">
-        <p id="refCodeStatus" class="text-xs mt-1"></p>
       </div>
 
       <button onclick="handleSignup()"
@@ -160,7 +153,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { getDatabase, ref, set, get, query, orderByChild, equalTo, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAH9-GEeIVDe98wCziPHnDv5Q84BoQFXOQ",
@@ -225,46 +218,14 @@
       return `FT-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
     }
 
-    // Validate referral code as user types
-    let refCodeTimeout;
-    document.getElementById('signupRef').addEventListener('input', async function(e) {
-      const refCode = e.target.value.trim().toUpperCase();
-      const statusEl = document.getElementById('refCodeStatus');
-      
-      if (!refCode) {
-        statusEl.textContent = '';
-        return;
-      }
-
-      clearTimeout(refCodeTimeout);
-      refCodeTimeout = setTimeout(async () => {
-        try {
-          const usersRef = ref(db, "users");
-          const refQuery = query(usersRef, orderByChild("refCode"), equalTo(refCode));
-          const snapshot = await get(refQuery);
-          
-          if (snapshot.exists()) {
-            statusEl.textContent = '✓ Valid referral code';
-            statusEl.className = 'text-xs mt-1 text-green-600';
-          } else {
-            statusEl.textContent = '✗ Invalid referral code';
-            statusEl.className = 'text-xs mt-1 text-red-600';
-          }
-        } catch (error) {
-          console.error('Error checking referral code:', error);
-        }
-      }, 500);
-    });
-
     async function handleSignup() {
       const name = document.getElementById("signupName").value.trim();
       const email = document.getElementById("signupEmail").value.trim().toLowerCase();
       const pass = document.getElementById("signupPass").value;
       const confirm = document.getElementById("signupConfirm").value;
-      const refCode = document.getElementById("signupRef").value.trim().toUpperCase();
 
       if (!name || !email || !pass || !confirm) {
-        return showMsg("All fields except referral code are required");
+        return showMsg("All fields are required");
       }
       if (pass.length < 6) {
         return showMsg("Password must be at least 6 characters");
@@ -274,23 +235,6 @@
       }
 
       try {
-        let referrerUid = null;
-        
-        // Check if referral code is provided and validate it
-        if (refCode) {
-          const usersRef = ref(db, "users");
-          const refQuery = query(usersRef, orderByChild("refCode"), equalTo(refCode));
-          const snapshot = await get(refQuery);
-          
-          if (snapshot.exists()) {
-            const referrerData = snapshot.val();
-            referrerUid = Object.keys(referrerData)[0];
-            console.log("Valid referral code found. Referrer UID:", referrerUid);
-          } else {
-            return showMsg("Invalid referral code. Please check and try again.");
-          }
-        }
-
         // Create user account
         const userCred = await createUserWithEmailAndPassword(auth, email, pass);
         const uid = userCred.user.uid;
@@ -298,12 +242,13 @@
         // Generate unique referral code for new user
         const newUserRefCode = generateRefCode();
         
-        // Create user data with proper structure
+        // Create user data - referrerUid will be null initially
         const newUserData = {
           name: name,
           email: email,
           refCode: newUserRefCode,
-          referrerUid: referrerUid || null,
+          referrerUid: null,
+          hasSubmittedReferral: false,
           balance: 0,
           totalMined: 0,
           referralCount: 0,
@@ -319,23 +264,6 @@
 
         await set(ref(db, "users/" + uid), newUserData);
         console.log("New user created:", newUserData);
-
-        // If there's a referrer, increment their referral count
-        if (referrerUid) {
-          const referrerRef = ref(db, `users/${referrerUid}`);
-          const referrerSnapshot = await get(referrerRef);
-          
-          if (referrerSnapshot.exists()) {
-            const referrerData = referrerSnapshot.val();
-            const newReferralCount = (referrerData.referralCount || 0) + 1;
-            
-            await update(referrerRef, {
-              referralCount: newReferralCount
-            });
-            
-            console.log("Referrer count updated to:", newReferralCount);
-          }
-        }
 
         showMsg("Signup successful! Redirecting...", "success");
         setTimeout(() => window.location.href = "index.html", 1500);
