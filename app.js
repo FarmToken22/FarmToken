@@ -28,7 +28,7 @@ const REWARD_PER_SECOND = TOTAL_REWARD / MINING_DURATION;
 const MILESTONE_TOKENS = 100; // Tokens needed to level up
 const REFERRAL_BONUS = 5; // Bonus for referrals
 const REFERRAL_MILESTONE = 100; // Tokens mined by referee for referrer bonus
-const MINIMUM_WITHDRAWAL = 300; // Minimum tokens required for withdrawal
+const MINIMUM_WITHDRAWAL = 50; // Minimum tokens required for withdrawal
 
 const el = {
   loading: document.getElementById('loading'),
@@ -156,17 +156,24 @@ function updateUI() {
 
   const transactions = userData.transactions || {};
   el.transactionList.innerHTML = '';
+  
   if (Object.keys(transactions).length === 0) {
     el.transactionList.innerHTML = '<p class="text-gray-500 text-sm sm:text-base">No transactions yet.</p>';
   } else {
-    Object.entries(transactions).forEach(([id, tx]) => {
+    // Sort transactions by timestamp (newest first)
+    const sortedTransactions = Object.entries(transactions).sort((a, b) => b[1].timestamp - a[1].timestamp);
+    
+    sortedTransactions.forEach(([id, tx]) => {
       const date = new Date(tx.timestamp).toLocaleString();
+      const amount = parseFloat(tx.amount) || 0; // Ensure amount is a number
       const amountClass = tx.type === 'withdrawal' ? 'text-red-600' : 'text-green-600';
+      const amountSign = tx.type === 'withdrawal' ? '-' : '+';
+      
       el.transactionList.innerHTML += `
         <div class="transaction-item border-b pb-2 sm:pb-3">
           <div class="flex justify-between">
             <p class="text-sm sm:text-base text-gray-600">${tx.description}</p>
-            <p class="text-sm sm:text-base font-semibold ${amountClass}">${tx.type === 'withdrawal' ? '-' : '+'}${tx.amount.toFixed(2)} FT</p>
+            <p class="text-sm sm:text-base font-semibold ${amountClass}">${amountSign}${amount.toFixed(2)} FT</p>
           </div>
           <p class="text-xs sm:text-sm text-gray-500">${date}</p>
         </div>
@@ -472,46 +479,73 @@ async function claimReferralRewards() {
 // Submit referral code
 async function submitReferralCode() {
   const code = el.referralCodeInput.value.trim().toUpperCase();
+  
+  // Validate input
   if (!code) {
     showStatus(el.referralStatusEl, 'Please enter a referral code.', true);
     return;
   }
 
+  // Check if already submitted
   if (userData.referredBy) {
     showStatus(el.referralStatusEl, 'You have already submitted a referral code.', true);
     return;
   }
 
+  // Check if using own code
   if (code === userData.referralCode) {
     showStatus(el.referralStatusEl, 'You cannot use your own referral code.', true);
     return;
   }
 
   try {
+    console.log('Searching for referral code:', code);
+    
+    // Query for user with this referral code
     const usersRef = ref(db, 'users');
     const referralQuery = query(usersRef, orderByChild('referralCode'), equalTo(code));
     const snapshot = await get(referralQuery);
+    
+    console.log('Query snapshot exists:', snapshot.exists());
+    
+    // Check if referral code exists
     if (!snapshot.exists()) {
-      showStatus(el.referralStatusEl, 'Invalid referral code.', true);
+      console.log('Referral code not found');
+      showStatus(el.referralStatusEl, 'Invalid referral code. Please check and try again.', true);
       return;
     }
 
+    // Get referrer data
     const referrerData = Object.values(snapshot.val())[0];
     const referrerId = Object.keys(snapshot.val())[0];
+    
+    console.log('Referrer ID:', referrerId);
+    console.log('Referrer Data:', referrerData);
+
+    // Prevent self-referral by UID
+    if (referrerId === currentUser.uid) {
+      showStatus(el.referralStatusEl, 'You cannot use your own referral code.', true);
+      return;
+    }
+
+    // References
     const userRef = ref(db, `users/${currentUser.uid}`);
     const referrerRef = ref(db, `users/${referrerId}`);
 
-    await Promise.all([
-      update(userRef, {
-        referredBy: code,
-        referralRewards: (userData.referralRewards || 0) + REFERRAL_BONUS
-      }),
-      update(referrerRef, {
-        referralRewards: (referrerData.referralRewards || 0) + REFERRAL_BONUS,
-        referrals: { ...referrerData.referrals || {}, [currentUser.uid]: true }
-      })
-    ]);
+    // Update both users with referral bonus
+    await update(userRef, {
+      referredBy: code,
+      referralRewards: (userData.referralRewards || 0) + REFERRAL_BONUS
+    });
 
+    await update(referrerRef, {
+      referralRewards: (referrerData.referralRewards || 0) + REFERRAL_BONUS,
+      [`referrals/${currentUser.uid}`]: true
+    });
+
+    console.log('User and referrer updated successfully');
+
+    // Add transaction for current user
     const userTransactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const userTransactionRef = ref(db, `users/${currentUser.uid}/transactions/${userTransactionId}`);
     await set(userTransactionRef, {
@@ -521,21 +555,32 @@ async function submitReferralCode() {
       timestamp: Date.now()
     });
 
+    // Add transaction for referrer
     const referrerTransactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const referrerTransactionRef = ref(db, `users/${referrerId}/transactions/${referrerTransactionId}`);
     await set(referrerTransactionRef, {
       type: 'referral',
       amount: REFERRAL_BONUS,
-      description: `Referral Bonus for ${currentUser.uid}`,
+      description: `Referral Bonus from ${currentUser.email || currentUser.uid}`,
       timestamp: Date.now()
     });
 
-    showStatus(el.referralStatusEl, 'Referral code submitted successfully! You and your referrer received 5 FT.');
+    console.log('Transactions created successfully');
+
+    // Success feedback
+    showStatus(el.referralStatusEl, `Success! You and your referrer each received ${REFERRAL_BONUS} FT bonus!`);
     el.referralCodeInput.value = '';
-    showNotification('Referral code applied! Bonus added to both accounts.');
+    showNotification(`Referral code applied! Both you and your referrer received ${REFERRAL_BONUS} FT!`);
+    
+    // Update UI
+    updateUI();
+
   } catch (err) {
-    console.error('Referral error:', err);
-    showStatus(el.referralStatusEl, 'Failed to submit referral code. Please try again.', true);
+    console.error('Referral error details:', err);
+    console.error('Error message:', err.message);
+    console.error('Error code:', err.code);
+    showStatus(el.referralStatusEl, `Error: ${err.message || 'Failed to submit referral code.'}`, true);
+    showNotification('Failed to submit referral code. Please try again.', 'error');
   }
 }
 
@@ -575,31 +620,11 @@ function shareReferralCode(platform) {
 }
 
 // Initiate withdrawal
-async function initiateWithdrawal() {
-  const amount = parseFloat(el.withdrawalAmount.value);
-  const walletAddress = el.walletAddress.value.trim();
-
-  // Validate input
-  if (!amount || amount <= 0) {
-    showStatus(el.withdrawalStatus, 'Please enter a valid amount.', true);
-    return;
-  }
-
-  if (amount < MINIMUM_WITHDRAWAL) {
-    showStatus(el.withdrawalStatus, `Minimum withdrawal amount is ${MINIMUM_WITHDRAWAL} FT.`, true);
-    return;
-  }
-
-  if (!walletAddress) {
-    showStatus(el.withdrawalStatus, 'Please enter a valid wallet address.', true);
-    return;
-  }
-
-  // Show "Withdraw not active" message without processing the withdrawal
-  showStatus(el.withdrawalStatus, 'Withdraw not active', true);
-  showNotification('Withdrawal feature is currently disabled.', 'error');
-  el.withdrawalAmount.value = ''; // Clear input
-  el.walletAddress.value = ''; // Clear input
+function initiateWithdrawal() {
+  showStatus(el.withdrawalStatus, 'Withdrawal feature coming soon!', false);
+  showNotification('Withdrawal feature is coming soon!', 'info');
+  el.withdrawalAmount.value = '';
+  el.walletAddress.value = '';
 }
 
 // Navigate to settings page
