@@ -2,358 +2,144 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="FarmToken - Claim Your Daily Bonus">
-  <title>FarmToken - Daily Bonus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FarmToken | Daily Bonus</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root {
-      --primary: #6366f1;
-      --secondary: #8b5cf6;
-      --accent: #f59e0b;
-      --success: #10b981;
-      --error: #ef4444;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background-color: #f9fafb;
       min-height: 100vh;
-      background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
-      color: #1f2937;
       overflow-x: hidden;
     }
-
-    ::-webkit-scrollbar {
-      width: 8px;
+    .fade-in {
+      animation: fadeIn 0.4s ease;
     }
-    ::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1);
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 4px;
-    }
-
-    .loading {
+    .ad-overlay {
       position: fixed;
-      inset: 0;
-      background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      gap: 1.5rem;
-    }
-
-    .spinner {
-      width: 3rem;
-      height: 3rem;
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .notification {
-      position: fixed;
-      top: 1rem;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, var(--success), #059669);
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 1rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      z-index: 1000;
-      opacity: 0;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-      font-weight: 600;
-    }
-
-    .notification.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    .notification.error {
-      background: linear-gradient(135deg, var(--error), #dc2626);
-    }
-
-    .day-card {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 1.5rem;
-      padding: 1.5rem;
-      text-align: center;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 12rem;
-    }
-
-    .day-card.claimed {
-      background: linear-gradient(135deg, #86efac, #4ade80);
-      color: white;
-    }
-
-    .day-card.current {
-      background: linear-gradient(135deg, #fef3c7, #fde047);
-      border: 3px solid var(--accent);
-      box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.02); }
-    }
-
-    .day-number {
-      font-size: 1.25rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-
-    .reward-amount {
-      font-size: 2.5rem;
-      font-weight: 900;
-      color: var(--accent);
-      margin: 0.5rem 0;
-    }
-
-    .reward-label {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    .day-card.claimed .day-number,
-    .day-card.claimed .reward-amount,
-    .day-card.claimed .reward-label {
-      color: white;
-    }
-
-    .claim-badge {
-      position: absolute;
-      top: -0.75rem;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, var(--error), #dc2626);
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 1rem;
-      font-size: 0.875rem;
-      font-weight: 700;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      animation: bounce 1.5s infinite;
-    }
-
-    @keyframes bounce {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(-4px); }
-    }
-
-    .claim-btn {
-      background: linear-gradient(135deg, var(--accent), #d97706);
-      color: white;
-      font-size: 1rem;
-      font-weight: 700;
-      padding: 0.75rem;
-      border-radius: 0.75rem;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-
-    .claim-btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-    }
-
-    .claim-btn:disabled {
-      background: linear-gradient(135deg, #9ca3af, #6b7280);
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
-
-    .header {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-      position: sticky;
       top: 0;
-      z-index: 10;
-    }
-
-    .ad-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.8);
-      display: none;
-      align-items: center;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
       justify-content: center;
-      z-index: 2000;
-      animation: fadeIn 0.3s ease;
+      align-items: center;
+      padding: 20px;
     }
-
-    .ad-modal-content {
+    .ad-container {
       background: white;
-      padding: 2rem;
-      border-radius: 1.5rem;
-      text-align: center;
-      max-width: 24rem;
-      width: 90%;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-      animation: slideUp 0.3s ease;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 90%;
+      max-height: 80%;
+      overflow: auto;
+      position: relative;
     }
-
-    .close-ad {
+    .close-btn {
       position: absolute;
-      top: 1rem;
-      right: 1rem;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: #6b7280;
-      transition: all 0.2s ease;
-    }
-
-    .close-ad:hover {
-      color: #1f2937;
-      transform: scale(1.1);
-    }
-
-    .timer {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 1rem;
-      padding: 1rem;
-      text-align: center;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #1f2937;
-    }
-
-    .timer span {
-      font-weight: 800;
-      color: var(--accent);
-    }
-
-    .ad-banner {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 1rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      max-width: 728px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .ad-banner iframe {
-      display: block;
-      margin: 0 auto;
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      background: #ef4444;
+      color: white;
       border: none;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: none;
+      z-index: 10000;
     }
-
-    .ad-fallback {
-      max-width: 100%;
-      height: auto;
-      border-radius: 0.5rem;
+    .close-btn:hover {
+      background: #dc2626;
     }
-
-    @media (max-width: 768px) {
-      .ad-banner {
-        max-width: 100%;
-      }
-      .ad-banner iframe {
-        width: 100% !important;
-        max-width: 320px;
-      }
+    .timer-text {
+      color: white;
+      font-size: 16px;
+      margin-bottom: 15px;
+      font-weight: 600;
     }
-
-    @media (max-width: 640px) {
-      .day-card {
-        min-height: 10rem;
-        padding: 1rem;
-      }
-      .reward-amount {
-        font-size: 2rem;
-      }
-      .reward-label {
-        font-size: 1rem;
-      }
-      .timer {
-        font-size: 1rem;
-        padding: 0.75rem;
-      }
-      .ad-banner {
-        padding: 0.5rem;
-      }
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #10b981;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 10000;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(400px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+    }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3b82f6;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
-<body class="flex flex-col">
-  <div id="loading" class="loading">
-    <div class="spinner"></div>
-    <p class="text-white text-lg font-semibold">Loading...</p>
-  </div>
+<body class="bg-gray-50 flex flex-col min-h-screen">
 
-  <div id="notification" class="notification" role="alert"></div>
-
-  <div id="adModal" class="ad-modal">
-    <div class="ad-modal-content">
-      <span class="close-ad" onclick="closeAdModal()" aria-label="Close modal">&times;</span>
-      <div class="text-4xl mb-4">🎉</div>
-      <h3 class="text-xl font-bold text-gray-800 mb-2">Reward Claimed!</h3>
-      <p class="text-gray-600 mb-4">Your daily bonus has been added!</p>
-      <div id="claimAd">
-        <!-- Optional ad in modal -->
-      </div>
-    </div>
-  </div>
-
-  <header class="header flex items-center justify-between px-4 py-3">
-    <div class="flex items-center gap-2">
-      <img src="Logo.png" alt="FarmToken Logo" class="h-12 w-12 rounded-full bg-white p-1 shadow-md" 
-           onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2310b981%22/></svg>'">
-      <h1 class="text-2xl font-bold text-white">Daily Bonus</h1>
-    </div>
-    <a href="index.html" class="p-2 hover:bg-white/10 rounded-xl" aria-label="Back to home">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    </a>
+  <!-- Header -->
+  <header class="flex items-center justify-start px-6 py-4 shadow bg-white sticky top-0 z-10 gap-3">
+    <img src="Logo.png" alt="FarmToken Logo" class="h-10 w-10 object-contain"
+      onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
+    <h1 class="text-2xl font-bold text-red-600">FarmToken</h1>
   </header>
 
-  <main class="flex-1 p-4 max-w-6xl mx-auto w-full">
-    <div id="adBanner" class="ad-banner" role="region" aria-label="Advertisement"></div>
-    <div id="timer" class="timer" role="timer" aria-live="polite">Next claim in: <span id="countdown">00:00:00</span></div>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="daysGrid"></div>
+  <!-- Full Screen Daily Bonus Section -->
+  <main class="flex-1 flex flex-col items-center justify-start px-4 py-6 fade-in">
+    <div class="w-full max-w-lg bg-white border border-gray-200 shadow-lg rounded-2xl p-6 text-center mt-6">
+      <h2 class="text-4xl font-extrabold text-blue-600 mb-2">🎁 Daily Bonus</h2>
+      <p class="text-lg text-gray-600 mb-6">Claim your reward every 24 hours</p>
+    </div>
+
+    <div class="w-full max-w-2xl mt-6 pb-10">
+      <div id="loading-state" class="loading">
+        <div class="spinner"></div>
+        <p class="text-gray-600">Loading your rewards...</p>
+      </div>
+      <div class="grid grid-cols-3 gap-4" id="bonus-grid" style="display: none;"></div>
+    </div>
   </main>
 
+  <!-- Ad Overlay -->
+  <div id="ad-overlay" class="ad-overlay" style="display: none;">
+    <div class="timer-text" id="timer-text">Please wait... 5 seconds</div>
+    <div class="ad-container" id="ad-container">
+      <button class="close-btn" id="close-btn">✕</button>
+      <div id="ad-content"></div>
+    </div>
+  </div>
+
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAH9-GEeIVDe98wCziPHnDv5Q84BoQFXOQ",
@@ -367,8 +153,27 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const auth = getAuth(app);
-    const db = getDatabase(app);
+    const database = getDatabase(app);
+
+    const ads = [
+      {
+        key: '63718988f07bc6d276f3c6a441757cae',
+        width: 728,
+        height: 90
+      },
+      {
+        key: 'c620af328467e6de19dc04af696ee0fb',
+        width: 300,
+        height: 250
+      },
+      {
+        key: '78ade24182729fceea8e45203dad915b',
+        width: 320,
+        height: 50
+      }
+    ];
 
     const dailyRewards = [
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -378,386 +183,227 @@
       5, 5, 5, 5, 7
     ];
 
-    const ads = [
-      { 
-        key: '63718988f07bc6d276f3c6a441757cae', 
-        width: 728, 
-        height: 90, 
-        src: '//www.highperformanceformat.com/63718988f07bc6d276f3c6a441757cae/invoke.js',
-        config: {
-          key: '63718988f07bc6d276f3c6a441757cae',
-          format: 'iframe',
-          height: 90,
-          width: 728,
-          params: {}
-        }
-      },
-      { 
-        key: 'c620af328467e6de19dc04af696ee0fb', 
-        width: 300, 
-        height: 250, 
-        src: '//www.highperformanceformat.com/c620af328467e6de19dc04af696ee0fb/invoke.js',
-        config: {
-          key: 'c620af328467e6de19dc04af696ee0fb',
-          format: 'iframe',
-          height: 250,
-          width: 300,
-          params: {}
-        }
-      },
-      { 
-        key: '78ade24182729fceea8e45203dad915b', 
-        width: 320, 
-        height: 50, 
-        src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js',
-        config: {
-          key: '78ade24182729fceea8e45203dad915b',
-          format: 'iframe',
-          height: 50,
-          width: 320,
-          params: {}
-        }
-      }
-    ];
-
-    const elements = {
-      loading: document.getElementById('loading'),
-      notification: document.getElementById('notification'),
-      daysGrid: document.getElementById('daysGrid'),
-      adModal: document.getElementById('adModal'),
-      countdown: document.getElementById('countdown'),
-      adBanner: document.getElementById('adBanner')
-    };
-
-    let currentUser = null;
     let userData = null;
-    let timerInterval = null;
-    let adInterval = null;
+    let userId = null;
+    let currentReward = 0;
+    let countdownTimers = {};
 
-    function showNotification(message, isError = false) {
-      try {
-        elements.notification.textContent = message;
-        elements.notification.classList.toggle('error', isError);
-        elements.notification.classList.add('show');
-        setTimeout(() => elements.notification.classList.remove('show'), 3000);
-      } catch (error) {
-        console.error('Notification error:', error);
+    const grid = document.getElementById("bonus-grid");
+    const loadingState = document.getElementById("loading-state");
+
+    // Show toast notification
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      if (type === 'error') {
+        toast.style.background = '#ef4444';
       }
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
     }
 
-    function showAdModal() {
-      try {
-        elements.adModal.style.display = 'flex';
-        setTimeout(closeAdModal, 5000);
-      } catch (error) {
-        console.error('Ad modal error:', error);
-      }
-    }
-
-    window.closeAdModal = function() {
-      try {
-        elements.adModal.style.display = 'none';
-      } catch (error) {
-        console.error('Close ad modal error:', error);
-      }
-    };
-
-    function loadAdScript(ad) {
-      try {
-        // Set atOptions for the specific ad
-        window.atOptions = ad.config;
-
-        // Create and append the ad script
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = `https:${ad.src}`;
-        script.async = true;
-        script.onerror = () => {
-          console.error('Failed to load ad script:', ad.src);
-          elements.adBanner.innerHTML = `<img src="https://via.placeholder.com/${ad.width}x${ad.height}?text=Ad+Failed" alt="Ad Fallback" class="ad-fallback">`;
-        };
-        elements.adBanner.innerHTML = ''; // Clear previous content
-        elements.adBanner.appendChild(script);
-      } catch (error) {
-        console.error('Ad script load error:', error);
-        elements.adBanner.innerHTML = `<img src="https://via.placeholder.com/${ad.width}x${ad.height}?text=Ad+Error" alt="Ad Fallback" class="ad-fallback">`;
-      }
-    }
-
-    function rotateAd() {
-      try {
-        const randomAd = ads[Math.floor(Math.random() * ads.length)];
-        loadAdScript(randomAd);
-      } catch (error) {
-        console.error('Ad rotation error:', error);
-        elements.adBanner.innerHTML = `<img src="https://via.placeholder.com/320x50?text=Ad+Error" alt="Ad Fallback" class="ad-fallback">`;
-      }
-    }
-
-    function startAdRotation() {
-      try {
-        if (adInterval) clearInterval(adInterval);
-        rotateAd();
-        adInterval = setInterval(rotateAd, 30000); // Rotate every 30 seconds
-      } catch (error) {
-        console.error('Ad rotation start error:', error);
-      }
-    }
-
-    function formatTime(ms) {
-      try {
-        if (ms <= 0) return 'Ready to claim!';
-        const hours = Math.floor(ms / (1000 * 60 * 60)).toString().padStart(2, '0');
-        const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-        const seconds = Math.floor((ms % (1000 * 60)) / 1000).toString().padStart(2, '0');
-        return `${hours}:${minutes}:${seconds}`;
-      } catch (error) {
-        console.error('Format time error:', error);
-        return 'Error';
-      }
-    }
-
-    function updateTimer(lastClaim) {
-      try {
-        if (timerInterval) clearInterval(timerInterval);
-        
-        const oneDayMs = 24 * 60 * 60 * 1000;
-        const update = () => {
-          const now = Date.now();
-          const timeLeft = oneDayMs - (now - lastClaim);
-          if (timeLeft <= 0) {
-            elements.countdown.textContent = 'Ready to claim!';
-            clearInterval(timerInterval);
-            renderDays();
-          } else {
-            elements.countdown.textContent = formatTime(timeLeft);
-          }
-        };
-        
-        update();
-        timerInterval = setInterval(update, 1000);
-      } catch (error) {
-        console.error('Update timer error:', error);
-        elements.countdown.textContent = 'Error';
-      }
-    }
-
-    function renderDays() {
-      try {
-        const currentDay = userData?.dailyBonus?.currentDay || 1;
-        const lastClaim = userData?.dailyBonus?.lastClaim || 0;
-        const now = Date.now();
-        const oneDayMs = 24 * 60 * 60 * 1000;
-        const canClaim = now - lastClaim >= oneDayMs;
-
-        updateTimer(lastClaim);
-        startAdRotation();
-
-        elements.daysGrid.innerHTML = '';
-
-        dailyRewards.forEach((reward, index) => {
-          const dayNum = index + 1;
-          const isClaimed = dayNum < currentDay || (dayNum === currentDay && !canClaim);
-          const isCurrent = dayNum === currentDay && canClaim;
-
-          const card = document.createElement('div');
-          card.className = `day-card ${isClaimed ? 'claimed' : ''} ${isCurrent ? 'current' : ''}`;
-          card.setAttribute('role', 'region');
-          card.setAttribute('aria-label', `Day ${dayNum} bonus`);
-
-          card.innerHTML = `
-            <div>
-              <div class="day-number">Day ${dayNum}</div>
-              <div class="reward-amount">${reward}</div>
-              <div class="reward-label">FT</div>
-            </div>
-            ${isCurrent ? `
-              <div class="claim-badge">Claim Now!</div>
-              <button class="claim-btn" onclick="claimDaily(${dayNum})" aria-label="Claim day ${dayNum} bonus">
-                <span>🎁</span> Claim
-              </button>
-            ` : `
-              <div class="status-label">
-                ${isClaimed ? '<div class="checkmark" aria-hidden="true">✓</div>' : 'Upcoming'}
-              </div>
-            `}
-          `;
-
-          elements.daysGrid.appendChild(card);
-        });
-      } catch (error) {
-        console.error('Render days error:', error);
-        showNotification('❌ Failed to render rewards. Please refresh.', true);
-      }
-    }
-
-    async function claimDaily(day) {
-      try {
-        if (!currentUser || !userData) {
-          showNotification('Please log in to claim rewards.', true);
-          return;
-        }
-
-        const now = Date.now();
-        const lastClaim = userData.dailyBonus?.lastClaim || 0;
-        const oneDayMs = 24 * 60 * 60 * 1000;
-
-        if (now - lastClaim < oneDayMs) {
-          showNotification('⏰ Already claimed today! Try again tomorrow.', true);
-          return;
-        }
-
-        const reward = dailyRewards[day - 1];
-        const newBalance = (userData.balance || 0) + reward;
-        const newTotalEarned = (userData.dailyBonus?.totalEarned || 0) + reward;
-        const nextDay = day === 30 ? 1 : day + 1;
-
-        const updates = {
-          balance: newBalance,
-          'dailyBonus/currentDay': nextDay,
-          'dailyBonus/lastClaim': now,
-          'dailyBonus/totalEarned': newTotalEarned,
-          'dailyBonus/streak': day === 30 ? (userData.dailyBonus?.streak || 0) + 1 : (userData.dailyBonus?.streak || 0)
-        };
-
-        await update(ref(db, `users/${currentUser.uid}`), updates);
-
-        userData = {
-          ...userData,
-          balance: newBalance,
-          dailyBonus: {
-            ...userData.dailyBonus,
-            currentDay: nextDay,
-            lastClaim: now,
-            totalEarned: newTotalEarned,
-            streak: day === 30 ? (userData.dailyBonus?.streak || 0) + 1 : (userData.dailyBonus?.streak || 0)
-          }
-        };
-
-        showNotification(`🎉 Claimed ${reward} FT!`);
-        showAdModal();
-        renderDays();
-      } catch (error) {
-        console.error('Claim error:', error);
-        showNotification('❌ Failed to claim reward. Try again.', true);
-      }
-    }
-
-    async function loadUserData(user) {
-      try {
-        const userRef = ref(db, `users/${user.uid}`);
-        const snapshot = await get(userRef);
-
-        if (snapshot.exists()) {
-          userData = snapshot.val();
-
-          if (!userData.dailyBonus) {
-            userData.dailyBonus = {
-              currentDay: 1,
-              lastClaim: 0,
-              totalEarned: 0,
-              streak: 0
-            };
-            await update(userRef, { dailyBonus: userData.dailyBonus });
-          }
-
-          const lastClaim = userData.dailyBonus.lastClaim || 0;
-          const now = Date.now();
-          const twoDaysMs = 48 * 60 * 60 * 1000;
-
-          if (lastClaim && now - lastClaim >= twoDaysMs) {
-            userData.dailyBonus.currentDay = 1;
-            await update(userRef, { 'dailyBonus/currentDay': 1 });
-          }
-
-          renderDays();
-        } else {
-          showNotification('No user data found.', true);
-        }
-      } catch (error) {
-        console.error('Load user data error:', error);
-        showNotification('❌ Failed to load data. Please refresh.', true);
-      }
-    }
-
-    // Handle obfuscated ad script
-    function runObfuscatedAdScript() {
-      try {
-        // Simulate simplified obfuscated script logic (browser fingerprinting and ad tracking)
-        (function() {
-          var lW = window, lI = navigator, lC = document;
-          var ld = [], lm = [], lP = lC.getElementsByTagName('script');
-          var lc = 0xe, lz = 0x0, lo = 0x0;
-
-          var le = {
-            isEmulate: function() {
-              return /SmartTV/.test(lI.userAgent) ? false : /mobile|android|iphone|ipad/i.test(lI.userAgent);
-            },
-            addTest: function(name, truePoints, falsePoints, fn) {
-              ld.push({ name, truePoints, falsePoints, fn });
-            },
-            runTests: function() {
-              ld.forEach(function(test, index) {
-                try {
-                  var result = typeof test.fn === 'function' ? test.fn() : false;
-                  if (result) lz |= 1 << index;
-                  lm.push({ name: test.name, result });
-                } catch (e) {
-                  lo |= 1 << index;
-                }
-              });
-              return this;
-            },
-            getResults: function() {
-              return lc + '.' + lz + (lo > 0 ? '.' + lo : '');
-            }
-          };
-
-          le.addTest('hasTouchEvents', { m: 0x5 }, { d: 0x5 }, function() {
-            return 'ontouchstart' in lW || lI.maxTouchPoints > 0;
-          });
-
-          le.runTests();
-          var psid = le.getResults();
-          console.log('Ad script PSID:', psid);
-
-          // Simulate ad network call
-          var xhr = new XMLHttpRequest();
-          xhr.open('GET', 'https://wayfarerorthodox.com/watch.js?psid=' + encodeURIComponent(psid), true);
-          xhr.send();
-        })();
-      } catch (error) {
-        console.error('Obfuscated ad script error:', error);
-        showNotification('❌ Ad script failed to load.', true);
-      }
-    }
-
-    window.claimDaily = claimDaily;
-
-    // Initialize after DOM is loaded
-    document.addEventListener('DOMContentLoaded', () => {
-      try {
-        startAdRotation();
-        runObfuscatedAdScript();
-      } catch (error) {
-        console.error('Initialization error:', error);
+    // Check authentication
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        userId = user.uid;
+        loadUserData();
+      } else {
+        window.location.href = 'index.html';
       }
     });
 
-    try {
-      onAuthStateChanged(auth, user => {
-        elements.loading.style.display = 'none';
-        if (user) {
-          currentUser = user;
-          loadUserData(user);
+    async function loadUserData() {
+      try {
+        const userRef = ref(database, 'users/' + userId);
+        const snapshot = await get(userRef);
+        
+        if (snapshot.exists()) {
+          userData = snapshot.val();
+          
+          // Initialize daily bonus data if not exists
+          if (!userData.dailyBonusDay) {
+            userData.dailyBonusDay = 0;
+            userData.lastClaimTime = 0;
+          }
+          
+          renderBonusGrid();
         } else {
-          window.location.href = 'login.html';
+          showToast('User data not found', 'error');
+          setTimeout(() => window.location.href = 'index.html', 2000);
         }
-      });
-    } catch (error) {
-      console.error('Auth state change error:', error);
-      showNotification('❌ Authentication error. Please refresh.', true);
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        showToast('Failed to load data. Please try again.', 'error');
+      }
     }
+
+    function renderBonusGrid() {
+      loadingState.style.display = 'none';
+      grid.style.display = 'grid';
+      grid.innerHTML = '';
+      
+      // Clear existing timers
+      Object.values(countdownTimers).forEach(timer => clearInterval(timer));
+      countdownTimers = {};
+      
+      const currentDay = userData.dailyBonusDay || 0;
+      const lastClaimTime = userData.lastClaimTime || 0;
+
+      dailyRewards.forEach((reward, i) => {
+        const div = document.createElement("div");
+        div.className = "p-4 rounded-xl border text-center flex flex-col justify-between bg-gray-50 border-gray-200 shadow-sm";
+
+        const dayText = document.createElement("h2");
+        dayText.className = "font-semibold text-base text-gray-700 mb-2";
+        dayText.textContent = `Day ${i + 1}`;
+        div.appendChild(dayText);
+
+        const rewardText = document.createElement("p");
+        rewardText.className = "text-sm text-gray-500 mb-3";
+        rewardText.textContent = `+${reward} Tokens`;
+        div.appendChild(rewardText);
+
+        const btn = document.createElement("button");
+        btn.className = "py-2 rounded-lg text-sm font-semibold transition-all";
+        btn.dataset.day = i;
+
+        if (i < currentDay) {
+          btn.textContent = "✅ Claimed";
+          btn.classList.add("bg-green-100", "text-green-700", "border", "border-green-300");
+          btn.disabled = true;
+        } else if (i === currentDay) {
+          const now = Date.now();
+          const diff = now - lastClaimTime;
+          const remaining = 24 * 60 * 60 * 1000 - diff;
+
+          if (remaining > 0 && currentDay > 0) {
+            btn.disabled = true;
+            btn.classList.add("bg-gray-200", "text-gray-500");
+            startCountdown(btn, remaining, i);
+          } else {
+            btn.textContent = "Claim";
+            btn.classList.add("bg-blue-600", "text-white", "hover:bg-blue-700");
+            btn.addEventListener("click", () => showAdBeforeClaim(i, reward));
+          }
+        } else {
+          btn.textContent = "🔒 Locked";
+          btn.classList.add("bg-gray-100", "text-gray-400");
+          btn.disabled = true;
+        }
+
+        div.appendChild(btn);
+        grid.appendChild(div);
+      });
+    }
+
+    function showAdBeforeClaim(index, reward) {
+      currentReward = reward;
+      const randomAd = ads[Math.floor(Math.random() * ads.length)];
+      
+      const adContent = document.getElementById('ad-content');
+      const scriptCode = `atOptions = {'key': '${randomAd.key}', 'format': 'iframe', 'height': ${randomAd.height}, 'width': ${randomAd.width}, 'params': {}};`;
+      
+      adContent.innerHTML = `<div style="text-align: center; min-height: ${randomAd.height}px;"></div>`;
+      
+      const script1 = document.createElement('script');
+      script1.type = 'text/javascript';
+      script1.text = scriptCode;
+      adContent.appendChild(script1);
+      
+      const script2 = document.createElement('script');
+      script2.type = 'text/javascript';
+      script2.src = `//www.highperformanceformat.com/${randomAd.key}/invoke.js`;
+      adContent.appendChild(script2);
+
+      document.getElementById('ad-overlay').style.display = 'flex';
+      
+      let countdown = 5;
+      const timerText = document.getElementById('timer-text');
+      const closeBtn = document.getElementById('close-btn');
+      
+      const timer = setInterval(() => {
+        countdown--;
+        timerText.textContent = `Please wait... ${countdown} seconds`;
+        
+        if (countdown <= 0) {
+          clearInterval(timer);
+          timerText.textContent = 'You can close now';
+          closeBtn.style.display = 'block';
+        }
+      }, 1000);
+
+      window.currentClaimData = { index, reward };
+    }
+
+    window.closeAd = function() {
+      document.getElementById('ad-overlay').style.display = 'none';
+      document.getElementById('close-btn').style.display = 'none';
+      if (window.currentClaimData) {
+        handleClaim(window.currentClaimData.index, window.currentClaimData.reward);
+      }
+    };
+
+    document.getElementById('close-btn').addEventListener('click', window.closeAd);
+
+    async function handleClaim(index, reward) {
+      try {
+        const newDay = index + 1;
+        const newClaimTime = Date.now();
+        
+        const userRef = ref(database, 'users/' + userId);
+        const snapshot = await get(userRef);
+        
+        if (snapshot.exists()) {
+          const currentData = snapshot.val();
+          const currentTokens = currentData.tokens || 0;
+          
+          await update(userRef, {
+            dailyBonusDay: newDay,
+            lastClaimTime: newClaimTime,
+            tokens: currentTokens + reward
+          });
+          
+          userData.dailyBonusDay = newDay;
+          userData.lastClaimTime = newClaimTime;
+          userData.tokens = currentTokens + reward;
+          
+          showToast(`You claimed +${reward} tokens! 🎉`);
+          renderBonusGrid();
+        }
+      } catch (error) {
+        console.error('Error claiming reward:', error);
+        showToast('Failed to claim reward. Please try again.', 'error');
+      }
+    }
+
+    function startCountdown(btn, remaining, timerIndex) {
+      function updateTimer() {
+        if (remaining <= 0) {
+          clearInterval(countdownTimers[timerIndex]);
+          renderBonusGrid();
+          return;
+        }
+        
+        const hrs = Math.floor(remaining / 3600000);
+        const mins = Math.floor((remaining % 3600000) / 60000);
+        const secs = Math.floor((remaining % 60000) / 1000);
+        btn.textContent = `${hrs}h ${mins}m ${secs}s`;
+        remaining -= 1000;
+      }
+      
+      updateTimer();
+      countdownTimers[timerIndex] = setInterval(updateTimer, 1000);
+    }
+
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', () => {
+      Object.values(countdownTimers).forEach(timer => clearInterval(timer));
+    });
   </script>
 </body>
 </html>
