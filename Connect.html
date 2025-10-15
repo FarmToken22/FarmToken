@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="VIP FarmToken - Connect with Support">
-  <meta name="theme-color" content="#dc2626">
-  <title>Connect - VIP FarmToken</title>
+  <meta name="description" content="Contact FarmToken Support">
+  <title>Contact Us | FarmToken</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- EmailJS SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function(){
+      emailjs.init("xXY4-X6Yck0j0UQ35"); // EmailJS Public Key
+    })();
+  </script>
   <style>
     * {
       box-sizing: border-box;
@@ -21,509 +24,212 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
       overflow-x: hidden;
       min-height: 100vh;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      display: flex;
-      flex-direction: column;
+      background: white;
     }
 
     ::-webkit-scrollbar {
-      width: 8px;
+      width: 4px;
     }
     ::-webkit-scrollbar-track {
       background: #f1f1f1;
     }
     ::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg, #dc2626, #b91c1c);
-      border-radius: 4px;
+      background: #888;
+      border-radius: 2px;
     }
 
-    .loading {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.98);
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      backdrop-filter: blur(10px);
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .spinner {
-      width: 60px;
-      height: 60px;
-      border: 5px solid #fee2e2;
-      border-top: 5px solid #dc2626;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    .contact-container {
+      animation: fadeIn 0.4s ease;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #10b981;
-      color: white;
-      padding: 16px 24px;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      z-index: 1001;
-      opacity: 0;
-      transform: translateY(-20px);
-      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-      font-weight: 600;
-      font-size: 15px;
-      max-width: 400px;
-    }
-
-    .notification.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .notification.error {
-      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    }
-
-    .notification.success {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    }
-
-    .header-gradient {
-      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-      box-shadow: 0 4px 20px rgba(220, 38, 38, 0.3);
-      width: 100%;
-      padding: 0 16px;
-    }
-
-    .input-field {
-      width: 100%;
-      padding: 14px 18px;
-      border: 2px solid #e5e7eb;
-      border-radius: 12px;
-      outline: none;
+    input, textarea {
       transition: all 0.3s ease;
-      font-size: 15px;
-      background: white;
     }
 
-    .input-field:focus {
-      border-color: #dc2626;
-      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    input:focus, textarea:focus {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.15);
     }
 
-    .btn-primary {
-      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-      color: white;
-      font-weight: 700;
-      border-radius: 12px;
+    button[type="submit"] {
+      background: linear-gradient(135deg, #28a745, #20c997);
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
-      border: none;
-      cursor: pointer;
     }
 
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    button[type="submit"]:hover:not(:disabled) {
+      background: linear-gradient(135deg, #218838, #1aa179);
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+      box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
     }
 
-    .btn-primary:active {
-      transform: translateY(0);
-    }
-
-    .btn-primary:disabled {
+    button[type="submit"]:disabled {
       opacity: 0.6;
       cursor: not-allowed;
-      transform: none;
     }
 
-    .section-card {
-      background: white;
-      border-radius: 0;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      animation: slideUp 0.6s ease;
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .icon-wrapper {
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-      border-radius: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 24px;
-      box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);
-    }
-
-    .notification-badge {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: white;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
-
-    .notification-card {
-      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-      border-left: 5px solid #fbbf24;
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 12px;
+    .back-button {
       transition: all 0.3s ease;
-      position: relative;
     }
 
-    .notification-card:hover {
-      transform: translateX(5px);
-      box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+    .back-button:hover {
+      background: linear-gradient(135deg, #218838, #1aa179);
+      transform: scale(1.05);
     }
 
-    .delete-btn {
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #dc2626;
-      transition: color 0.3s ease;
+    .developer-only {
+      display: none;
     }
 
-    .delete-btn:hover {
-      color: #b91c1c;
-    }
-
-    @media (max-width: 640px) {
-      .notification {
-        top: 10px;
-        right: 10px;
-        left: 10px;
-        max-width: none;
-      }
-
-      .header-gradient {
-        padding: 0 12px;
-      }
-
-      .section-card {
-        padding: 16px;
-      }
+    .select-text {
+      user-select: text;
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
     }
   </style>
 </head>
-<body class="flex flex-col">
-  <div id="loading" class="loading">
-    <div class="spinner"></div>
-    <div class="text-red-600 font-bold mt-4">Loading...</div>
-  </div>
-
-  <div id="notification" class="notification"></div>
-
-  <header class="header-gradient flex items-center justify-between py-4 sticky top-0 z-50">
-    <div class="flex items-center gap-3">
-      <img src="Logo.png" alt="VIP FarmToken Logo" class="h-12 w-12 object-contain rounded-full border-2 border-white shadow-lg" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%23dc2626%22/><text x=%2250%22 y=%2260%22 font-size=%2240%22 text-anchor=%22middle%22 fill=%22white%22 font-weight=%22bold%22>F</text></svg>'">
-      <div>
-        <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">VIP FarmToken</h1>
-        <p class="text-xs sm:text-sm text-red-100 font-medium">Connect with Support</p>
-      </div>
+<body class="bg-white min-h-screen flex flex-col">
+  
+  <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-10">
+    <div class="flex items-center gap-2">
+      <img src="Logo.png" alt="FarmToken Logo" class="h-10 w-10 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
+      <h1 class="text-xl sm:text-2xl font-bold text-red-600">FarmToken</h1>
     </div>
-    <a href="index.html" class="p-2.5 hover:bg-white/20 rounded-lg transition-all text-white backdrop-blur-sm" title="Go to Home">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    <button onclick="window.location.href='index.html'" class="back-button flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-teal-400 text-white hover:from-green-600 hover:to-teal-500">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
       </svg>
-    </a>
+    </button>
   </header>
 
-  <main class="flex-1 w-full space-y-6">
-    <!-- Notifications Section -->
-    <section class="section-card p-6 sm:p-8 relative">
-      <div id="newNotificationBadge" class="notification-badge hidden">New</div>
-      <div class="icon-wrapper">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-        </svg>
+  <main class="flex-1 w-full h-full">
+    <div class="contact-container bg-white h-full p-6 sm:p-8">
+      <div class="text-center mb-6">
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Contact Us</h2>
+        <p class="text-sm sm:text-base text-gray-600">We'd love to hear from you! Send us a message.</p>
       </div>
-      <h2 class="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-6">📢 Notifications</h2>
-      <div id="notificationsList" class="space-y-3">
-        <div class="text-center text-gray-500 py-8">
-          <p class="font-medium">No notifications available</p>
-        </div>
-      </div>
-    </section>
 
-    <!-- Contact Form -->
-    <section class="section-card p-6 sm:p-8">
-      <div class="icon-wrapper">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-        </svg>
-      </div>
-      <h2 class="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-2">✉️ Contact Us</h2>
-      <p class="text-center text-gray-600 mb-8">Let us know your issue or question</p>
-      
-      <form id="contactForm" class="space-y-5">
+      <form id="contactForm" class="space-y-4">
         <div>
-          <label for="userEmail" class="block text-sm font-semibold text-gray-700 mb-2">
-            📧 Email
-          </label>
-          <input type="email" id="userEmail" required
-            class="input-field"
-            placeholder="Enter your email"
-            readonly>
+          <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Your Name</label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            required 
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            placeholder="Enter your name"
+          >
         </div>
 
         <div>
-          <label for="userName" class="block text-sm font-semibold text-gray-700 mb-2">
-            👤 Name
-          </label>
-          <input type="text" id="userName" required
-            class="input-field"
-            placeholder="Enter your name">
+          <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Your Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            required 
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            placeholder="your.email@example.com"
+          >
         </div>
 
         <div>
-          <label for="subject" class="block text-sm font-semibold text-gray-700 mb-2">
-            📝 Subject
-          </label>
-          <input type="text" id="subject" required
-            class="input-field"
-            placeholder="Enter the subject of your issue">
+          <label for="message" class="block text-sm font-semibold text-gray-700 mb-2">Your Message</label>
+          <textarea 
+            id="message" 
+            name="message" 
+            required 
+            rows="5"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-vertical"
+            placeholder="Tell us what's on your mind..."
+          ></textarea>
         </div>
 
-        <div>
-          <label for="message" class="block text-sm font-semibold text-gray-700 mb-2">
-            💬 Message
-          </label>
-          <textarea id="message" required rows="6"
-            class="input-field resize-none"
-            placeholder="Describe your issue in detail..."></textarea>
-        </div>
-
-        <button type="submit" id="submitBtn"
-          class="w-full btn-primary py-4 px-6 text-lg">
-          📤 Send
+        <button 
+          type="submit" 
+          id="submitBtn"
+          class="w-full py-3 text-white font-bold rounded-lg text-base sm:text-lg shadow-lg"
+        >
+          Send Message
         </button>
       </form>
-    </section>
+
+      <div class="mt-6 text-center">
+        <span class="developer-only" data-email="ainetworkmining22@gmail.com"></span>
+        <p class="text-sm text-gray-500">Our team will get back to you as soon as possible.</p>
+      </div>
+
+      <p class="text-xs text-gray-500 text-center mt-4 select-text">
+        By continuing, you agree to FarmToken's 
+        <a href="usage-policy.html" class="text-green-600 hover:underline">Usage Policy</a>, 
+        and acknowledge our 
+        <a href="privacy-policy.html" class="text-green-600 hover:underline">Privacy Policy</a>.
+      </p>
+
+      <div class="mt-6 pt-6 border-t border-gray-200 flex justify-center gap-4">
+        <a href="privacy-policy.html" class="text-sm text-green-600 hover:underline font-semibold">Privacy Policy</a>
+        <span class="text-gray-300">|</span>
+        <a href="usage-policy.html" class="text-sm text-green-600 hover:underline font-semibold">Usage Policy</a>
+      </div>
+    </div>
+
+    <div id="notification" class="fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300">
+      <p id="notificationText" class="text-sm font-semibold"></p>
+    </div>
   </main>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { getDatabase, ref, push, set, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAH9-GEeIVDe98wCziPHnDv5Q84BoQFXOQ",
-      authDomain: "farmtoken.firebaseapp.com",
-      databaseURL: "https://farmtoken-default-rtdb.firebaseio.com",
-      projectId: "farmtoken",
-      storageBucket: "farmtoken.firebasestorage.app",
-      messagingSenderId: "873508490805",
-      appId: "1:873508490805:web:6d2676c41aa60a289cab7c",
-      measurementId: "G-YZPTK2CP47"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-
-    const el = {
-      loading: document.getElementById('loading'),
-      notification: document.getElementById('notification'),
-      contactForm: document.getElementById('contactForm'),
-      userEmail: document.getElementById('userEmail'),
-      userName: document.getElementById('userName'),
-      subject: document.getElementById('subject'),
-      message: document.getElementById('message'),
-      submitBtn: document.getElementById('submitBtn'),
-      notificationsList: document.getElementById('notificationsList'),
-      newNotificationBadge: document.getElementById('newNotificationBadge')
-    };
-
-    let currentUserId = null;
+  <script>
+    const form = document.getElementById('contactForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const notification = document.getElementById('notification');
+    const notificationText = document.getElementById('notificationText');
 
     function showNotification(message, type = 'success') {
-      el.notification.textContent = message;
-      el.notification.classList.remove('success', 'error');
-      el.notification.classList.add(type);
-      el.notification.classList.add('show');
+      notificationText.textContent = message;
+      notification.className = `fixed top-20 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transform transition-transform duration-300 ${
+        type === 'success' ? 'bg-green-500' : 'bg-red-500'
+      } text-white`;
+      notification.style.transform = 'translateX(0)';
+      
       setTimeout(() => {
-        el.notification.classList.remove('show');
-      }, 4000);
+        notification.style.transform = 'translateX(120%)';
+      }, 3000);
     }
 
-    function formatDate(timestamp) {
-      const date = new Date(timestamp);
-      return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      });
-    }
-
-    // Delete Notification
-    async function deleteNotification(notificationId) {
-      el.loading.style.display = 'flex';
-      try {
-        const notificationRef = ref(db, `VIPFarmToken/notifications/${notificationId}`);
-        await update(notificationRef, { status: 'deleted' });
-        showNotification('✅ Notification deleted successfully!', 'success');
-      } catch (error) {
-        console.error('Delete Error:', error);
-        showNotification('❌ Failed to delete notification: ' + error.message, 'error');
-      } finally {
-        el.loading.style.display = 'none';
-      }
-    }
-
-    // Load Notifications
-    function loadNotifications(userId) {
-      const notificationsRef = ref(db, 'VIPFarmToken/notifications');
-      onValue(notificationsRef, snapshot => {
-        el.notificationsList.innerHTML = '';
-        const notifications = [];
-        
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          Object.entries(data).forEach(([id, notif]) => {
-            if (notif.status === 'active' && (notif.target === 'all' || notif.target === userId)) {
-              notifications.push({ id, ...notif });
-            }
-          });
-        }
-
-        if (notifications.length === 0) {
-          el.notificationsList.innerHTML = `
-            <div class="text-center text-gray-500 py-8">
-              <p class="font-medium">No notifications available</p>
-            </div>`;
-          el.newNotificationBadge.classList.add('hidden');
-          return;
-        }
-
-        el.newNotificationBadge.classList.remove('hidden');
-        notifications.sort((a, b) => b.timestamp - a.timestamp);
-
-        notifications.forEach(notif => {
-          const card = document.createElement('div');
-          card.className = 'notification-card';
-          card.innerHTML = `
-            <h4 class="font-bold text-gray-800 mb-2">📢 ${notif.title}</h4>
-            <p class="text-sm text-gray-700 mb-2">${notif.message}</p>
-            <p class="text-xs text-gray-500">${formatDate(notif.timestamp)}</p>
-            <button class="delete-btn" data-id="${notif.id}" title="Delete Notification">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          `;
-          el.notificationsList.appendChild(card);
-        });
-
-        // Add event listeners to delete buttons
-        document.querySelectorAll('.delete-btn').forEach(button => {
-          button.addEventListener('click', () => {
-            const notificationId = button.getAttribute('data-id');
-            deleteNotification(notificationId);
-          });
-        });
-      });
-    }
-
-    // Submit Contact Form
-    async function submitContactForm(e) {
+    form.addEventListener('submit', function(e) {
       e.preventDefault();
 
-      const userName = el.userName.value.trim();
-      const subject = el.subject.value.trim();
-      const message = el.message.value.trim();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
 
-      if (!userName || !subject || !message) {
-        showNotification('Please fill out all fields', 'error');
-        return;
-      }
+      const formData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        message: document.getElementById('message').value
+      };
 
-      el.loading.style.display = 'flex';
-      el.submitBtn.disabled = true;
-
-      try {
-        const messagesRef = ref(db, 'VIPFarmToken/messages');
-        const newMessageRef = push(messagesRef);
-        
-        await set(newMessageRef, {
-          userId: currentUserId,
-          email: el.userEmail.value,
-          name: userName,
-          subject: subject,
-          message: message,
-          timestamp: Date.now(),
-          status: 'unread'
+      emailjs.send('service_ogacydi', 'template_8b8s4u9', formData)
+        .then(function(response) {
+          showNotification('Message sent successfully!', 'success');
+          form.reset();
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Send Message';
+        }, function(error) {
+          showNotification('Failed to send message. Please try again.', 'error');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Send Message';
+          console.error('EmailJS Error:', error);
         });
-
-        showNotification('✅ Your message has been sent successfully!', 'success');
-        el.contactForm.reset();
-        el.userEmail.value = auth.currentUser?.email || '';
-      } catch (error) {
-        console.error('Error:', error);
-        showNotification('❌ Failed to send message: ' + error.message, 'error');
-      } finally {
-        el.loading.style.display = 'none';
-        el.submitBtn.disabled = false;
-      }
-    }
-
-    el.contactForm.addEventListener('submit', submitContactForm);
-
-    // Auth State
-    onAuthStateChanged(auth, user => {
-      if (user) {
-        currentUserId = user.uid;
-        el.userEmail.value = user.email || '';
-        loadNotifications(user.uid);
-      } else {
-        showNotification('Please log in', 'error');
-        setTimeout(() => {
-          window.location.href = 'login.html';
-        }, 2000);
-      }
     });
+
+    // For developers: Access email via console
+    console.log("Developer Email: " + document.querySelector('.developer-only').getAttribute('data-email'));
   </script>
 </body>
 </html>
