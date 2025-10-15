@@ -459,22 +459,9 @@
       </div>
     </div>
 
-    <div class="bg-white shadow rounded-xl p-4 sm:p-6">
-      <h2 class="text-lg sm:text-xl font-semibold mb-3">Withdraw Funds</h2>
-      <p class="text-xs sm:text-sm text-gray-500 mb-3">Enter the amount and wallet address to withdraw your FarmTokens.</p>
-      <div class="flex flex-col gap-2">
-        <input id="withdrawalAmount" type="number" placeholder="Enter amount (FT)" min="0" step="0.01" class="flex-1 border rounded-lg p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-green-500">
-        <input id="walletAddress" type="text" placeholder="Enter wallet address" class="flex-1 border rounded-lg p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-green-500">
-        <button id="withdrawBtn" class="bg-green-500 text-white px-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base hover:bg-green-600 transition-colors">Withdraw</button>
-      </div>
-      <p id="withdrawalStatus" class="text-xs sm:text-sm mt-2 sm:mt-3 hidden"></p>
-    </div>
-
-    <div class="bg-white shadow rounded-xl p-4 sm:p-6">
-      <h2 class="text-lg sm:text-xl font-semibold mb-3">Transaction History</h2>
-      <div id="transactionList" class="space-y-3">
-        <p class="text-gray-500 text-sm sm:text-base">No transactions yet.</p>
-      </div>
+    <div class="grid grid-cols-2 gap-3 mt-4">
+      <a href="History.html" class="home-button flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-teal-500 transition-all">Transaction History</a>
+      <a href="Withdraw.html" class="home-button flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-teal-500 transition-all">Withdraw Funds</a>
     </div>
   </section>
 
@@ -544,87 +531,98 @@
     // Function to load an ad into a container
     function loadAd(containerId, adConfig) {
       const container = document.getElementById(containerId);
-      container.innerHTML = ''; // Clear previous content
-      const script1 = document.createElement('script');
-      script1.type = 'text/javascript';
-      script1.innerHTML = `
-        atOptions = {
-          'key': '${adConfig.key}',
-          'format': '${adConfig.format}',
-          'height': ${adConfig.height},
-          'width': ${adConfig.width},
-          'params': {}
-        };
-      `;
-      const script2 = document.createElement('script');
-      script2.type = 'text/javascript';
-      script2.src = adConfig.src;
-      container.appendChild(script1);
-      container.appendChild(script2);
+      if (container) {
+        container.innerHTML = ''; // Clear previous content
+        const script1 = document.createElement('script');
+        script1.type = 'text/javascript';
+        script1.innerHTML = `
+          atOptions = {
+            'key': '${adConfig.key}',
+            'format': '${adConfig.format}',
+            'height': ${adConfig.height},
+            'width': ${adConfig.width},
+            'params': {}
+          };
+        `;
+        const script2 = document.createElement('script');
+        script2.type = 'text/javascript';
+        script2.src = adConfig.src;
+        container.appendChild(script1);
+        container.appendChild(script2);
+      }
     }
 
     // Show ad modal
     function showAdModal() {
       const adModal = document.getElementById('adModal');
-      loadAd('claimAd', getRandomAdConfig());
-      adModal.style.display = 'flex';
-      setTimeout(() => {
-        closeAdModal();
-      }, 5000); // Auto-close after 5 seconds
+      if (adModal) {
+        loadAd('claimAd', getRandomAdConfig());
+        adModal.style.display = 'flex';
+        setTimeout(() => {
+          closeAdModal();
+        }, 5000); // Auto-close after 5 seconds
+      }
     }
 
     // Close ad modal
     window.closeAdModal = function() {
-      document.getElementById('adModal').style.display = 'none';
+      const adModal = document.getElementById('adModal');
+      if (adModal) {
+        adModal.style.display = 'none';
+      }
     };
 
     // Load bottom ad on page load
     window.addEventListener('load', () => {
       loadAd('bottomAd', getRandomAdConfig());
-    });
 
-    // Navigation Indicator Enhancement
-    const navIndicator = document.getElementById('navIndicator');
-    const navBtns = {
-      home: document.getElementById('homeBtn'),
-      profile: document.getElementById('profileBtn'),
-      wallet: document.getElementById('walletBtn')
-    };
+      // Navigation Indicator Enhancement (moved here to ensure DOM is loaded)
+      const navIndicator = document.getElementById('navIndicator');
+      const homeBtn = document.getElementById('homeBtn');
+      const profileBtn = document.getElementById('profileBtn');
+      const walletBtn = document.getElementById('walletBtn');
 
-    function updateNavIndicator(btn) {
-      const btnRect = btn.getBoundingClientRect();
-      const parentRect = btn.parentElement.getBoundingClientRect();
-      const left = btnRect.left - parentRect.left;
-      const width = btnRect.width;
-      
-      navIndicator.style.left = `${left}px`;
-      navIndicator.style.width = `${width}px`;
-    }
+      if (navIndicator && homeBtn && profileBtn && walletBtn) {
+        const navBtns = {
+          home: homeBtn,
+          profile: profileBtn,
+          wallet: walletBtn
+        };
 
-    Object.keys(navBtns).forEach(key => {
-      navBtns[key].addEventListener('click', function() {
-        setTimeout(() => {
-          Object.values(navBtns).forEach(b => {
-            b.classList.remove('active', 'text-green-600');
-            b.classList.add('text-gray-600');
+        function updateNavIndicator(btn) {
+          const btnRect = btn.getBoundingClientRect();
+          const parentRect = btn.parentElement.getBoundingClientRect();
+          const left = btnRect.left - parentRect.left;
+          const width = btnRect.width;
+          
+          navIndicator.style.left = `${left}px`;
+          navIndicator.style.width = `${width}px`;
+        }
+
+        Object.keys(navBtns).forEach(key => {
+          navBtns[key].addEventListener('click', function() {
+            setTimeout(() => {
+              Object.values(navBtns).forEach(b => {
+                b.classList.remove('active', 'text-green-600');
+                b.classList.add('text-gray-600');
+              });
+              this.classList.add('active', 'text-green-600');
+              this.classList.remove('text-gray-600');
+              updateNavIndicator(this);
+            }, 50);
           });
-          this.classList.add('active', 'text-green-600');
-          this.classList.remove('text-gray-600');
-          updateNavIndicator(this);
-        }, 50);
-      });
-    });
+        });
 
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        const activeBtn = document.querySelector('.nav-btn.active') || navBtns.home;
-        updateNavIndicator(activeBtn);
-      }, 100);
-    });
+        setTimeout(() => {
+          const activeBtn = document.querySelector('.nav-btn.active') || navBtns.home;
+          updateNavIndicator(activeBtn);
+        }, 100);
 
-    window.addEventListener('resize', () => {
-      const activeBtn = document.querySelector('.nav-btn.active');
-      if (activeBtn) updateNavIndicator(activeBtn);
+        window.addEventListener('resize', () => {
+          const activeBtn = document.querySelector('.nav-btn.active');
+          if (activeBtn) updateNavIndicator(activeBtn);
+        });
+      }
     });
   </script>
   <script type="module" src="app.js"></script>
