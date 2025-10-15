@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="FarmToken - Transaction History">
+  <meta name="author" content="FarmToken Team">
+  <title>Transaction History - FarmToken</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-color: #f3f4f6;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 2px;
+    }
+
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #28a745;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .transaction-item {
+      transition: all 0.3s ease;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 12px 0;
+    }
+
+    .transaction-item:hover {
+      background-color: #f9fafb;
+    }
+
+    .transaction-item:last-child {
+      border-bottom: none;
+    }
+
+    .no-transactions {
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+      padding: 20px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-btn {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    @media (max-width: 640px) {
+      .transaction-item {
+        padding: 10px 0;
+      }
+      .no-transactions {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <header class="flex items-center justify-start px-4 py-3 shadow bg-white relative">
+    <div class="flex items-center gap-2">
+      <img src="Logo.png" alt="FarmToken Logo" class="h-10 w-10 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
+      <h1 class="text-xl sm:text-2xl font-bold text-red-600">Transaction History</h1>
+    </div>
+    <button onclick="goBack()" class="back-btn p-2 hover:bg-gray-100 rounded-lg transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </header>
+
+  <main class="p-4 max-w-lg mx-auto w-full flex-1">
+    <div class="bg-white shadow rounded-xl p-4 sm:p-6">
+      <h2 class="text-lg sm:text-xl font-semibold mb-4 text-gray-800">Your Transactions</h2>
+      <div id="transactionList" class="space-y-2">
+        <!-- Transactions will be populated here by JS -->
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAH9-GEeIVDe98wCziPHnDv5Q84BoQFXOQ",
+      authDomain: "farmtoken.firebaseapp.com",
+      databaseURL: "https://farmtoken-default-rtdb.firebaseio.com",
+      projectId: "farmtoken",
+      storageBucket: "farmtoken.firebasestorage.app",
+      messagingSenderId: "873508490805",
+      appId: "1:873508490805:web:6d2676c41aa60a289cab7c",
+      measurementId: "G-YZPTK2CP47"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    let currentUser = null;
+
+    // Function to go back to main page (assuming index.html or wallet section)
+    window.goBack = function() {
+      window.location.href = 'index.html#wallet';
+    };
+
+    // Populate transaction list
+    function populateTransactions(transactions) {
+      const transactionList = document.getElementById('transactionList');
+      if (!transactionList) return;
+
+      transactionList.innerHTML = '';
+
+      if (!transactions || Object.keys(transactions).length === 0) {
+        transactionList.innerHTML = '<p class="no-transactions">No transactions yet.</p>';
+        return;
+      }
+
+      // Sort transactions by timestamp (newest first)
+      const sortedTransactions = Object.entries(transactions)
+        .sort((a, b) => b[1].timestamp - a[1].timestamp);
+
+      sortedTransactions.forEach(([id, tx]) => {
+        const date = new Date(tx.timestamp).toLocaleString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric', 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: true
+        });
+        
+        // Parse amount correctly - handle multiple field names and formats
+        let amount = 0;
+        
+        // Try different field names that might contain the amount
+        const possibleFields = ['amount', 'tokens', 'value', 'reward', 'bonus'];
+        
+        for (let field of possibleFields) {
+          if (tx[field] !== undefined && tx[field] !== null) {
+            if (typeof tx[field] === 'number') {
+              amount = tx[field];
+              break;
+            } else if (typeof tx[field] === 'string') {
+              const parsed = parseFloat(tx[field].replace(/[^0-9.-]/g, ''));
+              if (!isNaN(parsed) && parsed !== 0) {
+                amount = parsed;
+                break;
+              }
+            }
+          }
+        }
+        
+        // Debug log to console (remove after testing)
+        console.log('Transaction:', tx.type, 'Amount found:', amount, 'Raw data:', tx);
+
+        const amountClass = (tx.type === 'withdrawal' || amount < 0) ? 'text-red-600' : 'text-green-600';
+        const amountSign = (tx.type === 'withdrawal' || amount < 0) ? '-' : '+';
+        const absAmount = Math.abs(amount);
+
+        let description = tx.description || 'Unknown Transaction';
+        if (tx.type === 'mining') description = 'Mining Reward Claimed';
+        if (tx.type === 'referral') description = 'Referral Bonus';
+        if (tx.type === 'withdrawal') description = 'Withdrawal';
+        if (tx.type === 'claim') description = 'Token Claimed';
+
+        transactionList.innerHTML += `
+          <div class="transaction-item">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <p class="text-sm sm:text-base font-medium text-gray-800">${description}</p>
+                <p class="text-xs sm:text-sm text-gray-500">${date}</p>
+                ${tx.note ? `<p class="text-xs text-gray-400 mt-1">${tx.note}</p>` : ''}
+              </div>
+              <p class="text-sm sm:text-base font-semibold ${amountClass} whitespace-nowrap ml-2">${amountSign}${absAmount.toFixed(2)} FT</p>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // Listen for auth state and fetch transactions
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        currentUser = user;
+        const userRef = ref(db, `users/${user.uid}/transactions`);
+        onValue(userRef, snapshot => {
+          const transactions = snapshot.val();
+          populateTransactions(transactions);
+        });
+      } else {
+        // Redirect to login if not authenticated
+        window.location.href = 'login.html';
+      }
+    });
+
+    // Hide loading after DOM is ready
+    window.addEventListener('load', () => {
+      const loading = document.getElementById('loading');
+      if (loading) loading.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
