@@ -30,67 +30,29 @@ const REFERRAL_BONUS = 5; // Bonus for referrals
 const REFERRAL_MILESTONE = 100; // Tokens mined by referee for referrer bonus
 const MINIMUM_WITHDRAWAL = 50; // Minimum tokens required for withdrawal
 
-const el = {
-  loading: document.getElementById('loading'),
-  authBtn: document.getElementById('authBtn'),
-  homeBtn: document.getElementById('homeBtn'),
-  profileBtn: document.getElementById('profileBtn'),
-  walletBtn: document.getElementById('walletBtn'),
-  homeSection: document.getElementById('homeSection'),
-  profileSection: document.getElementById('profileSection'),
-  walletSection: document.getElementById('walletSection'),
-  miningBtn: document.getElementById('miningBtn'),
-  claimReferralBtn: document.getElementById('claimReferralBtn'),
-  referralRewardsEl: document.getElementById('referralRewards'),
-  totalBalanceEl: document.getElementById('totalBalance'),
-  profileBalanceEl: document.getElementById('profileBalance'),
-  walletBalance: document.getElementById('walletBalance'),
-  totalMinedEl: document.getElementById('totalMined'),
-  totalMinedWallet: document.getElementById('totalMinedWallet'),
-  miningStatusEl: document.getElementById('miningStatus'),
-  miningRateEl: document.getElementById('miningRate'),
-  currentEarnedEl: document.getElementById('currentEarned'),
-  referralCountEl: document.getElementById('referralCount'),
-  refCodeEl: document.getElementById('refCode'),
-  joinDateEl: document.getElementById('joinDate'),
-  referralCodeInput: document.getElementById('referralCodeInput'),
-  submitReferralBtn: document.getElementById('submitReferralBtn'),
-  referralStatusEl: document.getElementById('referralStatus'),
-  referralSubmitBox: document.getElementById('referralSubmitBox'),
-  referralSubmittedBox: document.getElementById('referralSubmittedBox'),
-  earnedDisplayEl: document.getElementById('earnedDisplay'),
-  copyCode: document.getElementById('copyCode'),
-  shareWA: document.getElementById('shareWA'),
-  shareTG: document.getElementById('shareTG'),
-  settingsBtn: document.getElementById('settingsBtn'),
-  progressBar: document.getElementById('progressBar'),
-  levelText: document.getElementById('levelText'),
-  withdrawalAmount: document.getElementById('withdrawalAmount'),
-  walletAddress: document.getElementById('walletAddress'),
-  withdrawBtn: document.getElementById('withdrawBtn'),
-  withdrawalStatus: document.getElementById('withdrawalStatus'),
-  transactionList: document.getElementById('transactionList'),
-  notification: document.getElementById('notification')
-};
-
 // Notification helper
 function showNotification(message, type = 'success') {
-  el.notification.textContent = message;
-  el.notification.style.background = type === 'success' ? '#28a745' : '#dc3545';
-  el.notification.classList.add('show');
-  setTimeout(() => {
-    el.notification.classList.remove('show');
-  }, 3000);
+  const notification = document.getElementById('notification');
+  if (notification) {
+    notification.textContent = message;
+    notification.style.background = type === 'success' ? '#28a745' : '#dc3545';
+    notification.classList.add('show');
+    setTimeout(() => {
+      notification.classList.remove('show');
+    }, 3000);
+  }
 }
 
 // Show status message
 function showStatus(element, message, isError = false) {
-  element.textContent = message;
-  element.classList.remove('hidden', 'text-green-500', 'text-red-500');
-  element.classList.add(isError ? 'text-red-500' : 'text-green-500');
-  setTimeout(() => {
-    element.classList.add('hidden');
-  }, 3000);
+  if (element) {
+    element.textContent = message;
+    element.classList.remove('hidden', 'text-green-500', 'text-red-500');
+    element.classList.add(isError ? 'text-red-500' : 'text-green-500');
+    setTimeout(() => {
+      element.classList.add('hidden');
+    }, 3000);
+  }
 }
 
 // Generate unique referral code
@@ -108,28 +70,56 @@ function formatTime(seconds) {
 
 // Switch sections (Home/Profile/Wallet)
 function switchSection(section) {
-  el.homeSection.classList.remove('active');
-  el.profileSection.classList.remove('active');
-  el.walletSection.classList.remove('active');
-  el.homeBtn.classList.remove('text-green-600', 'font-semibold', 'border-t-2', 'border-green-600');
-  el.profileBtn.classList.remove('text-green-600', 'font-semibold', 'border-t-2', 'border-green-600');
-  el.walletBtn.classList.remove('text-green-600', 'font-semibold', 'border-t-2', 'border-green-600');
+  const homeSection = document.getElementById('homeSection');
+  const profileSection = document.getElementById('profileSection');
+  const walletSection = document.getElementById('walletSection');
+  const homeBtn = document.getElementById('homeBtn');
+  const profileBtn = document.getElementById('profileBtn');
+  const walletBtn = document.getElementById('walletBtn');
 
-  if (section === 'home') {
-    el.homeSection.classList.add('active');
-    el.homeBtn.classList.add('text-green-600', 'font-semibold', 'border-t-2', 'border-green-600');
-  } else if (section === 'profile') {
-    el.profileSection.classList.add('active');
-    el.profileBtn.classList.add('text-green-600', 'font-semibold', 'border-t-2', 'border-green-600');
-  } else if (section === 'wallet') {
-    el.walletSection.classList.add('active');
-    el.walletBtn.classList.add('text-green-600', 'font-semibold', 'border-t-2', 'border-green-600');
+  if (homeSection) homeSection.classList.remove('active');
+  if (profileSection) profileSection.classList.remove('active');
+  if (walletSection) walletSection.classList.remove('active');
+  if (homeBtn) homeBtn.classList.remove('text-green-600', 'font-semibold', 'border-t-2', 'border-green-600');
+  if (profileBtn) profileBtn.classList.remove('text-green-600', 'font-semibold', 'border-t-2', 'border-green-600');
+  if (walletBtn) walletBtn.classList.remove('text-green-600', 'font-semibold', 'border-t-2', 'border-green-600');
+
+  if (section === 'home' && homeSection && homeBtn) {
+    homeSection.classList.add('active');
+    homeBtn.classList.add('text-green-600', 'font-semibold', 'border-t-2', 'border-green-600');
+  } else if (section === 'profile' && profileSection && profileBtn) {
+    profileSection.classList.add('active');
+    profileBtn.classList.add('text-green-600', 'font-semibold', 'border-t-2', 'border-green-600');
+  } else if (section === 'wallet' && walletSection && walletBtn) {
+    walletSection.classList.add('active');
+    walletBtn.classList.add('text-green-600', 'font-semibold', 'border-t-2', 'border-green-600');
   }
 }
 
 // Update UI with user data
 function updateUI() {
   if (!userData) return;
+
+  const totalBalanceEl = document.getElementById('totalBalance');
+  const profileBalanceEl = document.getElementById('profileBalance');
+  const walletBalance = document.getElementById('walletBalance');
+  const miningRateEl = document.getElementById('miningRate');
+  const referralCountEl = document.getElementById('referralCount');
+  const totalMinedEl = document.getElementById('totalMined');
+  const totalMinedWallet = document.getElementById('totalMinedWallet');
+  const currentEarnedEl = document.getElementById('currentEarned');
+  const referralRewardsEl = document.getElementById('referralRewards');
+  const refCodeEl = document.getElementById('refCode');
+  const joinDateEl = document.getElementById('joinDate');
+  const earnedDisplayEl = document.getElementById('earnedDisplay');
+  const progressBar = document.getElementById('progressBar');
+  const levelText = document.getElementById('levelText');
+  const claimReferralBtn = document.getElementById('claimReferralBtn');
+  const referralSubmitBox = document.getElementById('referralSubmitBox');
+  const referralSubmittedBox = document.getElementById('referralSubmittedBox');
+  const miningBtn = document.getElementById('miningBtn');
+  const miningStatusEl = document.getElementById('miningStatus');
+
   const balance = (userData.balance || 0).toFixed(2);
   const totalMined = (userData.totalMined || 0).toFixed(2);
   const miningRate = (REWARD_PER_SECOND * 3600).toFixed(4);
@@ -139,84 +129,64 @@ function updateUI() {
   const progress = Math.min((userData.totalMined || 0) / MILESTONE_TOKENS * 100, 100);
   const level = Math.min(Math.floor((userData.totalMined || 0) / MILESTONE_TOKENS) + 1, 5);
 
-  el.totalBalanceEl.textContent = `${balance} FT`;
-  el.profileBalanceEl.textContent = `${balance} FT`;
-  el.walletBalance.textContent = `${balance} FT`;
-  el.miningRateEl.textContent = `${miningRate}/hr`;
-  el.referralCountEl.textContent = referralCount;
-  el.totalMinedEl.textContent = `${totalMined} FT`;
-  el.totalMinedWallet.textContent = `${totalMined} FT`;
-  el.currentEarnedEl.textContent = `${currentEarned} FT`;
-  el.referralRewardsEl.textContent = `${referralRewards} FT`;
-  el.refCodeEl.textContent = userData.referralCode || '---';
-  el.joinDateEl.textContent = userData.joinDate || '---';
-  el.earnedDisplayEl.textContent = `${currentEarned} FT`;
-  el.progressBar.style.width = `${progress}%`;
-  el.levelText.textContent = `Level ${level} / 5`;
+  if (totalBalanceEl) totalBalanceEl.textContent = `${balance} FT`;
+  if (profileBalanceEl) profileBalanceEl.textContent = `${balance} FT`;
+  if (walletBalance) walletBalance.textContent = `${balance} FT`;
+  if (miningRateEl) miningRateEl.textContent = `${miningRate}/hr`;
+  if (referralCountEl) referralCountEl.textContent = referralCount;
+  if (totalMinedEl) totalMinedEl.textContent = `${totalMined} FT`;
+  if (totalMinedWallet) totalMinedWallet.textContent = `${totalMined} FT`;
+  if (currentEarnedEl) currentEarnedEl.textContent = `${currentEarned} FT`;
+  if (referralRewardsEl) referralRewardsEl.textContent = `${referralRewards} FT`;
+  if (refCodeEl) refCodeEl.textContent = userData.referralCode || '---';
+  if (joinDateEl) joinDateEl.textContent = userData.joinDate || '---';
+  if (earnedDisplayEl) earnedDisplayEl.textContent = `${currentEarned} FT`;
+  if (progressBar) progressBar.style.width = `${progress}%`;
+  if (levelText) levelText.textContent = `Level ${level} / 5`;
 
-  const transactions = userData.transactions || {};
-  el.transactionList.innerHTML = '';
-  
-  if (Object.keys(transactions).length === 0) {
-    el.transactionList.innerHTML = '<p class="text-gray-500 text-sm sm:text-base">No transactions yet.</p>';
-  } else {
-    // Sort transactions by timestamp (newest first)
-    const sortedTransactions = Object.entries(transactions).sort((a, b) => b[1].timestamp - a[1].timestamp);
-    
-    sortedTransactions.forEach(([id, tx]) => {
-      const date = new Date(tx.timestamp).toLocaleString();
-      const amount = parseFloat(tx.amount) || 0; // Ensure amount is a number
-      const amountClass = tx.type === 'withdrawal' ? 'text-red-600' : 'text-green-600';
-      const amountSign = tx.type === 'withdrawal' ? '-' : '+';
-      
-      el.transactionList.innerHTML += `
-        <div class="transaction-item border-b pb-2 sm:pb-3">
-          <div class="flex justify-between">
-            <p class="text-sm sm:text-base text-gray-600">${tx.description}</p>
-            <p class="text-sm sm:text-base font-semibold ${amountClass}">${amountSign}${amount.toFixed(2)} FT</p>
-          </div>
-          <p class="text-xs sm:text-sm text-gray-500">${date}</p>
-        </div>
-      `;
-    });
+  // Note: Transaction list removed from wallet section in HTML, so skipped here
+  // If needed in History.html, handle separately
+
+  if (claimReferralBtn) {
+    claimReferralBtn.style.display = (userData.referralRewards > 0) ? 'block' : 'none';
   }
 
-  if (userData.referralRewards > 0) {
-    el.claimReferralBtn.style.display = 'block';
-  } else {
-    el.claimReferralBtn.style.display = 'none';
-  }
-
-  if (userData.referredBy) {
-    el.referralSubmitBox.style.display = 'none';
-    el.referralSubmittedBox.style.display = 'block';
-  } else {
-    el.referralSubmitBox.style.display = 'block';
-    el.referralSubmittedBox.style.display = 'none';
-  }
-
-  if (userData.miningStartTime && userData.miningEndTime && Date.now() < userData.miningEndTime) {
-    el.miningBtn.disabled = true;
-    el.miningStatusEl.textContent = 'Active';
-    el.miningStatusEl.classList.add('text-green-600');
-    if (!countdownInterval) {
-      startCountdown(userData.miningEndTime);
+  if (referralSubmitBox && referralSubmittedBox) {
+    if (userData.referredBy) {
+      referralSubmitBox.style.display = 'none';
+      referralSubmittedBox.style.display = 'block';
+    } else {
+      referralSubmitBox.style.display = 'block';
+      referralSubmittedBox.style.display = 'none';
     }
-    if (!miningInterval) {
-      miningInterval = setInterval(updateMining, 1000);
+  }
+
+  if (miningBtn && miningStatusEl) {
+    if (userData.miningStartTime && userData.miningEndTime && Date.now() < userData.miningEndTime) {
+      miningBtn.disabled = true;
+      miningStatusEl.textContent = 'Active';
+      miningStatusEl.classList.add('text-green-600');
+      if (!countdownInterval) {
+        startCountdown(userData.miningEndTime);
+      }
+      if (!miningInterval) {
+        miningInterval = setInterval(updateMining, 1000);
+      }
+    } else if (userData.currentEarned >= TOTAL_REWARD) {
+      miningBtn.classList.add('claim');
+      miningBtn.disabled = false;
+      const timerDisplay = miningBtn.querySelector('.timer-display');
+      if (timerDisplay) timerDisplay.textContent = 'Claim';
+      miningStatusEl.textContent = 'Ready to Claim';
+      miningStatusEl.classList.remove('text-green-600');
+    } else {
+      miningBtn.classList.remove('claim');
+      miningBtn.disabled = false;
+      const timerDisplay = miningBtn.querySelector('.timer-display');
+      if (timerDisplay) timerDisplay.textContent = 'Start Mining';
+      miningStatusEl.textContent = 'Inactive';
+      miningStatusEl.classList.remove('text-green-600');
     }
-  } else if (userData.currentEarned >= TOTAL_REWARD) {
-    el.miningBtn.classList.add('claim');
-    el.miningBtn.disabled = false;
-    el.miningBtn.querySelector('.timer-display').textContent = 'Claim';
-    el.miningStatusEl.textContent = 'Ready to Claim';
-    el.miningStatusEl.classList.remove('text-green-600');
-  } else {
-    el.miningBtn.classList.remove('claim');
-    el.miningBtn.disabled = false;
-    el.miningBtn.querySelector('.timer-display').textContent = 'Start Mining';
-    el.miningStatusEl.textContent = 'Inactive';
-    el.miningStatusEl.classList.remove('text-green-600');
   }
 }
 
@@ -249,7 +219,8 @@ function startCountdown(endTime) {
     const now = Date.now();
     const secondsLeft = Math.max(0, Math.floor((endTime - now) / 1000));
     
-    const timerDisplay = el.miningBtn.querySelector('.timer-display');
+    const miningBtn = document.getElementById('miningBtn');
+    const timerDisplay = miningBtn ? miningBtn.querySelector('.timer-display') : null;
     if (timerDisplay) {
       timerDisplay.textContent = formatTime(secondsLeft);
     } else {
@@ -266,11 +237,13 @@ function startCountdown(endTime) {
       stopMining();
       const userRef = ref(db, `users/${currentUser.uid}`);
       update(userRef, { currentEarned: TOTAL_REWARD }).then(() => {
-        el.miningBtn.classList.add('claim');
-        el.miningBtn.disabled = false;
-        timerDisplay.textContent = 'Claim';
-        el.miningStatusEl.textContent = 'Ready to Claim';
-        el.miningStatusEl.classList.remove('text-green-600');
+        const miningBtn = document.getElementById('miningBtn');
+        const miningStatusEl = document.getElementById('miningStatus');
+        if (miningBtn) miningBtn.classList.add('claim');
+        if (miningBtn) miningBtn.disabled = false;
+        if (timerDisplay) timerDisplay.textContent = 'Claim';
+        if (miningStatusEl) miningStatusEl.textContent = 'Ready to Claim';
+        if (miningStatusEl) miningStatusEl.classList.remove('text-green-600');
         showNotification('Mining session completed! Ready to claim 6 FT.');
       }).catch(err => {
         console.error('Error setting final reward:', err);
@@ -301,9 +274,11 @@ function startMining() {
     miningEndTime: endTime,
     currentEarned: 0
   }).then(() => {
-    el.miningBtn.disabled = true;
-    el.miningStatusEl.textContent = 'Active';
-    el.miningStatusEl.classList.add('text-green-600');
+    const miningBtn = document.getElementById('miningBtn');
+    const miningStatusEl = document.getElementById('miningStatus');
+    if (miningBtn) miningBtn.disabled = true;
+    if (miningStatusEl) miningStatusEl.textContent = 'Active';
+    if (miningStatusEl) miningStatusEl.classList.add('text-green-600');
     miningInterval = setInterval(updateMining, 1000);
     startCountdown(endTime);
     showNotification('Mining started! Session will run for 8 hours.');
@@ -332,8 +307,10 @@ function updateMining() {
     showNotification('Error updating mining progress.', 'error');
   });
 
-  el.currentEarnedEl.textContent = `${currentEarned.toFixed(6)} FT`;
-  el.earnedDisplayEl.textContent = `${currentEarned.toFixed(6)} FT`;
+  const currentEarnedEl = document.getElementById('currentEarned');
+  const earnedDisplayEl = document.getElementById('earnedDisplay');
+  if (currentEarnedEl) currentEarnedEl.textContent = `${currentEarned.toFixed(6)} FT`;
+  if (earnedDisplayEl) earnedDisplayEl.textContent = `${currentEarned.toFixed(6)} FT`;
 }
 
 // Stop mining session
@@ -342,14 +319,14 @@ function stopMining() {
   clearInterval(countdownInterval);
   miningInterval = null;
   countdownInterval = null;
-  el.miningBtn.classList.add('claim');
-  el.miningBtn.disabled = false;
-  const timerDisplay = el.miningBtn.querySelector('.timer-display');
-  if (timerDisplay) {
-    timerDisplay.textContent = 'Claim';
-  }
-  el.miningStatusEl.textContent = 'Ready to Claim';
-  el.miningStatusEl.classList.remove('text-green-600');
+  const miningBtn = document.getElementById('miningBtn');
+  const miningStatusEl = document.getElementById('miningStatus');
+  if (miningBtn) miningBtn.classList.add('claim');
+  if (miningBtn) miningBtn.disabled = false;
+  const timerDisplay = miningBtn ? miningBtn.querySelector('.timer-display') : null;
+  if (timerDisplay) timerDisplay.textContent = 'Claim';
+  if (miningStatusEl) miningStatusEl.textContent = 'Ready to Claim';
+  if (miningStatusEl) miningStatusEl.classList.remove('text-green-600');
 }
 
 // Check referral milestones for referrers
@@ -432,9 +409,12 @@ async function claimMiningReward() {
       await checkReferralMilestones(currentUser.uid);
     }
 
-    el.miningBtn.classList.remove('claim');
-    el.miningBtn.querySelector('.timer-display').textContent = 'Start Mining';
-    el.miningStatusEl.textContent = 'Inactive';
+    const miningBtn = document.getElementById('miningBtn');
+    const miningStatusEl = document.getElementById('miningStatus');
+    if (miningBtn) miningBtn.classList.remove('claim');
+    const timerDisplay = miningBtn ? miningBtn.querySelector('.timer-display') : null;
+    if (timerDisplay) timerDisplay.textContent = 'Start Mining';
+    if (miningStatusEl) miningStatusEl.textContent = 'Inactive';
     showNotification(`Claimed ${userData.currentEarned.toFixed(6)} FT!`);
     updateUI();
   } catch (err) {
@@ -478,23 +458,25 @@ async function claimReferralRewards() {
 
 // Submit referral code
 async function submitReferralCode() {
-  const code = el.referralCodeInput.value.trim().toUpperCase();
+  const referralCodeInput = document.getElementById('referralCodeInput');
+  const referralStatusEl = document.getElementById('referralStatus');
+  const code = referralCodeInput ? referralCodeInput.value.trim().toUpperCase() : '';
   
   // Validate input
   if (!code) {
-    showStatus(el.referralStatusEl, 'Please enter a referral code.', true);
+    showStatus(referralStatusEl, 'Please enter a referral code.', true);
     return;
   }
 
   // Check if already submitted
   if (userData.referredBy) {
-    showStatus(el.referralStatusEl, 'You have already submitted a referral code.', true);
+    showStatus(referralStatusEl, 'You have already submitted a referral code.', true);
     return;
   }
 
   // Check if using own code
   if (code === userData.referralCode) {
-    showStatus(el.referralStatusEl, 'You cannot use your own referral code.', true);
+    showStatus(referralStatusEl, 'You cannot use your own referral code.', true);
     return;
   }
 
@@ -511,7 +493,7 @@ async function submitReferralCode() {
     // Check if referral code exists
     if (!snapshot.exists()) {
       console.log('Referral code not found');
-      showStatus(el.referralStatusEl, 'Invalid referral code. Please check and try again.', true);
+      showStatus(referralStatusEl, 'Invalid referral code. Please check and try again.', true);
       return;
     }
 
@@ -524,7 +506,7 @@ async function submitReferralCode() {
 
     // Prevent self-referral by UID
     if (referrerId === currentUser.uid) {
-      showStatus(el.referralStatusEl, 'You cannot use your own referral code.', true);
+      showStatus(referralStatusEl, 'You cannot use your own referral code.', true);
       return;
     }
 
@@ -568,8 +550,8 @@ async function submitReferralCode() {
     console.log('Transactions created successfully');
 
     // Success feedback
-    showStatus(el.referralStatusEl, `Success! You and your referrer each received ${REFERRAL_BONUS} FT bonus!`);
-    el.referralCodeInput.value = '';
+    showStatus(referralStatusEl, `Success! You and your referrer each received ${REFERRAL_BONUS} FT bonus!`);
+    if (referralCodeInput) referralCodeInput.value = '';
     showNotification(`Referral code applied! Both you and your referrer received ${REFERRAL_BONUS} FT!`);
     
     // Update UI
@@ -579,14 +561,15 @@ async function submitReferralCode() {
     console.error('Referral error details:', err);
     console.error('Error message:', err.message);
     console.error('Error code:', err.code);
-    showStatus(el.referralStatusEl, `Error: ${err.message || 'Failed to submit referral code.'}`, true);
+    showStatus(referralStatusEl, `Error: ${err.message || 'Failed to submit referral code.'}`, true);
     showNotification('Failed to submit referral code. Please try again.', 'error');
   }
 }
 
 // Copy referral code
 function copyReferralCode() {
-  const code = el.refCodeEl.textContent;
+  const refCodeEl = document.getElementById('refCode');
+  const code = refCodeEl ? refCodeEl.textContent : '';
   if (code === '---') {
     showNotification('No referral code available. Please refresh the page.', 'error');
     return;
@@ -602,7 +585,8 @@ function copyReferralCode() {
 
 // Share referral code
 function shareReferralCode(platform) {
-  const code = el.refCodeEl.textContent;
+  const refCodeEl = document.getElementById('refCode');
+  const code = refCodeEl ? refCodeEl.textContent : '';
   if (code === '---') {
     showNotification('No referral code available. Please refresh the page.', 'error');
     return;
@@ -617,14 +601,6 @@ function shareReferralCode(platform) {
   }
   window.open(url, '_blank');
   showNotification(`Shared referral code on ${platform.charAt(0).toUpperCase() + platform.slice(1)}!`);
-}
-
-// Initiate withdrawal
-function initiateWithdrawal() {
-  showStatus(el.withdrawalStatus, 'Withdrawal feature coming soon!', false);
-  showNotification('Withdrawal feature is coming soon!', 'info');
-  el.withdrawalAmount.value = '';
-  el.walletAddress.value = '';
 }
 
 // Navigate to settings page
@@ -688,28 +664,40 @@ async function initializeUserData(user) {
 }
 
 // Event listeners
-window.addEventListener('load', () => {
-  el.loading.style.display = 'none';
-});
+document.addEventListener('DOMContentLoaded', () => {
+  const loading = document.getElementById('loading');
+  if (loading) loading.style.display = 'none';
 
-el.homeBtn.addEventListener('click', () => switchSection('home'));
-el.profileBtn.addEventListener('click', () => switchSection('profile'));
-el.walletBtn.addEventListener('click', () => switchSection('wallet'));
-el.miningBtn.addEventListener('click', () => {
-  if (el.miningBtn.classList.contains('claim')) {
-    claimMiningReward();
-  } else {
-    startMining();
-  }
+  const homeBtn = document.getElementById('homeBtn');
+  const profileBtn = document.getElementById('profileBtn');
+  const walletBtn = document.getElementById('walletBtn');
+  const miningBtn = document.getElementById('miningBtn');
+  const claimReferralBtn = document.getElementById('claimReferralBtn');
+  const submitReferralBtn = document.getElementById('submitReferralBtn');
+  const copyCode = document.getElementById('copyCode');
+  const shareWA = document.getElementById('shareWA');
+  const shareTG = document.getElementById('shareTG');
+  const settingsBtn = document.getElementById('settingsBtn');
+  const authBtn = document.getElementById('authBtn');
+
+  if (homeBtn) homeBtn.addEventListener('click', () => switchSection('home'));
+  if (profileBtn) profileBtn.addEventListener('click', () => switchSection('profile'));
+  if (walletBtn) walletBtn.addEventListener('click', () => switchSection('wallet'));
+  if (miningBtn) miningBtn.addEventListener('click', () => {
+    if (miningBtn.classList.contains('claim')) {
+      claimMiningReward();
+    } else {
+      startMining();
+    }
+  });
+  if (claimReferralBtn) claimReferralBtn.addEventListener('click', claimReferralRewards);
+  if (submitReferralBtn) submitReferralBtn.addEventListener('click', submitReferralCode);
+  if (copyCode) copyCode.addEventListener('click', copyReferralCode);
+  if (shareWA) shareWA.addEventListener('click', () => shareReferralCode('whatsapp'));
+  if (shareTG) shareTG.addEventListener('click', () => shareReferralCode('telegram'));
+  if (settingsBtn) settingsBtn.addEventListener('click', goToSettings);
+  if (authBtn) authBtn.addEventListener('click', logout);
 });
-el.claimReferralBtn.addEventListener('click', claimReferralRewards);
-el.submitReferralBtn.addEventListener('click', submitReferralCode);
-el.copyCode.addEventListener('click', copyReferralCode);
-el.shareWA.addEventListener('click', () => shareReferralCode('whatsapp'));
-el.shareTG.addEventListener('click', () => shareReferralCode('telegram'));
-el.withdrawBtn.addEventListener('click', initiateWithdrawal);
-el.settingsBtn.addEventListener('click', goToSettings);
-el.authBtn.addEventListener('click', logout);
 
 // Authentication state listener
 onAuthStateChanged(auth, user => {
