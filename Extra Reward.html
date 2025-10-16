@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FarmToken | Extra Reward</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background-color: #f9fafb;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 70px;
+    }
+    .fade-in {
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #10b981;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 10000;
+      animation: slideIn 0.3s ease;
+      font-size: 14px;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(400px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3b82f6;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .ad-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      padding: 20px;
+    }
+    .ad-modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      position: relative;
+      max-width: 750px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    .ad-container {
+      margin: 15px 0;
+      min-height: 90px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+    .countdown-timer {
+      font-size: 36px;
+      font-weight: bold;
+      color: #3b82f6;
+      margin: 15px 0;
+    }
+    @media (max-width: 640px) {
+      .ad-modal-content {
+        padding: 16px;
+      }
+      .countdown-timer {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+
+  <!-- Header -->
+  <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-10">
+    <div class="flex items-center gap-2">
+      <img src="Logo.png" alt="FarmToken Logo" class="h-10 w-10 object-contain"
+        onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
+      <h1 class="text-xl sm:text-2xl font-bold text-red-600">FarmToken</h1>
+    </div>
+    <button onclick="window.location.href='index.html'" class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-teal-400 text-white hover:from-green-600 hover:to-teal-500 transition-all">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+    </button>
+  </header>
+
+  <!-- Ad Modal -->
+  <div id="adModal" class="ad-modal">
+    <div class="ad-modal-content">
+      <h2 class="text-xl font-bold text-gray-800 mb-1">Watch Ad to Earn</h2>
+      <p class="text-sm text-gray-600 mb-3">Ad <span id="currentAdNum">1</span> of 4</p>
+      
+      <div class="countdown-timer" id="countdownTimer">5</div>
+      
+      <div class="ad-container" id="adContainer">
+        <div class="spinner"></div>
+      </div>
+      
+      <button id="skipBtn" class="w-full py-2.5 rounded-lg text-base font-semibold transition-all bg-gray-300 text-gray-500 cursor-not-allowed" disabled>
+        Please wait...
+      </button>
+    </div>
+  </div>
+
+  <!-- Extra Reward Section -->
+  <main class="flex-1 px-4 py-4 fade-in">
+    <div class="max-w-lg mx-auto space-y-3">
+      <div id="loading-state" class="text-center py-8">
+        <div class="spinner mb-3"></div>
+        <p class="text-sm text-gray-600">Loading...</p>
+      </div>
+
+      <!-- Watch Ads Task -->
+      <div id="reward-info" class="bg-white rounded-lg shadow p-4" style="display: none;">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg p-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h3 class="font-bold text-gray-800">Watch Ads</h3>
+            <p class="text-xs text-gray-600">4 ads = 5 FT Tokens</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mb-3">
+          <div class="bg-gray-50 p-2 rounded-lg text-center">
+            <p class="text-xs text-gray-600">Progress</p>
+            <p class="text-lg font-bold text-green-600" id="adsWatched">0/4</p>
+          </div>
+          <div class="bg-gray-50 p-2 rounded-lg text-center">
+            <p class="text-xs text-gray-600">Earned</p>
+            <p class="text-lg font-bold text-blue-600" id="tokensEarned">0 FT</p>
+          </div>
+        </div>
+
+        <button id="watchAdBtn" class="w-full py-2.5 rounded-lg text-sm font-semibold transition-all bg-gradient-to-r from-green-500 to-teal-400 text-white hover:from-green-600 hover:to-teal-500">
+          <span id="btnText">🎬 Watch Ads & Earn</span>
+        </button>
+
+        <div id="cooldownInfo" class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-center text-xs" style="display: none;">
+          <p class="text-yellow-800 font-semibold">Come back tomorrow!</p>
+          <p class="text-yellow-700 mt-1">Next: <span id="cooldownTimer" class="font-bold">--:--:--</span></p>
+        </div>
+      </div>
+
+      <!-- Additional tasks will be added here -->
+      
+    </div>
+  </main>
+
+  <!-- Bottom Ad -->
+  <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10 flex justify-center items-center p-2" id="bottomAd">
+    <div class="spinner"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAH9-GEeIVDe98wCziPHnDv5Q84BoQFXOQ",
+      authDomain: "farmtoken.firebaseapp.com",
+      databaseURL: "https://farmtoken-default-rtdb.firebaseio.com",
+      projectId: "farmtoken",
+      storageBucket: "farmtoken.firebasestorage.app",
+      messagingSenderId: "873508490805",
+      appId: "1:873508490805:web:6d2676c41aa60a289cab7c",
+      measurementId: "G-YZPTK2CP47"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+
+    const adConfigs = [
+      { key: '63718988f07bc6d276f3c6a441757cae', format: 'iframe', height: 90, width: 728, src: '//www.highperformanceformat.com/63718988f07bc6d276f3c6a441757cae/invoke.js' },
+      { key: '53c6462d2fd5ad5b91686ca9561f79a2', format: 'iframe', height: 90, width: 728, src: '//www.highperformanceformat.com/53c6462d2fd5ad5b91686ca9561f79a2/invoke.js' },
+      { key: '78ade24182729fceea8e45203dad915b', format: 'iframe', height: 50, width: 320, src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js' },
+      { key: '63718988f07bc6d276f3c6a441757cae', format: 'iframe', height: 90, width: 728, src: '//www.highperformanceformat.com/63718988f07bc6d276f3c6a441757cae/invoke.js' }
+    ];
+
+    let userData = null;
+    let userId = null;
+    let currentAdIndex = 0;
+    let countdownInterval = null;
+    let cooldownInterval = null;
+
+    const el = {
+      loadingState: document.getElementById('loading-state'),
+      rewardInfo: document.getElementById('reward-info'),
+      watchAdBtn: document.getElementById('watchAdBtn'),
+      btnText: document.getElementById('btnText'),
+      adsWatched: document.getElementById('adsWatched'),
+      tokensEarned: document.getElementById('tokensEarned'),
+      cooldownInfo: document.getElementById('cooldownInfo'),
+      cooldownTimer: document.getElementById('cooldownTimer'),
+      adModal: document.getElementById('adModal'),
+      countdownTimer: document.getElementById('countdownTimer'),
+      currentAdNum: document.getElementById('currentAdNum'),
+      skipBtn: document.getElementById('skipBtn'),
+      adContainer: document.getElementById('adContainer')
+    };
+
+    function showToast(msg, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      if (type === 'error') toast.style.background = '#ef4444';
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        userId = user.uid;
+        loadUserData();
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
+
+    async function loadUserData() {
+      try {
+        const userRef = ref(database, 'users/' + userId);
+        const snapshot = await get(userRef);
+        
+        if (snapshot.exists()) {
+          userData = snapshot.val();
+          if (!userData.extraReward) {
+            userData.extraReward = { adsWatched: 0, lastRewardTime: 0, totalEarned: 0 };
+          }
+          updateUI();
+        } else {
+          showToast('User data not found', 'error');
+          setTimeout(() => window.location.href = 'index.html', 2000);
+        }
+      } catch (error) {
+        showToast('Failed to load data', 'error');
+      }
+    }
+
+    function updateUI() {
+      el.loadingState.style.display = 'none';
+      el.rewardInfo.style.display = 'block';
+      
+      const adsWatched = userData.extraReward.adsWatched || 0;
+      const lastRewardTime = userData.extraReward.lastRewardTime || 0;
+      const now = Date.now();
+      const timeSinceLastReward = now - lastRewardTime;
+      const oneDayMs = 24 * 60 * 60 * 1000;
+      
+      if (timeSinceLastReward >= oneDayMs || adsWatched === 0) {
+        el.adsWatched.textContent = `0/4`;
+        el.tokensEarned.textContent = `0 FT`;
+        el.watchAdBtn.disabled = false;
+        el.watchAdBtn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+        el.watchAdBtn.classList.add('bg-gradient-to-r', 'from-green-500', 'to-teal-400');
+        el.cooldownInfo.style.display = 'none';
+      } else if (adsWatched >= 4) {
+        el.adsWatched.textContent = `${adsWatched}/4`;
+        el.tokensEarned.textContent = `5 FT`;
+        el.watchAdBtn.disabled = true;
+        el.watchAdBtn.classList.remove('bg-gradient-to-r', 'from-green-500', 'to-teal-400');
+        el.watchAdBtn.classList.add('bg-gray-300', 'cursor-not-allowed');
+        el.btnText.textContent = '✅ Completed';
+        el.cooldownInfo.style.display = 'block';
+        startCooldownTimer(lastRewardTime + oneDayMs);
+      } else {
+        const earned = ((adsWatched / 4) * 5).toFixed(2);
+        el.adsWatched.textContent = `${adsWatched}/4`;
+        el.tokensEarned.textContent = `${earned} FT`;
+        el.watchAdBtn.disabled = false;
+        el.cooldownInfo.style.display = 'none';
+      }
+    }
+
+    function startCooldownTimer(targetTime) {
+      function updateCooldown() {
+        const remaining = targetTime - Date.now();
+        if (remaining <= 0) {
+          clearInterval(cooldownInterval);
+          updateUI();
+          return;
+        }
+        const h = Math.floor(remaining / 3600000);
+        const m = Math.floor((remaining % 3600000) / 60000);
+        const s = Math.floor((remaining % 60000) / 1000);
+        el.cooldownTimer.textContent = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      }
+      updateCooldown();
+      cooldownInterval = setInterval(updateCooldown, 1000);
+    }
+
+    function loadAd(adConfig) {
+      el.adContainer.innerHTML = '';
+      const script1 = document.createElement('script');
+      script1.type = 'text/javascript';
+      script1.innerHTML = `atOptions = {'key': '${adConfig.key}','format': '${adConfig.format}','height': ${adConfig.height},'width': ${adConfig.width},'params': {}};`;
+      const script2 = document.createElement('script');
+      script2.type = 'text/javascript';
+      script2.src = adConfig.src;
+      el.adContainer.appendChild(script1);
+      el.adContainer.appendChild(script2);
+    }
+
+    function showAdModal() {
+      currentAdIndex = 0;
+      el.adModal.style.display = 'flex';
+      showNextAd();
+    }
+
+    function showNextAd() {
+      if (currentAdIndex >= 4) {
+        closeAdModal();
+        completeReward();
+        return;
+      }
+      
+      const adNum = currentAdIndex + 1;
+      el.currentAdNum.textContent = adNum;
+      el.skipBtn.disabled = true;
+      el.skipBtn.textContent = 'Please wait...';
+      el.skipBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+      el.skipBtn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+      
+      loadAd(adConfigs[currentAdIndex]);
+      
+      let countdown = 5;
+      el.countdownTimer.textContent = countdown;
+      
+      countdownInterval = setInterval(() => {
+        countdown--;
+        el.countdownTimer.textContent = countdown;
+        
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+          el.skipBtn.disabled = false;
+          el.skipBtn.textContent = adNum === 4 ? '✅ Claim Reward' : 'Next Ad ➡️';
+          el.skipBtn.classList.remove('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+          el.skipBtn.classList.add('bg-green-500', 'hover:bg-green-600', 'text-white');
+        }
+      }, 1000);
+    }
+
+    function closeAdModal() {
+      el.adModal.style.display = 'none';
+      if (countdownInterval) clearInterval(countdownInterval);
+    }
+
+    async function completeReward() {
+      try {
+        const userRef = ref(database, 'users/' + userId);
+        const snapshot = await get(userRef);
+        
+        if (snapshot.exists()) {
+          const currentData = snapshot.val();
+          const currentBalance = currentData.balance || 0;
+          const currentExtraReward = currentData.extraReward || { adsWatched: 0, lastRewardTime: 0, totalEarned: 0 };
+          
+          await update(userRef, {
+            balance: currentBalance + 5,
+            extraReward: {
+              adsWatched: 4,
+              lastRewardTime: Date.now(),
+              totalEarned: (currentExtraReward.totalEarned || 0) + 5
+            }
+          });
+          
+          userData.balance = currentBalance + 5;
+          userData.extraReward = { adsWatched: 4, lastRewardTime: Date.now(), totalEarned: (currentExtraReward.totalEarned || 0) + 5 };
+          
+          showToast('🎉 You earned 5 FT tokens!');
+          updateUI();
+        }
+      } catch (error) {
+        showToast('Failed to claim reward', 'error');
+      }
+    }
+
+    el.watchAdBtn.addEventListener('click', showAdModal);
+    el.skipBtn.addEventListener('click', () => {
+      if (!el.skipBtn.disabled) {
+        currentAdIndex++;
+        showNextAd();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      if (countdownInterval) clearInterval(countdownInterval);
+      if (cooldownInterval) clearInterval(cooldownInterval);
+    });
+
+    // Bottom Ad Configuration
+    const bottomAdConfigs = [
+      { key: '78ade24182729fceea8e45203dad915b', format: 'iframe', height: 50, width: 320, src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js' },
+      { key: '53c6462d2fd5ad5b91686ca9561f79a2', format: 'iframe', height: 90, width: 728, src: '//www.highperformanceformat.com/53c6462d2fd5ad5b91686ca9561f79a2/invoke.js' },
+      { key: '63718988f07bc6d276f3c6a441757cae', format: 'iframe', height: 90, width: 728, src: '//www.highperformanceformat.com/63718988f07bc6d276f3c6a441757cae/invoke.js' }
+    ];
+
+    function getRandomBottomAd() {
+      return bottomAdConfigs[Math.floor(Math.random() * bottomAdConfigs.length)];
+    }
+
+    function loadBottomAd() {
+      const container = document.getElementById('bottomAd');
+      if (container) {
+        container.innerHTML = '';
+        const adConfig = getRandomBottomAd();
+        
+        const script1 = document.createElement('script');
+        script1.type = 'text/javascript';
+        script1.innerHTML = `atOptions = {'key': '${adConfig.key}','format': '${adConfig.format}','height': ${adConfig.height},'width': ${adConfig.width},'params': {}};`;
+        
+        const script2 = document.createElement('script');
+        script2.type = 'text/javascript';
+        script2.src = adConfig.src;
+        
+        container.appendChild(script1);
+        container.appendChild(script2);
+      }
+    }
+
+    // Load bottom ad on page load
+    window.addEventListener('load', loadBottomAd);
+  </script>
+</body>
+</html>
