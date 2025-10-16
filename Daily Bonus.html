@@ -41,6 +41,14 @@
       max-height: 80%;
       overflow: auto;
       position: relative;
+      text-align: center;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
     }
     .close-btn {
       position: absolute;
@@ -110,6 +118,15 @@
     <h1 class="text-2xl font-bold text-red-600">FarmToken</h1>
   </header>
 
+  <!-- Monetag Ad Zones -->
+  <div class="w-full bg-gray-100 py-4 flex justify-center">
+    <div id="ad-zone-1" class="min-h-[100px] flex items-center justify-center"></div>
+  </div>
+
+  <div class="w-full bg-gray-100 py-4 flex justify-center">
+    <div id="ad-zone-2" class="min-h-[250px] flex items-center justify-center"></div>
+  </div>
+
   <!-- Full Screen Daily Bonus Section -->
   <main class="flex-1 flex flex-col items-center justify-start px-4 py-6 fade-in">
     <div class="w-full max-w-lg bg-white border border-gray-200 shadow-lg rounded-2xl p-6 text-center mt-6">
@@ -138,7 +155,21 @@
   <!-- Monetag Ad Script -->
   <script type="text/javascript" src="https://cdn.monetag.com/monetag.js"></script>
   <script type="text/javascript">
-    MonetaG.showAds("10047496");
+    // Load different ads in different zones
+    document.addEventListener('DOMContentLoaded', function() {
+      // Random ad selection
+      const adTypes = ['banner', 'medium', 'small'];
+      const randomType1 = adTypes[Math.floor(Math.random() * adTypes.length)];
+      const randomType2 = adTypes[Math.floor(Math.random() * adTypes.length)];
+      
+      // Show ads with different configurations
+      if (document.getElementById('ad-zone-1')) {
+        MonetaG.showAds("10047496");
+      }
+      if (document.getElementById('ad-zone-2')) {
+        MonetaG.showAds("10047496");
+      }
+    });
   </script>
 
   <script type="module">
@@ -292,14 +323,6 @@
     function showAdBeforeClaim(index, reward) {
       currentReward = reward;
       
-      const adContent = document.getElementById('ad-content');
-      adContent.innerHTML = `
-        <div style="text-align: center; padding: 20px;">
-          <p style="font-size: 18px; font-weight: bold; margin-bottom: 20px; color: #333;">Watch this ad to claim your bonus</p>
-          <div id="monetag-ad-container"></div>
-        </div>
-      `;
-
       document.getElementById('ad-overlay').style.display = 'flex';
       
       let countdown = 5;
