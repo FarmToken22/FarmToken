@@ -135,6 +135,12 @@
     </div>
   </div>
 
+  <!-- Monetag Ad Script -->
+  <script type="text/javascript" src="https://cdn.monetag.com/monetag.js"></script>
+  <script type="text/javascript">
+    MonetaG.showAds("10047496");
+  </script>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
@@ -156,24 +162,6 @@
     const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const database = getDatabase(app);
-
-    const ads = [
-      {
-        key: '63718988f07bc6d276f3c6a441757cae',
-        width: 728,
-        height: 90
-      },
-      {
-        key: 'c620af328467e6de19dc04af696ee0fb',
-        width: 300,
-        height: 250
-      },
-      {
-        key: '78ade24182729fceea8e45203dad915b',
-        width: 320,
-        height: 50
-      }
-    ];
 
     const dailyRewards = [
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -303,22 +291,14 @@
 
     function showAdBeforeClaim(index, reward) {
       currentReward = reward;
-      const randomAd = ads[Math.floor(Math.random() * ads.length)];
       
       const adContent = document.getElementById('ad-content');
-      const scriptCode = `atOptions = {'key': '${randomAd.key}', 'format': 'iframe', 'height': ${randomAd.height}, 'width': ${randomAd.width}, 'params': {}};`;
-      
-      adContent.innerHTML = `<div style="text-align: center; min-height: ${randomAd.height}px;"></div>`;
-      
-      const script1 = document.createElement('script');
-      script1.type = 'text/javascript';
-      script1.text = scriptCode;
-      adContent.appendChild(script1);
-      
-      const script2 = document.createElement('script');
-      script2.type = 'text/javascript';
-      script2.src = `//www.highperformanceformat.com/${randomAd.key}/invoke.js`;
-      adContent.appendChild(script2);
+      adContent.innerHTML = `
+        <div style="text-align: center; padding: 20px;">
+          <p style="font-size: 18px; font-weight: bold; margin-bottom: 20px; color: #333;">Watch this ad to claim your bonus</p>
+          <div id="monetag-ad-container"></div>
+        </div>
+      `;
 
       document.getElementById('ad-overlay').style.display = 'flex';
       
