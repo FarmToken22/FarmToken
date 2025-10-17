@@ -154,12 +154,10 @@
     }
 
     .ad-top {
-      position: sticky;
-      top: 70px;
-      z-index: 5;
       background: white;
       border-bottom: 1px solid #e5e7eb;
       padding: 5px 0;
+      margin-bottom: 10px;
     }
 
     .ad-bottom {
@@ -398,23 +396,23 @@
     }
 
     onAuthStateChanged(farmAuth, user => {
+      const loading = document.getElementById('loading');
+      
       if (user) {
         currentUser = user;
         const userRef = ref(farmDb, `users/${user.uid}`);
         onValue(userRef, snapshot => {
           userData = snapshot.val();
           updateBalance();
+          // Hide loading after data is loaded
+          if (loading) loading.style.display = 'none';
         });
         // Load ads when user is authenticated
         loadAllAds();
       } else {
-        window.location.href = 'login.html';
+        // Redirect to index page if not logged in
+        window.location.href = 'index.html';
       }
-    });
-
-    window.addEventListener('load', () => {
-      const loading = document.getElementById('loading');
-      if (loading) loading.style.display = 'none';
     });
   </script>
 </body>
