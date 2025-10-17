@@ -120,7 +120,7 @@
       <h2 class="text-xl font-bold text-gray-800 mb-1">Watch Ad to Earn</h2>
       <p class="text-sm text-gray-600 mb-3">Ad <span id="currentAdNum">1</span> of 4</p>
       
-      <div class="countdown-timer" id="countdownTimer">5</div>
+      <div class="countdown-timer" id="countdownTimer">10</div>
       
       <div class="ad-container" id="adContainer">
         <div class="spinner"></div>
@@ -358,13 +358,15 @@
       el.currentAdNum.textContent = adNum;
       el.skipBtn.disabled = true;
       el.skipBtn.textContent = 'Please wait...';
-      el.skipBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+      el.skipBtn.classList.remove('bg-green-500', 'hover:bg-green-600', 'text-white');
       el.skipBtn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
       
-      loadAd(adConfigs[currentAdIndex]);
-      
-      let countdown = 5;
+      // প্রথম এড ১০ সেকেন্ড, বাকিগুলো ৫ সেকেন্ড
+      let countdown = currentAdIndex === 0 ? 10 : 5;
       el.countdownTimer.textContent = countdown;
+      
+      // এড লোড করা
+      loadAd(adConfigs[currentAdIndex]);
       
       countdownInterval = setInterval(() => {
         countdown--;
@@ -419,7 +421,21 @@
     el.skipBtn.addEventListener('click', () => {
       if (!el.skipBtn.disabled) {
         currentAdIndex++;
-        showNextAd();
+        
+        // পরবর্তী এড লোড করার আগে ৫ সেকেন্ড অপেক্ষা করুন
+        if (currentAdIndex < 4) {
+          el.skipBtn.disabled = true;
+          el.skipBtn.textContent = 'Loading next ad...';
+          el.skipBtn.classList.remove('bg-green-500', 'hover:bg-green-600', 'text-white');
+          el.skipBtn.classList.add('bg-gray-300', 'text-gray-500', 'cursor-not-allowed');
+          el.countdownTimer.textContent = '⏳';
+          
+          setTimeout(() => {
+            showNextAd();
+          }, 5000);
+        } else {
+          showNextAd();
+        }
       }
     });
 
