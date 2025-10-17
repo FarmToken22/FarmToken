@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="FarmToken - Withdraw to FT Exchange">
+  <meta name="author" content="FarmToken Team">
+  <title>Withdraw to Exchange - FarmToken</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-color: #f3f4f6;
+      padding-bottom: 70px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 2px;
+    }
+
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #28a745;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .notification.show {
+      opacity: 1;
+    }
+
+    .notification.error {
+      background: #dc3545;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-btn {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .status-message {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .network-selector {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .network-selector:hover {
+      background: #f3f4f6;
+    }
+
+    .network-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .address-box {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .not-active-badge {
+      background: #fef3c7;
+      color: #92400e;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-block;
+      margin-top: 8px;
+    }
+
+    .ad-container {
+      min-height: 60px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 5px;
+      margin: 10px 0;
+    }
+
+    .ad-top {
+      position: sticky;
+      top: 70px;
+      z-index: 5;
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 5px 0;
+    }
+
+    .ad-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      z-index: 9;
+      padding: 5px 0;
+    }
+
+    @media (max-width: 640px) {
+      .notification {
+        top: 10px;
+        right: 10px;
+        padding: 8px 16px;
+        font-size: 14px;
+      }
+      .status-message {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <div id="notification" class="notification"></div>
+
+  <header class="flex items-center justify-start px-4 py-3 shadow bg-white relative">
+    <div class="flex items-center gap-2">
+      <img src="Logo.png" alt="FarmToken Logo" class="h-10 w-10 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
+      <h1 class="text-xl sm:text-2xl font-bold text-red-600">Withdraw</h1>
+    </div>
+    <button onclick="goBack()" class="back-btn p-2 hover:bg-gray-100 rounded-lg transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </header>
+
+  <!-- Top Ad Container -->
+  <div class="ad-top" id="topAd" style="display: none;">
+    <div class="ad-container">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <main class="p-4 max-w-lg mx-auto w-full flex-1">
+    <div class="bg-white shadow rounded-xl p-4 sm:p-6 space-y-4">
+      <div class="flex justify-between border-b pb-3">
+        <p class="text-gray-600">Available Balance</p>
+        <p id="availableBalance" class="text-green-600 font-bold">0.00 FT</p>
+      </div>
+
+      <div class="bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded">
+        <p class="text-sm text-yellow-800">
+          <strong>⚠️ Currently Not Active:</strong> Withdrawal feature is coming soon. Please check back later.
+        </p>
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">Network</label>
+        <div class="network-selector opacity-60 cursor-not-allowed" style="pointer-events: none;">
+          <div class="network-info">
+            <span class="font-semibold text-gray-900">TRC20</span>
+            <span class="text-xs text-gray-500">Tron (TRX)</span>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">Address</label>
+        <div class="address-box opacity-60">
+          <input 
+            type="text" 
+            id="withdrawAddress" 
+            placeholder="Enter USDT address" 
+            class="w-full bg-transparent outline-none text-sm font-mono text-gray-900"
+            disabled
+          >
+        </div>
+        <span class="not-active-badge">🔒 Not Active</span>
+      </div>
+
+      <div>
+        <label for="withdrawalAmount" class="block text-gray-700 font-medium mb-2">Amount</label>
+        <input 
+          type="number" 
+          id="withdrawalAmount" 
+          placeholder="Enter amount" 
+          step="0.01" 
+          min="10" 
+          class="w-full border rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-green-500 opacity-60"
+          disabled
+        >
+      </div>
+
+      <div class="bg-gray-50 p-3 rounded-lg opacity-60">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-sm text-gray-600">Transfer Amount:</span>
+          <span id="transferAmount" class="font-semibold">0.00 FT</span>
+        </div>
+        <div class="flex justify-between items-center pt-2 border-t">
+          <span class="text-sm font-semibold">Total:</span>
+          <span id="totalDeduction" class="font-bold text-gray-900">0.00 FT</span>
+        </div>
+      </div>
+
+      <p id="withdrawalStatus" class="status-message hidden"></p>
+
+      <button 
+        id="withdrawBtn" 
+        class="w-full bg-gray-400 text-white py-3 rounded-lg font-semibold cursor-not-allowed"
+        disabled
+      >
+        🔒 Coming Soon
+      </button>
+
+      <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
+        <p class="text-xs text-blue-800">
+          <strong>ℹ️ When Active:</strong>
+        </p>
+        <ul class="text-xs text-blue-800 mt-1 space-y-1 list-disc list-inside">
+          <li>Select Network: TRC20 (Tron)</li>
+          <li>Enter your USDT TRC20 address</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Ad Container -->
+  <div class="ad-bottom" id="bottomAd" style="display: none;">
+    <div class="ad-container">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+    const farmTokenConfig = {
+      apiKey: "AIzaSyAH9-GEeIVDe98wCziPHnDv5Q84BoQFXOQ",
+      authDomain: "farmtoken.firebaseapp.com",
+      databaseURL: "https://farmtoken-default-rtdb.firebaseio.com",
+      projectId: "farmtoken",
+      storageBucket: "farmtoken.firebasestorage.app",
+      messagingSenderId: "873508490805",
+      appId: "1:873508490805:web:6d2676c41aa60a289cab7c",
+      measurementId: "G-YZPTK2CP47"
+    };
+
+    const farmTokenApp = initializeApp(farmTokenConfig, "farmToken");
+    const farmAuth = getAuth(farmTokenApp);
+    const farmDb = getDatabase(farmTokenApp);
+
+    let currentUser = null;
+    let userData = null;
+
+    // Ad configurations
+    const adConfigs = [
+      { key: '78ade24182729fceea8e45203dad915b', format: 'iframe', height: 50, width: 320, src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js' },
+      { key: '53c6462d2fd5ad5b91686ca9561f79a2', format: 'iframe', height: 90, width: 728, src: '//www.highperformanceformat.com/53c6462d2fd5ad5b91686ca9561f79a2/invoke.js' }
+    ];
+
+    const topAd = document.getElementById('topAd');
+    const bottomAd = document.getElementById('bottomAd');
+
+    // Get random ad config
+    function getRandomAd() {
+      return adConfigs[Math.floor(Math.random() * adConfigs.length)];
+    }
+
+    // Load ad into container
+    function loadAd(container) {
+      if (!container) return;
+      
+      container.style.display = 'block';
+      
+      const adConfig = getRandomAd();
+      const innerContainer = container.querySelector('.ad-container');
+      if (!innerContainer) return;
+      
+      innerContainer.innerHTML = '';
+      
+      const script1 = document.createElement('script');
+      script1.type = 'text/javascript';
+      script1.innerHTML = `atOptions = {'key': '${adConfig.key}','format': '${adConfig.format}','height': ${adConfig.height},'width': ${adConfig.width},'params': {}};`;
+      
+      const script2 = document.createElement('script');
+      script2.type = 'text/javascript';
+      script2.src = adConfig.src;
+      
+      innerContainer.appendChild(script1);
+      innerContainer.appendChild(script2);
+    }
+
+    // Load all ads
+    function loadAllAds() {
+      loadAd(topAd);
+      
+      setTimeout(() => {
+        loadAd(bottomAd);
+      }, 2000);
+    }
+
+    function showNotification(message, type = 'success') {
+      const notification = document.getElementById('notification');
+      if (notification) {
+        notification.textContent = message;
+        notification.classList.remove('error');
+        if (type === 'error') notification.classList.add('error');
+        notification.classList.add('show');
+        setTimeout(() => notification.classList.remove('show'), 3000);
+      }
+    }
+
+    window.goBack = function() {
+      window.location.href = 'index.html#wallet';
+    };
+
+    function updateBalance() {
+      const balanceEl = document.getElementById('availableBalance');
+      if (balanceEl && userData) {
+        balanceEl.textContent = `${(userData.balance || 0).toFixed(2)} FT`;
+      }
+    }
+
+    onAuthStateChanged(farmAuth, user => {
+      if (user) {
+        currentUser = user;
+        const userRef = ref(farmDb, `users/${user.uid}`);
+        onValue(userRef, snapshot => {
+          userData = snapshot.val();
+          updateBalance();
+        });
+        // Load ads when user is authenticated
+        loadAllAds();
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+
+    window.addEventListener('load', () => {
+      const loading = document.getElementById('loading');
+      if (loading) loading.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
