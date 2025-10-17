@@ -64,12 +64,23 @@
       margin: 10px 0;
     }
     .ad-top {
-      position: sticky;
-      top: 70px;
-      z-index: 5;
       background: white;
       border-bottom: 1px solid #e5e7eb;
       padding: 10px 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      overflow: hidden;
+      max-height: 120px;
+    }
+    .ad-top.scroll-up {
+      max-height: 0;
+      padding: 0;
+      opacity: 0;
+    }
+    .header-wrapper {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: white;
     }
     .ad-bottom {
       position: fixed;
@@ -179,12 +190,28 @@
     let userData = null;
     let userId = null;
     let countdownTimers = {};
+    let lastScrollTop = 0;
 
     const grid = document.getElementById("bonus-grid");
     const loadingState = document.getElementById("loading-state");
     const topAd = document.getElementById("topAd");
     const middleAd = document.getElementById("middleAd");
     const bottomAd = document.getElementById("bottomAd");
+
+    // Scroll handler for top ad
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+      
+      if (currentScroll > lastScrollTop && currentScroll > 100) {
+        // Scrolling down
+        topAd.classList.add('scroll-up');
+      } else {
+        // Scrolling up
+        topAd.classList.remove('scroll-up');
+      }
+      
+      lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+    });
 
     // Show toast notification
     function showToast(message, type = 'success') {
@@ -211,7 +238,6 @@
     function loadAd(container) {
       if (!container) return;
       
-      // Show the container first
       container.style.display = 'block';
       
       const adConfig = getRandomAd();
@@ -257,7 +283,6 @@
       if (user) {
         userId = user.uid;
         loadUserData();
-        // Load all ads when page loads
         loadAllAds();
       } else {
         window.location.href = 'index.html';
@@ -272,7 +297,6 @@
         if (snapshot.exists()) {
           userData = snapshot.val();
           
-          // Initialize daily bonus data if not exists
           if (!userData.dailyBonusDay) {
             userData.dailyBonusDay = 0;
             userData.lastClaimTime = 0;
@@ -294,7 +318,6 @@
       grid.style.display = 'grid';
       grid.innerHTML = '';
       
-      // Clear existing timers
       Object.values(countdownTimers).forEach(timer => clearInterval(timer));
       countdownTimers = {};
       
@@ -349,7 +372,6 @@
     }
 
     async function handleClaim(index, reward) {
-      // Refresh one random ad when claim button is clicked
       refreshRandomAd();
       
       try {
@@ -401,7 +423,6 @@
       countdownTimers[timerIndex] = setInterval(updateTimer, 1000);
     }
 
-    // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
       Object.values(countdownTimers).forEach(timer => clearInterval(timer));
     });
