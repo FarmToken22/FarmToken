@@ -11,6 +11,7 @@
       background-color: #f9fafb;
       min-height: 100vh;
       overflow-x: hidden;
+      padding-bottom: 80px;
     }
     .fade-in {
       animation: fadeIn 0.4s ease;
@@ -18,61 +19,6 @@
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
-    }
-    .ad-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.95);
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-    .ad-container {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      max-width: 90%;
-      max-height: 80%;
-      overflow: auto;
-      position: relative;
-      text-align: center;
-      min-height: 200px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: bold;
-      color: #333;
-    }
-    .close-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 36px;
-      height: 36px;
-      background: #ef4444;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      font-size: 20px;
-      cursor: pointer;
-      display: none;
-      z-index: 10000;
-    }
-    .close-btn:hover {
-      background: #dc2626;
-    }
-    .timer-text {
-      color: white;
-      font-size: 16px;
-      margin-bottom: 15px;
-      font-weight: 600;
     }
     .toast {
       position: fixed;
@@ -107,70 +53,91 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+    .ad-container {
+      min-height: 90px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    .ad-top {
+      position: sticky;
+      top: 70px;
+      z-index: 5;
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 10px 0;
+    }
+    .ad-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      z-index: 9;
+      padding: 5px 0;
+    }
+    .ad-middle {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      margin: 20px auto;
+      max-width: 750px;
+    }
   </style>
 </head>
 <body class="bg-gray-50 flex flex-col min-h-screen">
 
   <!-- Header -->
-  <header class="flex items-center justify-start px-6 py-4 shadow bg-white sticky top-0 z-10 gap-3">
-    <img src="Logo.png" alt="FarmToken Logo" class="h-10 w-10 object-contain"
-      onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
-    <h1 class="text-2xl font-bold text-red-600">FarmToken</h1>
+  <header class="flex items-center justify-between px-6 py-4 shadow bg-white sticky top-0 z-10">
+    <div class="flex items-center gap-3">
+      <img src="Logo.png" alt="FarmToken Logo" class="h-10 w-10 object-contain"
+        onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
+      <h1 class="text-2xl font-bold text-red-600">FarmToken</h1>
+    </div>
+    <button onclick="window.location.href='index.html'" class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-teal-400 text-white hover:from-green-600 hover:to-teal-500 transition-all">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+    </button>
   </header>
 
-  <!-- Monetag Ad Zones -->
-  <div class="w-full bg-gray-100 py-4 flex justify-center">
-    <div id="ad-zone-1" class="min-h-[100px] flex items-center justify-center"></div>
-  </div>
-
-  <div class="w-full bg-gray-100 py-4 flex justify-center">
-    <div id="ad-zone-2" class="min-h-[250px] flex items-center justify-center"></div>
-  </div>
-
-  <!-- Full Screen Daily Bonus Section -->
-  <main class="flex-1 flex flex-col items-center justify-start px-4 py-6 fade-in">
-    <div class="w-full max-w-lg bg-white border border-gray-200 shadow-lg rounded-2xl p-6 text-center mt-6">
-      <h2 class="text-4xl font-extrabold text-blue-600 mb-2">🎁 Daily Bonus</h2>
-      <p class="text-lg text-gray-600 mb-6">Claim your reward every 24 hours</p>
+  <!-- Top Ad Container -->
+  <div class="ad-top" id="topAd" style="display: none;">
+    <div class="ad-container">
+      <div class="spinner"></div>
     </div>
+  </div>
 
+  <!-- Daily Bonus Section -->
+  <main class="flex-1 flex flex-col items-center justify-start px-4 py-6 fade-in">
     <div class="w-full max-w-2xl mt-6 pb-10">
       <div id="loading-state" class="loading">
         <div class="spinner"></div>
         <p class="text-gray-600">Loading your rewards...</p>
       </div>
+      
+      <!-- Middle Ad Container -->
+      <div class="ad-middle" id="middleAd" style="display: none;">
+        <div class="ad-container">
+          <div class="spinner"></div>
+        </div>
+      </div>
+      
       <div class="grid grid-cols-3 gap-4" id="bonus-grid" style="display: none;"></div>
     </div>
   </main>
 
-  <!-- Ad Overlay -->
-  <div id="ad-overlay" class="ad-overlay" style="display: none;">
-    <div class="timer-text" id="timer-text">Please wait... 5 seconds</div>
-    <div class="ad-container" id="ad-container">
-      <button class="close-btn" id="close-btn">✕</button>
-      <div id="ad-content"></div>
+  <!-- Bottom Ad Container -->
+  <div class="ad-bottom" id="bottomAd" style="display: none;">
+    <div class="ad-container">
+      <div class="spinner"></div>
     </div>
   </div>
-
-  <!-- Monetag Ad Script -->
-  <script type="text/javascript" src="https://cdn.monetag.com/monetag.js"></script>
-  <script type="text/javascript">
-    // Load different ads in different zones
-    document.addEventListener('DOMContentLoaded', function() {
-      // Random ad selection
-      const adTypes = ['banner', 'medium', 'small'];
-      const randomType1 = adTypes[Math.floor(Math.random() * adTypes.length)];
-      const randomType2 = adTypes[Math.floor(Math.random() * adTypes.length)];
-      
-      // Show ads with different configurations
-      if (document.getElementById('ad-zone-1')) {
-        MonetaG.showAds("10047496");
-      }
-      if (document.getElementById('ad-zone-2')) {
-        MonetaG.showAds("10047496");
-      }
-    });
-  </script>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
@@ -194,6 +161,13 @@
     const auth = getAuth(app);
     const database = getDatabase(app);
 
+    // Ad configurations
+    const adConfigs = [
+      { key: '63718988f07bc6d276f3c6a441757cae', format: 'iframe', height: 90, width: 728, src: '//www.highperformanceformat.com/63718988f07bc6d276f3c6a441757cae/invoke.js' },
+      { key: '53c6462d2fd5ad5b91686ca9561f79a2', format: 'iframe', height: 90, width: 728, src: '//www.highperformanceformat.com/53c6462d2fd5ad5b91686ca9561f79a2/invoke.js' },
+      { key: '78ade24182729fceea8e45203dad915b', format: 'iframe', height: 50, width: 320, src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js' }
+    ];
+
     const dailyRewards = [
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
       2, 2, 2, 2, 2,
@@ -204,11 +178,13 @@
 
     let userData = null;
     let userId = null;
-    let currentReward = 0;
     let countdownTimers = {};
 
     const grid = document.getElementById("bonus-grid");
     const loadingState = document.getElementById("loading-state");
+    const topAd = document.getElementById("topAd");
+    const middleAd = document.getElementById("middleAd");
+    const bottomAd = document.getElementById("bottomAd");
 
     // Show toast notification
     function showToast(message, type = 'success') {
@@ -226,11 +202,63 @@
       }, 3000);
     }
 
+    // Get random ad config
+    function getRandomAd() {
+      return adConfigs[Math.floor(Math.random() * adConfigs.length)];
+    }
+
+    // Load ad into container
+    function loadAd(container) {
+      if (!container) return;
+      
+      // Show the container first
+      container.style.display = 'block';
+      
+      const adConfig = getRandomAd();
+      const innerContainer = container.querySelector('.ad-container');
+      if (!innerContainer) return;
+      
+      innerContainer.innerHTML = '';
+      
+      const script1 = document.createElement('script');
+      script1.type = 'text/javascript';
+      script1.innerHTML = `atOptions = {'key': '${adConfig.key}','format': '${adConfig.format}','height': ${adConfig.height},'width': ${adConfig.width},'params': {}};`;
+      
+      const script2 = document.createElement('script');
+      script2.type = 'text/javascript';
+      script2.src = adConfig.src;
+      
+      innerContainer.appendChild(script1);
+      innerContainer.appendChild(script2);
+    }
+
+    // Load all three ads initially
+    function loadAllAds() {
+      loadAd(topAd);
+      
+      setTimeout(() => {
+        loadAd(middleAd);
+      }, 2000);
+      
+      setTimeout(() => {
+        loadAd(bottomAd);
+      }, 4000);
+    }
+
+    // Refresh one random ad
+    function refreshRandomAd() {
+      const ads = [topAd, middleAd, bottomAd];
+      const randomAd = ads[Math.floor(Math.random() * ads.length)];
+      loadAd(randomAd);
+    }
+
     // Check authentication
     auth.onAuthStateChanged((user) => {
       if (user) {
         userId = user.uid;
         loadUserData();
+        // Load all ads when page loads
+        loadAllAds();
       } else {
         window.location.href = 'index.html';
       }
@@ -307,7 +335,7 @@
           } else {
             btn.textContent = "Claim";
             btn.classList.add("bg-blue-600", "text-white", "hover:bg-blue-700");
-            btn.addEventListener("click", () => showAdBeforeClaim(i, reward));
+            btn.addEventListener("click", () => handleClaim(i, reward));
           }
         } else {
           btn.textContent = "🔒 Locked";
@@ -320,40 +348,10 @@
       });
     }
 
-    function showAdBeforeClaim(index, reward) {
-      currentReward = reward;
-      
-      document.getElementById('ad-overlay').style.display = 'flex';
-      
-      let countdown = 5;
-      const timerText = document.getElementById('timer-text');
-      const closeBtn = document.getElementById('close-btn');
-      
-      const timer = setInterval(() => {
-        countdown--;
-        timerText.textContent = `Please wait... ${countdown} seconds`;
-        
-        if (countdown <= 0) {
-          clearInterval(timer);
-          timerText.textContent = 'You can close now';
-          closeBtn.style.display = 'block';
-        }
-      }, 1000);
-
-      window.currentClaimData = { index, reward };
-    }
-
-    window.closeAd = function() {
-      document.getElementById('ad-overlay').style.display = 'none';
-      document.getElementById('close-btn').style.display = 'none';
-      if (window.currentClaimData) {
-        handleClaim(window.currentClaimData.index, window.currentClaimData.reward);
-      }
-    };
-
-    document.getElementById('close-btn').addEventListener('click', window.closeAd);
-
     async function handleClaim(index, reward) {
+      // Refresh one random ad when claim button is clicked
+      refreshRandomAd();
+      
       try {
         const newDay = index + 1;
         const newClaimTime = Date.now();
@@ -363,17 +361,17 @@
         
         if (snapshot.exists()) {
           const currentData = snapshot.val();
-          const currentTokens = currentData.tokens || 0;
+          const currentBalance = currentData.balance || 0;
           
           await update(userRef, {
             dailyBonusDay: newDay,
             lastClaimTime: newClaimTime,
-            tokens: currentTokens + reward
+            balance: currentBalance + reward
           });
           
           userData.dailyBonusDay = newDay;
           userData.lastClaimTime = newClaimTime;
-          userData.tokens = currentTokens + reward;
+          userData.balance = currentBalance + reward;
           
           showToast(`You claimed +${reward} tokens! 🎉`);
           renderBonusGrid();
