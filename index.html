@@ -17,7 +17,7 @@
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
       overflow-x: hidden;
-      padding-bottom: 120px; /* Increased to accommodate bottom ad */
+      padding-bottom: 80px; /* Adjusted for footer only */
       min-height: 100vh;
     }
 
@@ -267,19 +267,26 @@
       color: #555;
     }
 
-    .bottom-ad {
+    /* New styles for in-content ad containers */
+    .dynamic-ad-slot {
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px;
-      background: #f9fafb;
-      border-top: 1px solid #e5e7eb;
-      position: fixed;
-      bottom: 60px; /* Above footer */
-      left: 0;
-      right: 0;
-      z-index: 10;
+      width: 100%;
+      margin: 1.5rem 0;
     }
+    
+    /* New Menu Styles */
+    #menuOverlay.hidden {
+        display: none;
+    }
+    #menuPanel {
+        transition: transform 0.3s ease-in-out;
+    }
+    #menuOverlay:not(.hidden) #menuPanel {
+        transform: translateX(0);
+    }
+
 
     @media (max-width: 640px) {
       .mining-btn {
@@ -305,11 +312,6 @@
       .ad-modal-content {
         max-width: 340px;
       }
-      .bottom-ad iframe {
-        width: 100%;
-        max-width: 320px;
-        height: 50px;
-      }
     }
   </style>
 </head>
@@ -329,16 +331,42 @@
     </div>
   </div>
 
+  <!-- START: Side Menu -->
+  <div id="menuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div id="menuPanel" class="fixed top-0 right-0 h-full w-64 sm:w-72 bg-white shadow-xl transform translate-x-full">
+      <div class="flex justify-between items-center p-4 border-b">
+        <h2 class="text-lg font-bold text-gray-800">Menu</h2>
+        <button id="closeMenuBtn" class="p-2 hover:bg-gray-200 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <nav class="p-2">
+        <a href="Daily Bonus.html" class="block px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors">Daily Bonus</a>
+        <a href="Extra Reward.html" class="block px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors">Extra Reward</a>
+        <a href="Withdraw.html" class="block px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors">Withdraw</a>
+        <a href="History.html" class="block px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors">History</a>
+        <a href="Connect.html" class="block px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors">Connect</a>
+        <a href="Roadmap.html" class="block px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors">Roadmap</a>
+        <a href="privacy-policy.html" class="block px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors">Privacy Policy</a>
+        <a href="usage-policy.html" class="block px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors">Usage Policy</a>
+        <a href="Settings.html" class="block px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors">Settings</a>
+      </nav>
+    </div>
+  </div>
+  <!-- END: Side Menu -->
+
   <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-10">
     <div class="flex items-center gap-2">
       <img src="Logo.png" alt="FarmToken Logo" class="h-10 w-10 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
       <h1 class="text-xl sm:text-2xl font-bold text-red-600">FarmToken</h1>
     </div>
     <div class="flex items-center gap-2 sm:gap-3">
-      <button id="settingsBtn" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+      <!-- Changed Settings button to Menu button -->
+      <button id="menuBtn" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
         </svg>
       </button>
     </div>
@@ -369,6 +397,9 @@
         </button>
       </div>
 
+      <!-- Home Page Ad Slot -->
+      <div id="homeAdContainer" class="dynamic-ad-slot"></div>
+
       <div class="mining-info bg-white p-4 rounded-xl shadow w-full max-w-[400px]">
         <div class="flex justify-between py-2 border-b">
           <span class="text-gray-600">Mining Status</span>
@@ -383,13 +414,6 @@
           <span class="text-green-600 font-semibold" id="totalMined">0.00 FT</span>
         </div>
       </div>
-    </div>
-
-    <div class="home-buttons grid grid-cols-2 gap-3 p-4 bg-white rounded-xl shadow mt-4 max-w-[600px] mx-auto">
-      <a href="Roadmap.html" class="home-button flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-teal-500 transition-all"><span class="emoji">🗺️</span>Roadmap</a>
-      <a href="Daily Bonus.html" class="home-button flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-teal-500 transition-all"><span class="emoji">🎁</span>Daily Bonus</a>
-      <a href="Connect.html" class="home-button flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-teal-500 transition-all"><span class="emoji">🔗</span>Connect</a>
-      <a href="Extra Reward.html" class="home-button flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-teal-500 transition-all"><span class="emoji">⭐</span>Extra Reward</a>
     </div>
   </section>
 
@@ -443,6 +467,9 @@
       ✅ Referral code already submitted!
     </div>
 
+    <!-- Profile Page Ad Slot -->
+    <div id="profileAdContainer" class="dynamic-ad-slot"></div>
+
     <button id="authBtn" class="w-full bg-red-500 text-white py-2.5 sm:py-3 rounded-lg shadow text-base sm:text-lg hover:bg-red-600 transition-colors">Logout</button>
   </section>
 
@@ -463,10 +490,10 @@
       <a href="History.html" class="home-button flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-teal-500 transition-all">Transaction History</a>
       <a href="Withdraw.html" class="home-button flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-teal-500 transition-all">Withdraw Funds</a>
     </div>
-  </section>
 
-  <!-- Bottom Ad -->
-  <div class="bottom-ad" id="bottomAd"></div>
+    <!-- Wallet Page Ad Slot -->
+    <div id="walletAdContainer" class="dynamic-ad-slot"></div>
+  </section>
 
   <footer class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-20">
     <div class="relative max-w-lg mx-auto">
@@ -572,11 +599,17 @@
       }
     };
 
-    // Load bottom ad on page load
+    // Load ads and initialize other functionalities on page load
     window.addEventListener('load', () => {
-      loadAd('bottomAd', getRandomAdConfig());
+      // --- START: New Random Ad Placement Logic ---
+      const adSlots = ['homeAdContainer', 'profileAdContainer', 'walletAdContainer'];
+      // Select one random slot to display an ad
+      const randomSlotId = adSlots[Math.floor(Math.random() * adSlots.length)];
+      // Load a random ad into the chosen slot
+      loadAd(randomSlotId, getRandomAdConfig());
+      // --- END: New Random Ad Placement Logic ---
 
-      // Navigation Indicator Enhancement (moved here to ensure DOM is loaded)
+      // Navigation Indicator Enhancement
       const navIndicator = document.getElementById('navIndicator');
       const homeBtn = document.getElementById('homeBtn');
       const profileBtn = document.getElementById('profileBtn');
@@ -621,6 +654,27 @@
         window.addEventListener('resize', () => {
           const activeBtn = document.querySelector('.nav-btn.active');
           if (activeBtn) updateNavIndicator(activeBtn);
+        });
+      }
+
+      // New Menu Functionality
+      const menuBtn = document.getElementById('menuBtn');
+      const closeMenuBtn = document.getElementById('closeMenuBtn');
+      const menuOverlay = document.getElementById('menuOverlay');
+      
+      if (menuBtn && closeMenuBtn && menuOverlay) {
+        menuBtn.addEventListener('click', () => {
+          menuOverlay.classList.remove('hidden');
+        });
+
+        closeMenuBtn.addEventListener('click', () => {
+          menuOverlay.classList.add('hidden');
+        });
+
+        menuOverlay.addEventListener('click', (event) => {
+          if (event.target === menuOverlay) {
+            menuOverlay.classList.add('hidden');
+          }
         });
       }
     });
