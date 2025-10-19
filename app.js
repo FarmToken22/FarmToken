@@ -144,9 +144,6 @@ function updateUI() {
   if (progressBar) progressBar.style.width = `${progress}%`;
   if (levelText) levelText.textContent = `Level ${level} / 5`;
 
-  // Note: Transaction list removed from wallet section in HTML, so skipped here
-  // If needed in History.html, handle separately
-
   if (claimReferralBtn) {
     claimReferralBtn.style.display = (userData.referralRewards > 0) ? 'block' : 'none';
   }
@@ -416,6 +413,12 @@ async function claimMiningReward() {
     if (timerDisplay) timerDisplay.textContent = 'Start Mining';
     if (miningStatusEl) miningStatusEl.textContent = 'Inactive';
     showNotification(`Claimed ${userData.currentEarned.toFixed(6)} FT!`);
+    
+    // Show ad modal after successful claim
+    if (typeof showAdModal === 'function') {
+      showAdModal();
+    }
+
     updateUI();
   } catch (err) {
     console.error('Claim error:', err);
@@ -449,6 +452,12 @@ async function claimReferralRewards() {
     });
 
     showNotification(`Claimed ${userData.referralRewards.toFixed(2)} FT from referrals!`);
+
+    // Show ad modal after successful claim
+    if (typeof showAdModal === 'function') {
+        showAdModal();
+    }
+        
     updateUI();
   } catch (err) {
     console.error('Referral claim error:', err);
@@ -462,59 +471,42 @@ async function submitReferralCode() {
   const referralStatusEl = document.getElementById('referralStatus');
   const code = referralCodeInput ? referralCodeInput.value.trim().toUpperCase() : '';
   
-  // Validate input
   if (!code) {
     showStatus(referralStatusEl, 'Please enter a referral code.', true);
     return;
   }
 
-  // Check if already submitted
   if (userData.referredBy) {
     showStatus(referralStatusEl, 'You have already submitted a referral code.', true);
     return;
   }
 
-  // Check if using own code
   if (code === userData.referralCode) {
     showStatus(referralStatusEl, 'You cannot use your own referral code.', true);
     return;
   }
 
   try {
-    console.log('Searching for referral code:', code);
-    
-    // Query for user with this referral code
     const usersRef = ref(db, 'users');
     const referralQuery = query(usersRef, orderByChild('referralCode'), equalTo(code));
     const snapshot = await get(referralQuery);
     
-    console.log('Query snapshot exists:', snapshot.exists());
-    
-    // Check if referral code exists
     if (!snapshot.exists()) {
-      console.log('Referral code not found');
       showStatus(referralStatusEl, 'Invalid referral code. Please check and try again.', true);
       return;
     }
 
-    // Get referrer data
     const referrerData = Object.values(snapshot.val())[0];
     const referrerId = Object.keys(snapshot.val())[0];
     
-    console.log('Referrer ID:', referrerId);
-    console.log('Referrer Data:', referrerData);
-
-    // Prevent self-referral by UID
     if (referrerId === currentUser.uid) {
       showStatus(referralStatusEl, 'You cannot use your own referral code.', true);
       return;
     }
 
-    // References
     const userRef = ref(db, `users/${currentUser.uid}`);
     const referrerRef = ref(db, `users/${referrerId}`);
 
-    // Update both users with referral bonus
     await update(userRef, {
       referredBy: code,
       referralRewards: (userData.referralRewards || 0) + REFERRAL_BONUS
@@ -525,9 +517,6 @@ async function submitReferralCode() {
       [`referrals/${currentUser.uid}`]: true
     });
 
-    console.log('User and referrer updated successfully');
-
-    // Add transaction for current user
     const userTransactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const userTransactionRef = ref(db, `users/${currentUser.uid}/transactions/${userTransactionId}`);
     await set(userTransactionRef, {
@@ -537,7 +526,6 @@ async function submitReferralCode() {
       timestamp: Date.now()
     });
 
-    // Add transaction for referrer
     const referrerTransactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const referrerTransactionRef = ref(db, `users/${referrerId}/transactions/${referrerTransactionId}`);
     await set(referrerTransactionRef, {
@@ -547,20 +535,14 @@ async function submitReferralCode() {
       timestamp: Date.now()
     });
 
-    console.log('Transactions created successfully');
-
-    // Success feedback
     showStatus(referralStatusEl, `Success! You and your referrer each received ${REFERRAL_BONUS} FT bonus!`);
     if (referralCodeInput) referralCodeInput.value = '';
     showNotification(`Referral code applied! Both you and your referrer received ${REFERRAL_BONUS} FT!`);
     
-    // Update UI
     updateUI();
 
   } catch (err) {
     console.error('Referral error details:', err);
-    console.error('Error message:', err.message);
-    console.error('Error code:', err.code);
     showStatus(referralStatusEl, `Error: ${err.message || 'Failed to submit referral code.'}`, true);
     showNotification('Failed to submit referral code. Please try again.', 'error');
   }
@@ -601,11 +583,6 @@ function shareReferralCode(platform) {
   }
   window.open(url, '_blank');
   showNotification(`Shared referral code on ${platform.charAt(0).toUpperCase() + platform.slice(1)}!`);
-}
-
-// Navigate to settings page
-function goToSettings() {
-  window.location.href = 'settings.html';
 }
 
 // Logout user
@@ -677,8 +654,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const copyCode = document.getElementById('copyCode');
   const shareWA = document.getElementById('shareWA');
   const shareTG = document.getElementById('shareTG');
-  const settingsBtn = document.getElementById('settingsBtn');
   const authBtn = document.getElementById('authBtn');
+  const menuBtn = document.getElementById('menuBtn');
+  const closeMenuBtn = document.getElementById('closeMenuBtn');
+  const menuOverlay = document.getElementById('menuOverlay');
 
   if (homeBtn) homeBtn.addEventListener('click', () => switchSection('home'));
   if (profileBtn) profileBtn.addEventListener('click', () => switchSection('profile'));
@@ -695,8 +674,24 @@ document.addEventListener('DOMContentLoaded', () => {
   if (copyCode) copyCode.addEventListener('click', copyReferralCode);
   if (shareWA) shareWA.addEventListener('click', () => shareReferralCode('whatsapp'));
   if (shareTG) shareTG.addEventListener('click', () => shareReferralCode('telegram'));
-  if (settingsBtn) settingsBtn.addEventListener('click', goToSettings);
   if (authBtn) authBtn.addEventListener('click', logout);
+
+  // New Menu Functionality
+  if (menuBtn && closeMenuBtn && menuOverlay) {
+    menuBtn.addEventListener('click', () => {
+      menuOverlay.classList.remove('hidden');
+    });
+
+    closeMenuBtn.addEventListener('click', () => {
+      menuOverlay.classList.add('hidden');
+    });
+
+    menuOverlay.addEventListener('click', (event) => {
+      if (event.target === menuOverlay) {
+        menuOverlay.classList.add('hidden');
+      }
+    });
+  }
 });
 
 // Authentication state listener
