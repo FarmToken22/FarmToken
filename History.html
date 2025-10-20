@@ -63,32 +63,35 @@
       background: #d1fae5;
       color: #065f46;
     }
-
     .badge-withdrawal {
       background: #fee2e2;
       color: #991b1b;
     }
-
     .badge-reward {
       background: #dbeafe;
       color: #1e40af;
     }
-
+    /* Added mining badge */
+    .badge-mining {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+    .badge-referral {
+        background-color: #e0e7ff;
+        color: #3730a3;
+    }
     .badge-pending {
       background: #fef3c7;
       color: #92400e;
     }
-
     .badge-completed {
       background: #d1fae5;
       color: #065f46;
     }
-
     .badge-failed {
       background: #fee2e2;
       color: #991b1b;
     }
-
     .ad-container {
       min-height: 60px;
       display: flex;
@@ -99,16 +102,6 @@
       padding: 5px;
       margin: 10px 0;
     }
-
-    .ad-top {
-      position: sticky;
-      top: 70px;
-      z-index: 5;
-      background: white;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 5px 0;
-    }
-
     .ad-bottom {
       position: fixed;
       bottom: 0;
@@ -119,18 +112,15 @@
       z-index: 9;
       padding: 5px 0;
     }
-
     .empty-state {
       text-align: center;
       padding: 60px 20px;
     }
-
     .empty-icon {
       font-size: 64px;
       margin-bottom: 16px;
       opacity: 0.3;
     }
-
     .filter-tabs {
       display: flex;
       gap: 8px;
@@ -140,7 +130,6 @@
       margin-bottom: 16px;
       overflow-x: auto;
     }
-
     .filter-tab {
       padding: 8px 16px;
       border-radius: 8px;
@@ -152,12 +141,10 @@
       background: #f3f4f6;
       color: #6b7280;
     }
-
     .filter-tab.active {
       background: #10b981;
       color: white;
     }
-
     @media (max-width: 640px) {
       .transaction-card {
         padding: 12px;
@@ -181,12 +168,6 @@
     </button>
   </header>
 
-  <!-- Top Ad Container -->
-  <div class="ad-top" id="topAd" style="display: none;">
-    <div class="ad-container">
-      <div class="spinner"></div>
-    </div>
-  </div>
 
   <!-- Main Content -->
   <main class="flex-1 px-4 py-4 fade-in">
@@ -197,7 +178,8 @@
         <div class="filter-tab active" data-filter="all">All</div>
         <div class="filter-tab" data-filter="deposit">Deposits</div>
         <div class="filter-tab" data-filter="withdrawal">Withdrawals</div>
-        <div class="filter-tab" data-filter="reward">Rewards</div>
+        <div class="filter-tab" data-filter="mining">Mining</div>
+        <div class="filter-tab" data-filter="referral">Referrals</div>
       </div>
 
       <!-- Loading State -->
@@ -247,7 +229,6 @@
     const auth = getAuth(app);
     const database = getDatabase(app);
 
-    // Ad configurations
     const adConfigs = [
       { key: '78ade24182729fceea8e45203dad915b', format: 'iframe', height: 50, width: 320, src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js' },
       { key: '53c6462d2fd5ad5b91686ca9561f79a2', format: 'iframe', height: 90, width: 728, src: '//www.highperformanceformat.com/53c6462d2fd5ad5b91686ca9561f79a2/invoke.js' }
@@ -261,21 +242,16 @@
       loadingState: document.getElementById('loading-state'),
       transactionsList: document.getElementById('transactions-list'),
       emptyState: document.getElementById('empty-state'),
-      topAd: document.getElementById('topAd'),
       bottomAd: document.getElementById('bottomAd')
     };
 
-    // Get random ad config
     function getRandomAd() {
       return adConfigs[Math.floor(Math.random() * adConfigs.length)];
     }
 
-    // Load ad into container
     function loadAd(container) {
       if (!container) return;
-      
       container.style.display = 'block';
-      
       const adConfig = getRandomAd();
       const innerContainer = container.querySelector('.ad-container');
       if (!innerContainer) return;
@@ -294,71 +270,42 @@
       innerContainer.appendChild(script2);
     }
 
-    // Load all ads
-    function loadAllAds() {
-      loadAd(el.topAd);
-      
-      setTimeout(() => {
-        loadAd(el.bottomAd);
-      }, 2000);
-    }
-
-    // Format date
     function formatDate(timestamp) {
       const date = new Date(timestamp);
       const now = new Date();
       const diff = now - date;
       
-      // Less than 1 minute
       if (diff < 60000) return 'Just now';
+      if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+      if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
       
-      // Less than 1 hour
-      if (diff < 3600000) {
-        const mins = Math.floor(diff / 60000);
-        return `${mins} min${mins > 1 ? 's' : ''} ago`;
-      }
-      
-      // Less than 24 hours
-      if (diff < 86400000) {
-        const hours = Math.floor(diff / 3600000);
-        return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-      }
-      
-      // Format as date
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined 
-      });
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
     }
 
-    // Get transaction icon
     function getTransactionIcon(type) {
       const icons = {
         deposit: '💰',
         withdrawal: '💸',
         reward: '🎁',
-        farming: '🌾',
+        mining: '🌾', // Changed from farming
         referral: '👥',
         bonus: '🎉'
       };
       return icons[type] || '📝';
     }
 
-    // Get type badge
     function getTypeBadge(type) {
       const badges = {
         deposit: 'badge-deposit',
         withdrawal: 'badge-withdrawal',
         reward: 'badge-reward',
-        farming: 'badge-reward',
-        referral: 'badge-reward',
+        mining: 'badge-mining',
+        referral: 'badge-referral',
         bonus: 'badge-reward'
       };
       return badges[type] || 'badge-reward';
     }
 
-    // Get status badge
     function getStatusBadge(status) {
       const badges = {
         pending: 'badge-pending',
@@ -368,13 +315,17 @@
       return badges[status] || 'badge-completed';
     }
 
-    // Render transactions
     function renderTransactions() {
       el.loadingState.style.display = 'none';
       
       let filtered = allTransactions;
       if (currentFilter !== 'all') {
-        filtered = allTransactions.filter(tx => tx.type === currentFilter);
+        // Updated filter logic for new types
+        if (currentFilter === 'mining' || currentFilter === 'referral') {
+             filtered = allTransactions.filter(tx => tx.type === currentFilter);
+        } else {
+             filtered = allTransactions.filter(tx => tx.type === currentFilter);
+        }
       }
       
       if (filtered.length === 0) {
@@ -391,11 +342,10 @@
         const card = document.createElement('div');
         card.className = 'transaction-card';
         
-        const isPositive = tx.type === 'deposit' || tx.type === 'reward' || tx.type === 'farming' || tx.type === 'referral' || tx.type === 'bonus';
+        const isPositive = tx.type !== 'withdrawal';
         const amountColor = isPositive ? 'text-green-600' : 'text-red-600';
         const amountSign = isPositive ? '+' : '-';
         
-        // Handle amount - check if amount exists and is valid
         const displayAmount = tx.amount !== undefined && tx.amount !== null ? tx.amount : 0;
         
         card.innerHTML = `
@@ -404,7 +354,7 @@
               <div class="text-2xl">${getTransactionIcon(tx.type)}</div>
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-1">
-                  <h3 class="font-semibold text-gray-800">${tx.description || tx.type}</h3>
+                  <h3 class="font-semibold text-gray-800 capitalize">${tx.description || tx.type}</h3>
                   ${tx.status ? `<span class="badge ${getStatusBadge(tx.status)}">${tx.status}</span>` : ''}
                 </div>
                 ${tx.note ? `<p class="text-xs text-gray-500 mb-1">${tx.note}</p>` : ''}
@@ -413,7 +363,7 @@
             </div>
             <div class="text-right">
               <p class="font-bold ${amountColor}">${amountSign}${displayAmount.toFixed(2)} FT</p>
-              <span class="badge ${getTypeBadge(tx.type)} mt-1 inline-block">${tx.type}</span>
+              <span class="badge ${getTypeBadge(tx.type)} mt-1 inline-block capitalize">${tx.type}</span>
             </div>
           </div>
         `;
@@ -422,7 +372,6 @@
       });
     }
 
-    // Load transactions
     function loadTransactions() {
       if (!currentUser) return;
       
@@ -440,7 +389,6 @@
       });
     }
 
-    // Filter tabs
     document.querySelectorAll('.filter-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
@@ -450,12 +398,11 @@
       });
     });
 
-    // Auth state
     onAuthStateChanged(auth, user => {
       if (user) {
         currentUser = user;
         loadTransactions();
-        loadAllAds();
+        loadAd(el.bottomAd); // Load only the bottom ad
       } else {
         window.location.href = 'index.html';
       }
