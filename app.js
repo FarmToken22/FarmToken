@@ -25,10 +25,51 @@ let countdownInterval = null;
 const MINING_DURATION = 8 * 60 * 60; // 8 hours in seconds
 const TOTAL_REWARD = 6; // Total reward per mining session
 const REWARD_PER_SECOND = TOTAL_REWARD / MINING_DURATION;
-const MILESTONE_TOKENS = 100; // Tokens needed to level up
-const REFERRAL_BONUS = 5; // Bonus for referrals
-const REFERRAL_MILESTONE = 100; // Tokens mined by referee for referrer bonus
-const MINIMUM_WITHDRAWAL = 50; // Minimum tokens required for withdrawal
+const MILESTONE_TOKENS = 100;
+const REFERRAL_BONUS = 5;
+const REFERRAL_MILESTONE = 100;
+const MINIMUM_WITHDRAWAL = 50;
+
+
+// --- Ad Modal Functions START ---
+// This function shows the ad modal
+function showAdModal() {
+    const adModal = document.getElementById('adModal');
+    const adModalContent = document.getElementById('adModalContent');
+    if (!adModal || !adModalContent) return;
+
+    adModalContent.innerHTML = '<div class="spinner"></div><p class="text-sm mt-2">Loading ad...</p>'; // Show spinner
+    adModal.classList.remove('hidden');
+
+    // Ad configuration - you can place your interstitial ad code here
+    const adKey = '78ade24182729fceea8e45203dad915b'; // Example Ad Key
+    const adContainer = document.createElement('div');
+    const script1 = document.createElement('script');
+    script1.type = 'text/javascript';
+    script1.innerHTML = `atOptions = {'key': '${adKey}','format': 'iframe','height': 250,'width': 300,'params': {}};`;
+    const script2 = document.createElement('script');
+    script2.type = 'text/javascript';
+    script2.src = `//www.highperformanceformat.com/${adKey}/invoke.js`;
+    
+    adContainer.appendChild(script1);
+    adContainer.appendChild(script2);
+    
+    // Clear spinner and show ad
+    setTimeout(() => {
+        adModalContent.innerHTML = '';
+        adModalContent.appendChild(adContainer);
+    }, 1500); // Wait a bit for the ad to load
+}
+
+// This function closes the ad modal
+function closeAdModal() {
+    const adModal = document.getElementById('adModal');
+    if (adModal) {
+        adModal.classList.add('hidden');
+    }
+}
+// --- Ad Modal Functions END ---
+
 
 // --- Helper Functions (No changes here) ---
 function showNotification(message, type = 'success') {
@@ -126,7 +167,6 @@ function updateUI() {
   const progress = Math.min((userData.totalMined || 0) / MILESTONE_TOKENS * 100, 100);
   const level = Math.min(Math.floor((userData.totalMined || 0) / MILESTONE_TOKENS) + 1, 5);
   
-  // Display current earned based on local calculation
   const currentEarned = calculateCurrentEarned();
   
   if (totalBalanceEl) totalBalanceEl.textContent = `${balance} FT`;
@@ -183,22 +223,18 @@ function updateUI() {
   }
 }
 
-// **MODIFIED:** Calculate current earned without reading from DB constantly
 function calculateCurrentEarned() {
     if (!userData || !userData.miningStartTime) {
         return 0;
     }
-
     const now = Date.now();
     if (now >= userData.miningEndTime) {
         return TOTAL_REWARD;
     }
-    
     const elapsedSeconds = Math.floor((now - userData.miningStartTime) / 1000);
     return Math.min(elapsedSeconds * REWARD_PER_SECOND, TOTAL_REWARD);
 }
 
-// Start countdown timer
 function startCountdown(endTime) {
   clearInterval(countdownInterval);
   countdownInterval = setInterval(() => {
@@ -212,13 +248,12 @@ function startCountdown(endTime) {
     if (secondsLeft <= 0) {
       clearInterval(countdownInterval);
       countdownInterval = null;
-      stopMining(); // This function now just updates UI
+      stopMining();
       showNotification('Mining session completed! Ready to claim 6 FT.');
     }
   }, 1000);
 }
 
-// Start mining session
 function startMining() {
   if (!currentUser) return showNotification('Please log in to start mining.', 'error');
   if (userData.miningStartTime && Date.now() < userData.miningEndTime) return showNotification('Mining session already active.', 'error');
@@ -227,36 +262,29 @@ function startMining() {
   const startTime = Date.now();
   const endTime = startTime + MINING_DURATION * 1000;
 
-  // Only one write to start the session
   update(userRef, {
     miningStartTime: startTime,
     miningEndTime: endTime
   }).then(() => {
     showNotification('Mining started! Session will run for 8 hours.');
-    // The onValue listener will automatically call updateUI to reflect the changes
   }).catch(err => {
     console.error('Mining start error:', err);
     showNotification('Failed to start mining. Please try again.', 'error');
   });
 }
 
-// **NEW:** This function only updates the screen, doesn't write to the database
 function updateMiningDisplay() {
   if (!userData || !userData.miningStartTime) return;
-
   const currentEarned = calculateCurrentEarned();
-
   const currentEarnedEl = document.getElementById('currentEarned');
   const earnedDisplayEl = document.getElementById('earnedDisplay');
   if (currentEarnedEl) currentEarnedEl.textContent = `${currentEarned.toFixed(6)} FT`;
   if (earnedDisplayEl) earnedDisplayEl.textContent = `${currentEarned.toFixed(6)} FT`;
-
   if (Date.now() >= userData.miningEndTime) {
     stopMining();
   }
 }
 
-// **MODIFIED:** This function now only stops intervals and updates the UI to "Claim" state
 function stopMining() {
   clearInterval(miningInterval);
   clearInterval(countdownInterval);
@@ -277,13 +305,9 @@ function stopMining() {
   }
 }
 
-
-// **MODIFIED FOR SECURITY:** Claim mining reward
 async function claimMiningReward() {
   const userRef = ref(db, `users/${currentUser.uid}`);
-
   try {
-    // 1. Get the latest data from the server to prevent cheating
     const snapshot = await get(userRef);
     if (!snapshot.exists()) {
       showNotification('User data not found.', 'error');
@@ -291,103 +315,73 @@ async function claimMiningReward() {
     }
     const serverUserData = snapshot.val();
 
-    // 2. Check if there is a mining session to claim
-    if (!serverUserData.miningStartTime || !serverUserData.miningEndTime) {
-      showNotification('No active mining session to claim.', 'error');
-      return;
-    }
-    
-    if (Date.now() < serverUserData.miningEndTime) {
+    if (!serverUserData.miningStartTime || !serverUserData.miningEndTime || Date.now() < serverUserData.miningEndTime) {
         showNotification('Mining session is not yet complete.', 'error');
         return;
     }
 
-    // 3. Securely calculate reward based on server time, not client data
-    const rewardToClaim = TOTAL_REWARD; // Since session must be complete
-    
-    if (rewardToClaim <= 0) {
-      showNotification('No rewards to claim.', 'error');
-      return;
-    }
-
+    const rewardToClaim = TOTAL_REWARD;
     const newBalance = (serverUserData.balance || 0) + rewardToClaim;
     const newTotalMined = (serverUserData.totalMined || 0) + rewardToClaim;
 
-    // 4. Update database in one go
     await update(userRef, {
       balance: newBalance,
       totalMined: newTotalMined,
-      miningStartTime: null, // Reset mining session
+      miningStartTime: null,
       miningEndTime: null
     });
 
-    // Create a transaction record
     const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const transactionRef = ref(db, `users/${currentUser.uid}/transactions/${transactionId}`);
     await set(transactionRef, {
       type: 'mining',
       amount: rewardToClaim,
       description: 'Mining Reward Claimed',
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      status: 'completed'
     });
 
     showNotification(`Claimed ${rewardToClaim.toFixed(2)} FT!`);
+    showAdModal(); // Show ad after claiming
 
-    // Check referral milestones
     if (serverUserData.referredBy) {
       await checkReferralMilestones(currentUser.uid);
     }
-    
-    if (typeof showAdModal === 'function') {
-      showAdModal();
-    }
-    
-    // UI will be updated automatically by the onValue listener
-
   } catch (err) {
     console.error('Claim error:', err);
     showNotification('Failed to claim rewards. Please try again.', 'error');
   }
 }
 
-
-// Claim referral rewards
 async function claimReferralRewards() {
   if (!userData || userData.referralRewards <= 0) {
     showNotification('No referral rewards to claim.', 'error');
     return;
   }
-
   const userRef = ref(db, `users/${currentUser.uid}`);
   const newBalance = (userData.balance || 0) + userData.referralRewards;
-
   try {
     await update(userRef, {
       balance: newBalance,
       referralRewards: 0
     });
-
     const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const transactionRef = ref(db, `users/${currentUser.uid}/transactions/${transactionId}`);
     await set(transactionRef, {
       type: 'referral',
       amount: userData.referralRewards,
       description: 'Referral Rewards Claimed',
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      status: 'completed'
     });
-
     showNotification(`Claimed ${userData.referralRewards.toFixed(2)} FT from referrals!`);
-    
-    if (typeof showAdModal === 'function') {
-        showAdModal();
-    }
+    showAdModal(); // Show ad after claiming
   } catch (err) {
     console.error('Referral claim error:', err);
     showNotification('Failed to claim referral rewards. Please try again.', 'error');
   }
 }
 
-// Check referral milestones for referrers
 async function checkReferralMilestones(refereeId) {
     const refereeRef = ref(db, `users/${refereeId}`);
     const refereeSnapshot = await get(refereeRef);
@@ -420,19 +414,17 @@ async function checkReferralMilestones(refereeId) {
       await set(transactionRef, {
         type: 'referral',
         amount: newBonuses,
-        description: `Referral Milestone Bonus for ${refereeId}`,
-        timestamp: Date.now()
+        description: `Referral Milestone Bonus`,
+        timestamp: Date.now(),
+        status: 'completed'
       });
   
       await update(refereeRef, {
         referralMilestones: { ...refereeData.referralMilestones || {}, [referrerId]: milestonesAchieved }
       });
-  
-      showNotification(`Referrer ${referrerId} received ${newBonuses} FT for referee ${refereeId}'s milestone!`);
     }
 }
 
-// Submit referral code
 async function submitReferralCode() {
   const referralCodeInput = document.getElementById('referralCodeInput');
   const referralStatusEl = document.getElementById('referralStatus');
@@ -457,7 +449,6 @@ async function submitReferralCode() {
     const userRef = ref(db, `users/${currentUser.uid}`);
     const referrerRef = ref(db, `users/${referrerId}`);
 
-    // Update both user and referrer
     await update(userRef, {
       referredBy: code,
       referralRewards: (userData.referralRewards || 0) + REFERRAL_BONUS
@@ -467,27 +458,24 @@ async function submitReferralCode() {
       [`referrals/${currentUser.uid}`]: true
     });
 
-    // Create transactions for both
     const userTransactionRef = ref(db, `users/${currentUser.uid}/transactions/tx_${Date.now()}_u`);
-    await set(userTransactionRef, { type: 'referral', amount: REFERRAL_BONUS, description: 'Referral Bonus for Joining', timestamp: Date.now() });
+    await set(userTransactionRef, { type: 'referral', amount: REFERRAL_BONUS, description: 'Referral Join Bonus', timestamp: Date.now(), status: 'completed' });
     const referrerTransactionRef = ref(db, `users/${referrerId}/transactions/tx_${Date.now()}_r`);
-    await set(referrerTransactionRef, { type: 'referral', amount: REFERRAL_BONUS, description: `Referral Bonus from ${currentUser.email || currentUser.uid}`, timestamp: Date.now() });
+    await set(referrerTransactionRef, { type: 'referral', amount: REFERRAL_BONUS, description: `Bonus from new referral`, timestamp: Date.now(), status: 'completed' });
 
     showStatus(referralStatusEl, `Success! You and your referrer each received ${REFERRAL_BONUS} FT bonus!`);
     if (referralCodeInput) referralCodeInput.value = '';
 
   } catch (err) {
-    console.error('Referral error details:', err);
-    showStatus(referralStatusEl, `Error: ${err.message || 'Failed to submit referral code.'}`, true);
+    console.error('Referral error:', err);
+    showStatus(referralStatusEl, 'Failed to submit referral code.', true);
   }
 }
 
-// --- Other UI functions (No changes here) ---
 function copyReferralCode() {
   const refCodeEl = document.getElementById('refCode');
   const code = refCodeEl ? refCodeEl.textContent : '';
   if (code === '---') return showNotification('No referral code available.', 'error');
-
   navigator.clipboard.writeText(code).then(() => {
     showNotification('Referral code copied!');
   }).catch(err => {
@@ -500,7 +488,7 @@ function shareReferralCode(platform) {
   const code = refCodeEl ? refCodeEl.textContent : '';
   if (code === '---') return showNotification('No referral code available.', 'error');
 
-  const shareText = `Join FarmToken and start mining cryptocurrency! Use my referral code: ${code} to get 5 FT bonus!`;
+  const shareText = `Join FarmToken and start mining! Use my referral code: ${code} to get a ${REFERRAL_BONUS} FT bonus!`;
   let url = '';
   if (platform === 'whatsapp') {
     url = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
@@ -517,31 +505,17 @@ function logout() {
     showNotification('Failed to logout.', 'error');
   });
 }
-// --- End of other UI functions ---
 
-
-// Initialize user data
 async function initializeUserData(user) {
   const userRef = ref(db, `users/${user.uid}`);
-  const snapshot = await get(userRef);
-
-  if (!snapshot.exists()) {
-    const referralCode = generateReferralCode();
-    const joinDate = new Date().toISOString().split('T')[0];
-    await set(userRef, {
-      balance: 0,
-      totalMined: 0,
-      referralCode,
-      joinDate,
-      referrals: {},
-      referralRewards: 0,
-      referralMilestones: {},
-      transactions: {}
-    });
-  }
-
-  // This is the key: onValue listens for ANY change in user data and updates the whole UI
-  onValue(userRef, snapshot => {
+  onValue(userRef, async (snapshot) => {
+    if (!snapshot.exists()) {
+      const referralCode = generateReferralCode();
+      const joinDate = new Date().toISOString().split('T')[0];
+      await set(userRef, {
+        balance: 0, totalMined: 0, referralCode, joinDate, referrals: {}, referralRewards: 0, referralMilestones: {}, transactions: {}
+      });
+    }
     userData = snapshot.val();
     if (userData) {
       updateUI();
@@ -549,11 +523,12 @@ async function initializeUserData(user) {
   });
 }
 
-// --- Event Listeners (No changes here) ---
+
 document.addEventListener('DOMContentLoaded', () => {
   const loading = document.getElementById('loading');
   if (loading) loading.style.display = 'none';
 
+  // --- Event listeners ---
   const homeBtn = document.getElementById('homeBtn');
   const profileBtn = document.getElementById('profileBtn');
   const walletBtn = document.getElementById('walletBtn');
@@ -567,16 +542,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuBtn = document.getElementById('menuBtn');
   const closeMenuBtn = document.getElementById('closeMenuBtn');
   const menuOverlay = document.getElementById('menuOverlay');
+  const historyBtn = document.getElementById('historyBtn'); // New button
+  const closeAdModalBtn = document.getElementById('closeAdModalBtn'); // Ad modal close button
 
   if (homeBtn) homeBtn.addEventListener('click', () => switchSection('home'));
   if (profileBtn) profileBtn.addEventListener('click', () => switchSection('profile'));
   if (walletBtn) walletBtn.addEventListener('click', () => switchSection('wallet'));
   if (miningBtn) miningBtn.addEventListener('click', () => {
-    if (miningBtn.classList.contains('claim')) {
-      claimMiningReward();
-    } else {
-      startMining();
-    }
+    if (miningBtn.classList.contains('claim')) claimMiningReward();
+    else startMining();
   });
   if (claimReferralBtn) claimReferralBtn.addEventListener('click', claimReferralRewards);
   if (submitReferralBtn) submitReferralBtn.addEventListener('click', submitReferralCode);
@@ -584,6 +558,14 @@ document.addEventListener('DOMContentLoaded', () => {
   if (shareWA) shareWA.addEventListener('click', () => shareReferralCode('whatsapp'));
   if (shareTG) shareTG.addEventListener('click', () => shareReferralCode('telegram'));
   if (authBtn) authBtn.addEventListener('click', logout);
+  
+  // New Event Listener for History Button
+  if (historyBtn) historyBtn.addEventListener('click', () => {
+    window.location.href = 'History.html';
+  });
+
+  // Event Listener for closing the ad modal
+  if (closeAdModalBtn) closeAdModalBtn.addEventListener('click', closeAdModal);
 
   if (menuBtn && closeMenuBtn && menuOverlay) {
     menuBtn.addEventListener('click', () => menuOverlay.classList.remove('hidden'));
@@ -594,7 +576,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Authentication state listener
 onAuthStateChanged(auth, user => {
   if (user) {
     currentUser = user;
