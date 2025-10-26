@@ -1,21 +1,7 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { getDatabase, ref, get, set, update, onValue, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAH9-GEeIVDe98wCziPHnDv5Q84BoQFXOQ",
-  authDomain: "farmtoken.firebaseapp.com",
-  databaseURL: "https://farmtoken-default-rtdb.firebaseio.com",
-  projectId: "farmtoken",
-  storageBucket: "farmtoken.firebasestorage.app",
-  messagingSenderId: "873508490805",
-  appId: "1:873508490805:web:6d2676c41aa60a289cab7c",
-  measurementId: "G-YZPTK2CP47"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getDatabase(app);
+// ✅ config.js থেকে import করুন (Firebase initialization বারবার হবে না)
+import { auth, database } from './config.js';
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { ref, get, set, update, onValue, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
 let currentUser = null;
 let userData = null;
@@ -258,7 +244,7 @@ function startMining() {
   if (!currentUser) return showNotification('Please log in to start mining.', 'error');
   if (userData.miningStartTime && Date.now() < userData.miningEndTime) return showNotification('Mining session already active.', 'error');
 
-  const userRef = ref(db, `users/${currentUser.uid}`);
+  const userRef = ref(database, `users/${currentUser.uid}`);
   const startTime = Date.now();
   const endTime = startTime + MINING_DURATION * 1000;
 
@@ -306,7 +292,7 @@ function stopMining() {
 }
 
 async function claimMiningReward() {
-  const userRef = ref(db, `users/${currentUser.uid}`);
+  const userRef = ref(database, `users/${currentUser.uid}`);
   try {
     const snapshot = await get(userRef);
     if (!snapshot.exists()) {
@@ -332,7 +318,7 @@ async function claimMiningReward() {
     });
 
     const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const transactionRef = ref(db, `users/${currentUser.uid}/transactions/${transactionId}`);
+    const transactionRef = ref(database, `users/${currentUser.uid}/transactions/${transactionId}`);
     await set(transactionRef, {
       type: 'mining',
       amount: rewardToClaim,
@@ -358,7 +344,7 @@ async function claimReferralRewards() {
     showNotification('No referral rewards to claim.', 'error');
     return;
   }
-  const userRef = ref(db, `users/${currentUser.uid}`);
+  const userRef = ref(database, `users/${currentUser.uid}`);
   const newBalance = (userData.balance || 0) + userData.referralRewards;
   try {
     await update(userRef, {
@@ -366,7 +352,7 @@ async function claimReferralRewards() {
       referralRewards: 0
     });
     const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const transactionRef = ref(db, `users/${currentUser.uid}/transactions/${transactionId}`);
+    const transactionRef = ref(database, `users/${currentUser.uid}/transactions/${transactionId}`);
     await set(transactionRef, {
       type: 'referral',
       amount: userData.referralRewards,
@@ -383,7 +369,7 @@ async function claimReferralRewards() {
 }
 
 async function checkReferralMilestones(refereeId) {
-    const refereeRef = ref(db, `users/${refereeId}`);
+    const refereeRef = ref(database, `users/${refereeId}`);
     const refereeSnapshot = await get(refereeRef);
     if (!refereeSnapshot.exists()) return;
   
@@ -391,7 +377,7 @@ async function checkReferralMilestones(refereeId) {
     const referrerCode = refereeData.referredBy;
     if (!referrerCode) return;
   
-    const usersRef = ref(db, 'users');
+    const usersRef = ref(database, 'users');
     const referrerQuery = query(usersRef, orderByChild('referralCode'), equalTo(referrerCode));
     const referrerSnapshot = await get(referrerQuery);
     if (!referrerSnapshot.exists()) return;
@@ -404,13 +390,13 @@ async function checkReferralMilestones(refereeId) {
   
     if (milestonesAchieved > previousMilestones) {
       const newBonuses = (milestonesAchieved - previousMilestones) * REFERRAL_BONUS;
-      const referrerRef = ref(db, `users/${referrerId}`);
+      const referrerRef = ref(database, `users/${referrerId}`);
       await update(referrerRef, {
         referralRewards: (referrerData.referralRewards || 0) + newBonuses
       });
   
       const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const transactionRef = ref(db, `users/${referrerId}/transactions/${transactionId}`);
+      const transactionRef = ref(database, `users/${referrerId}/transactions/${transactionId}`);
       await set(transactionRef, {
         type: 'referral',
         amount: newBonuses,
@@ -435,7 +421,7 @@ async function submitReferralCode() {
   if (code === userData.referralCode) return showStatus(referralStatusEl, 'You cannot use your own referral code.', true);
 
   try {
-    const usersRef = ref(db, 'users');
+    const usersRef = ref(database, 'users');
     const referralQuery = query(usersRef, orderByChild('referralCode'), equalTo(code));
     const snapshot = await get(referralQuery);
     
@@ -446,8 +432,8 @@ async function submitReferralCode() {
     
     if (referrerId === currentUser.uid) return showStatus(referralStatusEl, 'You cannot use your own referral code.', true);
 
-    const userRef = ref(db, `users/${currentUser.uid}`);
-    const referrerRef = ref(db, `users/${referrerId}`);
+    const userRef = ref(database, `users/${currentUser.uid}`);
+    const referrerRef = ref(database, `users/${referrerId}`);
 
     await update(userRef, {
       referredBy: code,
@@ -458,9 +444,9 @@ async function submitReferralCode() {
       [`referrals/${currentUser.uid}`]: true
     });
 
-    const userTransactionRef = ref(db, `users/${currentUser.uid}/transactions/tx_${Date.now()}_u`);
+    const userTransactionRef = ref(database, `users/${currentUser.uid}/transactions/tx_${Date.now()}_u`);
     await set(userTransactionRef, { type: 'referral', amount: REFERRAL_BONUS, description: 'Referral Join Bonus', timestamp: Date.now(), status: 'completed' });
-    const referrerTransactionRef = ref(db, `users/${referrerId}/transactions/tx_${Date.now()}_r`);
+    const referrerTransactionRef = ref(database, `users/${referrerId}/transactions/tx_${Date.now()}_r`);
     await set(referrerTransactionRef, { type: 'referral', amount: REFERRAL_BONUS, description: `Bonus from new referral`, timestamp: Date.now(), status: 'completed' });
 
     showStatus(referralStatusEl, `Success! You and your referrer each received ${REFERRAL_BONUS} FT bonus!`);
@@ -507,7 +493,7 @@ function logout() {
 }
 
 async function initializeUserData(user) {
-  const userRef = ref(db, `users/${user.uid}`);
+  const userRef = ref(database, `users/${user.uid}`);
   onValue(userRef, async (snapshot) => {
     if (!snapshot.exists()) {
       const referralCode = generateReferralCode();
@@ -542,8 +528,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuBtn = document.getElementById('menuBtn');
   const closeMenuBtn = document.getElementById('closeMenuBtn');
   const menuOverlay = document.getElementById('menuOverlay');
-  const historyBtn = document.getElementById('historyBtn'); // New button
-  const closeAdModalBtn = document.getElementById('closeAdModalBtn'); // Ad modal close button
+  const historyBtn = document.getElementById('historyBtn');
+  const closeAdModalBtn = document.getElementById('closeAdModalBtn');
 
   if (homeBtn) homeBtn.addEventListener('click', () => switchSection('home'));
   if (profileBtn) profileBtn.addEventListener('click', () => switchSection('profile'));
@@ -559,12 +545,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (shareTG) shareTG.addEventListener('click', () => shareReferralCode('telegram'));
   if (authBtn) authBtn.addEventListener('click', logout);
   
-  // New Event Listener for History Button
   if (historyBtn) historyBtn.addEventListener('click', () => {
     window.location.href = 'History.html';
   });
 
-  // Event Listener for closing the ad modal
   if (closeAdModalBtn) closeAdModalBtn.addEventListener('click', closeAdModal);
 
   if (menuBtn && closeMenuBtn && menuOverlay) {
