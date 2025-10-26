@@ -11,7 +11,6 @@
       background-color: #f9fafb;
       min-height: 100vh;
       overflow-x: hidden;
-      /* Add padding to prevent content from being hidden behind the bottom ad */
       padding-bottom: 90px;
     }
     .fade-in {
@@ -67,7 +66,6 @@
       color: #3b82f6;
       margin: 10px 0;
     }
-    /* Bottom Ad Styling */
     .bottom-ad-container {
       position: fixed;
       bottom: 0;
@@ -188,24 +186,9 @@
 
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { getDatabase, ref, get, update, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAH9-GEeIVDe98wCziPHnDv5Q84BoQFXOQ",
-      authDomain: "farmtoken.firebaseapp.com",
-      databaseURL: "https://farmtoken-default-rtdb.firebaseio.com",
-      projectId: "farmtoken",
-      storageBucket: "farmtoken.firebasestorage.app",
-      messagingSenderId: "873508490805",
-      appId: "1:873508490805:web:6d2676c41aa60a289cab7c",
-      measurementId: "G-YZPTK2CP47"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const database = getDatabase(app);
+    // ✅ config.js থেকে import করুন (Firebase initialization বারবার হবে না)
+    import { auth, database } from './config.js';
+    import { ref, get, update, runTransaction } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
     // Ads for the main task
     const adConfigs = [
@@ -269,7 +252,7 @@
           if (!userData.extraReward) {
             userData.extraReward = { adsWatched: 0, lastRewardTime: 0 };
           }
-          initializeBottomAd(); // Initialize bottom ad after user data is loaded
+          initializeBottomAd();
           updateUI();
         } else {
           showToast('User data not found.', 'error');
@@ -289,13 +272,11 @@
       const oneDayMs = 24 * 60 * 60 * 1000;
 
       if (timeSinceLastReward < oneDayMs && userData.extraReward.adsWatched >= 4) {
-        // Cooldown state
         el.adTaskContainer.style.display = 'none';
         el.cooldownInfo.style.display = 'block';
         el.adsWatched.textContent = `4/4`;
         startCooldownTimer(lastRewardTime + oneDayMs);
       } else {
-        // Active state, reset if a new day has started
         if (timeSinceLastReward >= oneDayMs) {
             userData.extraReward.adsWatched = 0;
         }
@@ -309,7 +290,7 @@
     
     function updateAdActionButton() {
         el.adActionBtn.disabled = false;
-        el.adActionBtn.innerHTML = ''; // Clear previous content like spinners
+        el.adActionBtn.innerHTML = '';
 
         if (currentAdStep >= 4) {
             el.adActionBtn.textContent = '✅ Claim 5 FT Reward';
@@ -373,13 +354,12 @@
         el.adViewer.appendChild(script1);
         el.adViewer.appendChild(script2);
 
-        // Verify ad load
         let checkCount = 0;
         const interval = setInterval(() => {
             if (el.adViewer.querySelector('iframe, ins')) {
                 clearInterval(interval);
                 callback(true);
-            } else if (checkCount > 10) { // 5 seconds timeout
+            } else if (checkCount > 10) {
                 clearInterval(interval);
                 callback(false);
             }
@@ -403,11 +383,9 @@
     async function adViewCompleted() {
         currentAdStep++;
         
-        // Hide ad viewer
         el.adViewer.style.display = 'none';
         el.adControls.style.display = 'none';
         
-        // Update progress in Firebase
         try {
             await update(ref(database, `users/${userId}/extraReward`), { adsWatched: currentAdStep });
             userData.extraReward.adsWatched = currentAdStep;
@@ -431,7 +409,6 @@
                     if (!currentUserData.extraReward) {
                       currentUserData.extraReward = { adsWatched: 0, lastRewardTime: 0 };
                     }
-                    // Only give reward if they have watched 4 ads and haven't been rewarded today
                     if (currentUserData.extraReward.adsWatched >= 4 && (Date.now() - (currentUserData.extraReward.lastRewardTime || 0)) > 24*60*60*1000) {
                         currentUserData.balance = (currentUserData.balance || 0) + 5;
                         currentUserData.extraReward.lastRewardTime = Date.now();
@@ -441,7 +418,6 @@
             });
             
             showToast('🎉 Congratulations! You earned 5 FT tokens!', 'success');
-            // Reload user data to get the latest state from server
             await loadUserData();
 
         } catch (error) {
@@ -468,7 +444,7 @@
         el.bottomAdContainer.classList.add('hidden');
         setTimeout(() => {
           el.bottomAdContainer.classList.remove('hidden');
-        }, 15000); // Re-appear after 15 seconds
+        }, 15000);
       });
       
       loadRandomBottomAd();
