@@ -150,27 +150,12 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-analytics.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+    // ✅ config.js থেকে import করুন (Firebase initialization বারবার হবে না)
+    import { auth, database } from './config.js';
+    import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { ref, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAH9-GEeIVDe98wCziPHnDv5Q84BoQFXOQ",
-      authDomain: "farmtoken.firebaseapp.com",
-      databaseURL: "https://farmtoken-default-rtdb.firebaseio.com",
-      projectId: "farmtoken",
-      storageBucket: "farmtoken.firebasestorage.app",
-      messagingSenderId: "873508490805",
-      appId: "1:873508490805:web:6d2676c41aa60a289cab7c",
-      measurementId: "G-YZPTK2CP47"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-
+    // Check if user is already logged in
     auth.onAuthStateChanged((user) => {
       if (user) {
         window.location.href = "index.html";
@@ -262,7 +247,7 @@
           }
         };
 
-        await set(ref(db, "users/" + uid), newUserData);
+        await set(ref(database, "users/" + uid), newUserData);
         console.log("New user created:", newUserData);
 
         showMsg("Signup successful! Redirecting...", "success");
