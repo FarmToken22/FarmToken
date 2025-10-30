@@ -1,65 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="FarmToken - Withdraw to FT Exchange">
-  <meta name="author" content="FarmToken Team">
-  <title>Withdraw to Exchange - FarmToken</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Withdraw | FarmToken</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      overflow-x: hidden;
+      background-color: #f9fafb;
       min-height: 100vh;
-      background-color: #f3f4f6;
-      padding-bottom: 70px;
     }
-
-    ::-webkit-scrollbar {
-      width: 4px;
+    .coming-soon {
+      filter: blur(1px);
+      opacity: 0.5;
+      pointer-events: none;
     }
-    ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 2px;
-    }
-
-    .loading {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.95);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .spinner {
-      width: 60px;
-      height: 60px;
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid #28a745;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
     .notification {
       position: fixed;
       top: 20px;
@@ -69,77 +25,36 @@
       padding: 10px 20px;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      z-index: 1000;
       opacity: 0;
       transition: opacity 0.3s ease;
+      z-index: 1000;
     }
-
     .notification.show {
       opacity: 1;
     }
-
-    .notification.error {
-      background: #dc3545;
+    .fade-in { 
+      animation: fadeIn 0.4s ease; 
     }
-
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: white;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-
-    .back-btn {
-      position: absolute;
-      right: 16px;
-      top: 50%;
-      transform: translateY(-50%);
+    .loading { 
+      text-align: center; 
+      padding: 40px; 
     }
-
-    .status-message {
-      margin-top: 10px;
-      font-size: 14px;
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3b82f6;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
     }
-
-    .network-selector {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .network-selector:hover {
-      background: #f3f4f6;
-    }
-
-    .network-info {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .address-box {
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 12px;
-    }
-
-    .not-active-badge {
-      background: #fef3c7;
-      color: #92400e;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-      display: inline-block;
-      margin-top: 8px;
+    @keyframes spin { 
+      0% { transform: rotate(0deg); } 
+      100% { transform: rotate(360deg); } 
     }
 
     .ad-container {
@@ -149,271 +64,247 @@
       align-items: center;
       background: #f9fafb;
       border-radius: 8px;
-      padding: 5px;
-      margin: 10px 0;
+      padding: 10px;
+      margin: 16px 0;
+      width: 100%;
     }
-
-    .ad-top {
-      background: white;
-      border-bottom: 1px solid #e5e7eb;
-      padding: 5px 0;
-      margin-bottom: 10px;
+    .ad-section {
+      width: 100%;
+      display: none;
     }
-
-    .ad-bottom {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: white;
-      border-top: 1px solid #e5e7eb;
-      z-index: 9;
-      padding: 5px 0;
-    }
-
-    @media (max-width: 640px) {
-      .notification {
-        top: 10px;
-        right: 10px;
-        padding: 8px 16px;
-        font-size: 14px;
-      }
-      .status-message {
-        font-size: 13px;
-      }
+    .ad-section.visible {
+      display: block;
     }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
-  <div id="loading" class="loading">
-    <div class="spinner"></div>
-  </div>
+<body class="min-h-screen flex flex-col">
 
-  <div id="notification" class="notification"></div>
-
-  <header class="flex items-center justify-start px-4 py-3 shadow bg-white relative">
-    <div class="flex items-center gap-2">
-      <img src="Logo.png" alt="FarmToken Logo" class="h-10 w-10 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
-      <h1 class="text-xl sm:text-2xl font-bold text-red-600">Withdraw</h1>
+  <!-- Header -->
+  <header class="flex items-center justify-between px-6 py-4 shadow bg-white sticky top-0 z-10">
+    <div class="flex items-center gap-3">
+      <img src="Logo.png" alt="FarmToken Logo" class="h-10 w-10 object-contain"
+        onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
+      <h1 class="text-2xl font-bold text-red-600">FarmToken</h1>
     </div>
-    <button onclick="goBack()" class="back-btn p-2 hover:bg-gray-100 rounded-lg transition-colors">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    <button onclick="window.location.href='index.html'" class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-teal-400 text-white hover:from-green-600 hover:to-teal-500 transition-all">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
       </svg>
     </button>
   </header>
 
-  <!-- Top Ad Container -->
-  <div class="ad-top" id="topAd" style="display: none;">
-    <div class="ad-container">
+  <!-- Notification -->
+  <div id="notification" class="notification"></div>
+
+  <!-- Withdraw Section -->
+  <main class="flex-1 flex flex-col items-center p-4 max-w-md mx-auto w-full fade-in">
+    <div id="loading-state" class="loading">
       <div class="spinner"></div>
+      <p class="text-gray-600">Loading your account...</p>
     </div>
-  </div>
 
-  <main class="p-4 max-w-lg mx-auto w-full flex-1">
-    <div class="bg-white shadow rounded-xl p-4 sm:p-6 space-y-4">
-      <div class="flex justify-between border-b pb-3">
-        <p class="text-gray-600">Available Balance</p>
-        <p id="availableBalance" class="text-green-600 font-bold">0.00 FT</p>
-      </div>
+    <div id="withdraw-content" style="display: none;" class="w-full">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Withdraw Funds</h2>
 
-      <div class="bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded">
-        <p class="text-sm text-yellow-800">
-          <strong>⚠️ Currently Not Active:</strong> Withdrawal feature is coming soon. Please check back later.
-        </p>
-      </div>
-
-      <div>
-        <label class="block text-gray-700 font-medium mb-2">Network</label>
-        <div class="network-selector opacity-60 cursor-not-allowed" style="pointer-events: none;">
-          <div class="network-info">
-            <span class="font-semibold text-gray-900">TRC20</span>
-            <span class="text-xs text-gray-500">Tron (TRX)</span>
-          </div>
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
+      <!-- Ad Space 1 -->
+      <div id="adSpace1" class="ad-section">
+        <div class="ad-container">
+          <div class="spinner"></div>
         </div>
       </div>
 
-      <div>
-        <label class="block text-gray-700 font-medium mb-2">Address</label>
-        <div class="address-box opacity-60">
-          <input 
-            type="text" 
-            id="withdrawAddress" 
-            placeholder="Enter USDT address" 
-            class="w-full bg-transparent outline-none text-sm font-mono text-gray-900"
-            disabled
-          >
+      <div class="bg-white rounded-xl shadow p-5 w-full space-y-4">
+        <div>
+          <label class="block text-gray-600 text-sm font-semibold mb-1">Available Balance</label>
+          <p id="availableBalance" class="text-green-600 font-bold text-lg">0.00 FT</p>
         </div>
-        <span class="not-active-badge">🔒 Not Active</span>
+
+        <div class="coming-soon">
+          <label class="block text-gray-600 text-sm font-semibold mb-1">Withdraw Amount (FT)</label>
+          <input type="number" placeholder="Enter amount" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" disabled />
+        </div>
+
+        <div class="coming-soon">
+          <label class="block text-gray-600 text-sm font-semibold mb-1">Wallet Address</label>
+          <input type="text" placeholder="Enter wallet address" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" disabled />
+        </div>
+
+        <button id="withdrawBtn" class="w-full py-3 bg-gray-400 text-white rounded-lg font-semibold cursor-not-allowed">
+          Withdraw (Coming Soon)
+        </button>
       </div>
 
-      <div>
-        <label for="withdrawalAmount" class="block text-gray-700 font-medium mb-2">Amount</label>
-        <input 
-          type="number" 
-          id="withdrawalAmount" 
-          placeholder="Enter amount" 
-          step="0.01" 
-          min="10" 
-          class="w-full border rounded-lg p-3 text-sm outline-none focus:ring-2 focus:ring-green-500 opacity-60"
-          disabled
-        >
-      </div>
-
-      <div class="bg-gray-50 p-3 rounded-lg opacity-60">
-        <div class="flex justify-between items-center mb-2">
-          <span class="text-sm text-gray-600">Transfer Amount:</span>
-          <span id="transferAmount" class="font-semibold">0.00 FT</span>
-        </div>
-        <div class="flex justify-between items-center pt-2 border-t">
-          <span class="text-sm font-semibold">Total:</span>
-          <span id="totalDeduction" class="font-bold text-gray-900">0.00 FT</span>
+      <!-- Ad Space 2 -->
+      <div id="adSpace2" class="ad-section">
+        <div class="ad-container">
+          <div class="spinner"></div>
         </div>
       </div>
 
-      <p id="withdrawalStatus" class="status-message hidden"></p>
+      <!-- Coming Soon Features -->
+      <div class="mt-8 w-full space-y-4">
+        <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center opacity-60">
+          <span class="font-semibold text-gray-700">Withdraw History</span>
+          <span class="text-xs bg-yellow-400 text-white px-2 py-1 rounded-lg">Coming Soon</span>
+        </div>
 
-      <button 
-        id="withdrawBtn" 
-        class="w-full bg-gray-400 text-white py-3 rounded-lg font-semibold cursor-not-allowed"
-        disabled
-      >
-        🔒 Coming Soon
-      </button>
+        <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center opacity-60">
+          <span class="font-semibold text-gray-700">Convert FT to USDT</span>
+          <span class="text-xs bg-yellow-400 text-white px-2 py-1 rounded-lg">Coming Soon</span>
+        </div>
 
-      <div class="bg-blue-50 border-l-4 border-blue-500 p-3 rounded">
-        <p class="text-xs text-blue-800">
-          <strong>ℹ️ When Active:</strong>
-        </p>
-        <ul class="text-xs text-blue-800 mt-1 space-y-1 list-disc list-inside">
-          <li>Select Network: TRC20 (Tron)</li>
-          <li>Enter your USDT TRC20 address</li>
-        </ul>
+        <div class="bg-white p-4 rounded-lg shadow flex justify-between items-center opacity-60">
+          <span class="font-semibold text-gray-700">Auto Withdraw System</span>
+          <span class="text-xs bg-yellow-400 text-white px-2 py-1 rounded-lg">Coming Soon</span>
+        </div>
+      </div>
+
+      <!-- Ad Space 3 -->
+      <div id="adSpace3" class="ad-section">
+        <div class="ad-container">
+          <div class="spinner"></div>
+        </div>
       </div>
     </div>
   </main>
 
-  <!-- Bottom Ad Container -->
-  <div class="ad-bottom" id="bottomAd" style="display: none;">
-    <div class="ad-container">
-      <div class="spinner"></div>
-    </div>
-  </div>
+  <!-- Footer -->
+  <footer class="bg-white border-t border-gray-200 py-3 text-center text-xs text-gray-500 mt-8">
+    © 2025 FarmToken | All Rights Reserved
+  </footer>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+    // ✅ config.js থেকে import করুন (Firebase initialization বারবার হবে না)
+    import { auth, database } from './config.js';
+    import { ref, get } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
-    const farmTokenConfig = {
-      apiKey: "AIzaSyAH9-GEeIVDe98wCziPHnDv5Q84BoQFXOQ",
-      authDomain: "farmtoken.firebaseapp.com",
-      databaseURL: "https://farmtoken-default-rtdb.firebaseio.com",
-      projectId: "farmtoken",
-      storageBucket: "farmtoken.firebasestorage.app",
-      messagingSenderId: "873508490805",
-      appId: "1:873508490805:web:6d2676c41aa60a289cab7c",
-      measurementId: "G-YZPTK2CP47"
-    };
-
-    const farmTokenApp = initializeApp(farmTokenConfig, "farmToken");
-    const farmAuth = getAuth(farmTokenApp);
-    const farmDb = getDatabase(farmTokenApp);
-
-    let currentUser = null;
-    let userData = null;
-
-    // Ad configurations
+    // Multiple ad spaces configuration
     const adConfigs = [
-      { key: '78ade24182729fceea8e45203dad915b', format: 'iframe', height: 50, width: 320, src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js' },
-      { key: '53c6462d2fd5ad5b91686ca9561f79a2', format: 'iframe', height: 90, width: 728, src: '//www.highperformanceformat.com/53c6462d2fd5ad5b91686ca9561f79a2/invoke.js' }
+      { 
+        id: 'adSpace1',
+        key: '78ade24182729fceea8e45203dad915b', 
+        format: 'iframe', 
+        height: 50, 
+        width: 320, 
+        src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js' 
+      },
+      { 
+        id: 'adSpace2',
+        key: '78ade24182729fceea8e45203dad915b', 
+        format: 'iframe', 
+        height: 50, 
+        width: 320, 
+        src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js' 
+      },
+      { 
+        id: 'adSpace3',
+        key: '78ade24182729fceea8e45203dad915b', 
+        format: 'iframe', 
+        height: 50, 
+        width: 320, 
+        src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js' 
+      }
     ];
 
-    const topAd = document.getElementById('topAd');
-    const bottomAd = document.getElementById('bottomAd');
+    let userData = null;
+    let userId = null;
+    let currentAdIndex = 0;
 
-    // Get random ad config
-    function getRandomAd() {
-      return adConfigs[Math.floor(Math.random() * adConfigs.length)];
+    const availableBalance = document.getElementById("availableBalance");
+    const withdrawBtn = document.getElementById("withdrawBtn");
+    const notification = document.getElementById("notification");
+    const loadingState = document.getElementById("loading-state");
+    const withdrawContent = document.getElementById("withdraw-content");
+
+    function showNotification(message, color = "green") {
+      notification.textContent = message;
+      notification.style.background = color === "green" ? "#28a745" : "#dc3545";
+      notification.classList.add("show");
+      setTimeout(() => notification.classList.remove("show"), 2500);
     }
 
-    // Load ad into container
-    function loadAd(container) {
+    withdrawBtn.addEventListener("click", () => {
+      showNotification("💡 Withdraw feature coming soon!", "green");
+    });
+
+    // --- Ad Loading Logic ---
+    function loadRandomAd() {
+      // Hide all ads first
+      adConfigs.forEach(config => {
+        const adSpace = document.getElementById(config.id);
+        if (adSpace) adSpace.classList.remove('visible');
+      });
+
+      // Pick a random ad to show
+      currentAdIndex = Math.floor(Math.random() * adConfigs.length);
+      const selectedAd = adConfigs[currentAdIndex];
+      const adSpace = document.getElementById(selectedAd.id);
+      
+      if (!adSpace) return;
+
+      const container = adSpace.querySelector('.ad-container');
       if (!container) return;
-      
-      container.style.display = 'block';
-      
-      const adConfig = getRandomAd();
-      const innerContainer = container.querySelector('.ad-container');
-      if (!innerContainer) return;
-      
-      innerContainer.innerHTML = '';
-      
+
+      container.innerHTML = '';
       const script1 = document.createElement('script');
       script1.type = 'text/javascript';
-      script1.innerHTML = `atOptions = {'key': '${adConfig.key}','format': '${adConfig.format}','height': ${adConfig.height},'width': ${adConfig.width},'params': {}};`;
+      script1.innerHTML = `atOptions = {'key': '${selectedAd.key}','format': '${selectedAd.format}','height': ${selectedAd.height},'width': ${selectedAd.width},'params': {}};`;
       
       const script2 = document.createElement('script');
       script2.type = 'text/javascript';
-      script2.src = adConfig.src;
+      script2.src = selectedAd.src;
       
-      innerContainer.appendChild(script1);
-      innerContainer.appendChild(script2);
-    }
-
-    // Load all ads
-    function loadAllAds() {
-      loadAd(topAd);
+      container.appendChild(script1);
+      container.appendChild(script2);
       
-      setTimeout(() => {
-        loadAd(bottomAd);
-      }, 2000);
+      // Show the selected ad
+      adSpace.classList.add('visible');
     }
 
-    function showNotification(message, type = 'success') {
-      const notification = document.getElementById('notification');
-      if (notification) {
-        notification.textContent = message;
-        notification.classList.remove('error');
-        if (type === 'error') notification.classList.add('error');
-        notification.classList.add('show');
-        setTimeout(() => notification.classList.remove('show'), 3000);
-      }
+    // Rotate ads every 30 seconds
+    function startAdRotation() {
+      loadRandomAd();
+      setInterval(loadRandomAd, 30000); // 30 seconds
     }
 
-    window.goBack = function() {
-      window.location.href = 'index.html#wallet';
-    };
-
-    function updateBalance() {
-      const balanceEl = document.getElementById('availableBalance');
-      if (balanceEl && userData) {
-        balanceEl.textContent = `${(userData.balance || 0).toFixed(2)} FT`;
-      }
-    }
-
-    onAuthStateChanged(farmAuth, user => {
-      const loading = document.getElementById('loading');
-      
+    // --- Core Application Logic ---
+    auth.onAuthStateChanged((user) => {
       if (user) {
-        currentUser = user;
-        const userRef = ref(farmDb, `users/${user.uid}`);
-        onValue(userRef, snapshot => {
-          userData = snapshot.val();
-          updateBalance();
-          // Hide loading after data is loaded
-          if (loading) loading.style.display = 'none';
-        });
-        // Load ads when user is authenticated
-        loadAllAds();
+        userId = user.uid;
+        loadUserData();
+        startAdRotation();
       } else {
-        // Redirect to index page if not logged in
         window.location.href = 'index.html';
       }
     });
+
+    async function loadUserData() {
+      try {
+        const userRef = ref(database, 'users/' + userId);
+        const snapshot = await get(userRef);
+        
+        if (snapshot.exists()) {
+          userData = snapshot.val();
+          displayBalance();
+        } else {
+          console.error('User data not found');
+          showNotification("Error loading account data", "red");
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        showNotification("Error loading account data", "red");
+      }
+    }
+
+    function displayBalance() {
+      loadingState.style.display = 'none';
+      withdrawContent.style.display = 'block';
+      
+      if (userData && availableBalance) {
+        availableBalance.textContent = (userData.balance || 0).toFixed(2) + " FT";
+      }
+    }
   </script>
+
 </body>
 </html>
