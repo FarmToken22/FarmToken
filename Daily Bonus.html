@@ -11,7 +11,6 @@
       background-color: #f9fafb;
       min-height: 100vh;
       overflow-x: hidden;
-      padding-bottom: 100px;
     }
     .fade-in { animation: fadeIn 0.4s ease; }
     @keyframes fadeIn {
@@ -38,40 +37,15 @@
       background: #f9fafb;
       border-radius: 8px;
       padding: 10px;
-      margin: 10px 0;
+      margin: 16px 0;
       width: 100%;
     }
-    .bottom-banner-ad {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: white;
-      border-top: 1px solid #e5e7eb;
-      z-index: 100;
-      padding: 5px;
-      transition: transform 0.3s ease-in-out;
-      transform: translateY(100%);
+    .ad-section {
+      width: 100%;
+      display: none;
     }
-    .bottom-banner-ad.visible {
-      transform: translateY(0);
-    }
-    .close-ad-btn {
-      position: absolute;
-      top: -12px;
-      right: -10px;
-      background: rgba(0,0,0,0.6);
-      color: white;
-      border: 2px solid white;
-      border-radius: 50%;
-      width: 28px;
-      height: 28px;
-      font-size: 16px;
-      line-height: 24px;
-      text-align: center;
-      cursor: pointer;
-      z-index: 101;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    .ad-section.visible {
+      display: block;
     }
 
     .modal-overlay {
@@ -140,24 +114,45 @@
 
   <!-- Daily Bonus Section -->
   <main class="flex-1 flex flex-col items-center justify-start px-4 py-6 fade-in">
-    <div class="w-full max-w-2xl mt-6 pb-10">
+    <div class="w-full max-w-2xl mt-6">
       <div id="loading-state" class="loading">
         <div class="spinner"></div>
         <p class="text-gray-600">Loading your rewards...</p>
       </div>
-      <div class="grid grid-cols-3 gap-4" id="bonus-grid" style="display: none;"></div>
+
+      <div id="bonus-content" style="display: none;">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Daily Bonus</h2>
+
+        <!-- Ad Space 1 -->
+        <div id="adSpace1" class="ad-section">
+          <div class="ad-container">
+            <div class="spinner"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4" id="bonus-grid"></div>
+
+        <!-- Ad Space 2 -->
+        <div id="adSpace2" class="ad-section">
+          <div class="ad-container">
+            <div class="spinner"></div>
+          </div>
+        </div>
+
+        <!-- Ad Space 3 -->
+        <div id="adSpace3" class="ad-section">
+          <div class="ad-container">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 
-  <!-- Bottom Banner Ad -->
-  <div id="bottomBannerAd" class="bottom-banner-ad">
-    <div class="relative max-w-3xl mx-auto">
-        <div id="closeBannerBtn" class="close-ad-btn" title="Close Ad">&times;</div>
-        <div class="ad-container">
-          <div class="spinner"></div>
-        </div>
-    </div>
-  </div>
+  <!-- Footer -->
+  <footer class="bg-white border-t border-gray-200 py-3 text-center text-xs text-gray-500 mt-8">
+    © 2025 FarmToken | All Rights Reserved
+  </footer>
 
   <!-- Rewarded Ad Confirmation Modal -->
   <div id="rewardedAdModal" class="modal-overlay">
@@ -187,8 +182,33 @@
     import { auth, database } from './config.js';
     import { ref, get, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
-    // Single ad configuration for the banner
-    const bannerAdConfig = { key: '78ade24182729fceea8e45203dad915b', format: 'iframe', height: 50, width: 320, src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js' };
+    // Multiple ad spaces configuration
+    const adConfigs = [
+      { 
+        id: 'adSpace1',
+        key: '78ade24182729fceea8e45203dad915b', 
+        format: 'iframe', 
+        height: 50, 
+        width: 320, 
+        src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js' 
+      },
+      { 
+        id: 'adSpace2',
+        key: '78ade24182729fceea8e45203dad915b', 
+        format: 'iframe', 
+        height: 50, 
+        width: 320, 
+        src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js' 
+      },
+      { 
+        id: 'adSpace3',
+        key: '78ade24182729fceea8e45203dad915b', 
+        format: 'iframe', 
+        height: 50, 
+        width: 320, 
+        src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js' 
+      }
+    ];
 
     const dailyRewards = [
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -201,13 +221,13 @@
     let userData = null;
     let userId = null;
     let countdownTimers = {};
+    let currentAdIndex = 0;
     
     const grid = document.getElementById("bonus-grid");
     const loadingState = document.getElementById("loading-state");
+    const bonusContent = document.getElementById("bonus-content");
     
-    // Ad and Modal Elements
-    const bottomBannerAd = document.getElementById("bottomBannerAd");
-    const closeBannerBtn = document.getElementById("closeBannerBtn");
+    // Modal Elements
     const rewardedAdModal = document.getElementById("rewardedAdModal");
     const adPlayerModal = document.getElementById("adPlayerModal");
     const watchAdBtn = document.getElementById("watchAdBtn");
@@ -215,35 +235,45 @@
     const adProgressBar = document.getElementById("adProgressBar");
     const adCountdownText = document.getElementById("adCountdownText");
 
-    // --- Banner Ad Logic ---
-    function loadBannerAd() {
-      const container = bottomBannerAd.querySelector('.ad-container');
+    // --- Ad Loading Logic ---
+    function loadRandomAd() {
+      // Hide all ads first
+      adConfigs.forEach(config => {
+        const adSpace = document.getElementById(config.id);
+        if (adSpace) adSpace.classList.remove('visible');
+      });
+
+      // Pick a random ad to show
+      currentAdIndex = Math.floor(Math.random() * adConfigs.length);
+      const selectedAd = adConfigs[currentAdIndex];
+      const adSpace = document.getElementById(selectedAd.id);
+      
+      if (!adSpace) return;
+
+      const container = adSpace.querySelector('.ad-container');
       if (!container) return;
 
       container.innerHTML = '';
       const script1 = document.createElement('script');
       script1.type = 'text/javascript';
-      script1.innerHTML = `atOptions = {'key': '${bannerAdConfig.key}','format': '${bannerAdConfig.format}','height': ${bannerAdConfig.height},'width': ${bannerAdConfig.width},'params': {}};`;
+      script1.innerHTML = `atOptions = {'key': '${selectedAd.key}','format': '${selectedAd.format}','height': ${selectedAd.height},'width': ${selectedAd.width},'params': {}};`;
       
       const script2 = document.createElement('script');
       script2.type = 'text/javascript';
-      script2.src = bannerAdConfig.src;
+      script2.src = selectedAd.src;
       
       container.appendChild(script1);
       container.appendChild(script2);
-      showBannerAd();
+      
+      // Show the selected ad
+      adSpace.classList.add('visible');
     }
 
-    function showBannerAd() {
-        bottomBannerAd.classList.add('visible');
+    // Rotate ads every 30 seconds
+    function startAdRotation() {
+      loadRandomAd();
+      setInterval(loadRandomAd, 30000); // 30 seconds
     }
-
-    function hideBannerAd() {
-        bottomBannerAd.classList.remove('visible');
-        setTimeout(showBannerAd, 30000);
-    }
-    
-    closeBannerBtn.addEventListener('click', hideBannerAd);
 
     // --- Rewarded Ad Logic ---
     function showRewardConfirmation(day, reward) {
@@ -294,7 +324,7 @@
       if (user) {
         userId = user.uid;
         loadUserData();
-        loadBannerAd();
+        startAdRotation();
       } else {
         window.location.href = 'index.html';
       }
@@ -322,7 +352,7 @@
 
     function renderBonusGrid() {
       loadingState.style.display = 'none';
-      grid.style.display = 'grid';
+      bonusContent.style.display = 'block';
       grid.innerHTML = '';
       
       Object.values(countdownTimers).forEach(timer => clearInterval(timer));
