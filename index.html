@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="FarmToken - A cryptocurrency mining and referral platform">
-  <meta name="author" content="FarmToken Team">
-  <title>FarmToken</title>
+  <meta name="description" content="FarmZone - A cryptocurrency mining and referral platform">
+  <meta name="author" content="FarmZone Team">
+  <title>FarmZone</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     * {
@@ -17,7 +17,7 @@
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
       overflow-x: hidden;
-      padding-bottom: 80px; /* Adjusted for footer only */
+      padding-bottom: 80px;
       min-height: 100vh;
     }
 
@@ -267,7 +267,6 @@
       color: #555;
     }
 
-    /* New styles for in-content ad containers */
     .dynamic-ad-slot {
       display: flex;
       justify-content: center;
@@ -276,7 +275,6 @@
       margin: 1.5rem 0;
     }
     
-    /* New Menu Styles */
     #menuOverlay.hidden {
         display: none;
     }
@@ -286,7 +284,6 @@
     #menuOverlay:not(.hidden) #menuPanel {
         transform: translateX(0);
     }
-
 
     @media (max-width: 640px) {
       .mining-btn {
@@ -333,11 +330,10 @@
 
   <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-10">
     <div class="flex items-center gap-2">
-      <img src="Logo.png" alt="FarmToken Logo" class="h-10 w-10 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
-      <h1 class="text-xl sm:text-2xl font-bold text-red-600">FarmToken</h1>
+      <img src="Logo.png" alt="FarmZone Logo" class="h-10 w-10 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
+      <h1 class="text-xl sm:text-2xl font-bold text-red-600">FarmZone</h1>
     </div>
     <div class="flex items-center gap-2 sm:gap-3">
-      <!-- Modernized Menu Button -->
       <button id="menuBtn" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all duration-300 transform hover:scale-110">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
@@ -346,13 +342,13 @@
     </div>
   </header>
 
-  <!-- START: Side Menu (Modernized with Icons) -->
+  <!-- START: Side Menu -->
   <div id="menuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
     <div id="menuPanel" class="fixed top-0 right-0 h-full w-72 sm:w-80 bg-white shadow-xl transform translate-x-full">
       <div class="flex justify-between items-center p-4 border-b">
         <div class="flex items-center gap-2">
-            <img src="Logo.png" alt="FarmToken Logo" class="h-8 w-8 object-contain">
-            <h2 class="text-lg font-bold text-gray-800">FarmToken Menu</h2>
+            <img src="Logo.png" alt="FarmZone Logo" class="h-8 w-8 object-contain">
+            <h2 class="text-lg font-bold text-gray-800">FarmZone Menu</h2>
         </div>
         <button id="closeMenuBtn" class="p-2 hover:bg-gray-200 rounded-full">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -406,7 +402,7 @@
     <div class="stats-bar flex justify-around p-4 bg-white rounded-xl shadow mb-4">
       <div class="text-center">
         <h4 class="text-xs uppercase text-gray-600 font-semibold">Balance</h4>
-        <p id="totalBalance" class="text-lg font-bold text-green-600">0.00 FT</p>
+        <p id="totalBalance" class="text-lg font-bold text-green-600">0.00 FZ</p>
       </div>
       <div class="text-center">
         <h4 class="text-xs uppercase text-gray-600 font-semibold">Mining Rate</h4>
@@ -423,11 +419,10 @@
         <img src="Full.png" alt="Mining Animation" class="w-full rounded-xl shadow-lg" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22><rect width=%22400%22 height=%22400%22 fill=%22%23e0e0e0%22 rx=%2212%22/><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 fill=%22%23666%22 font-size=%2220%22>Mining Area</text></svg>'">
         <button class="mining-btn" id="miningBtn" disabled>
           <span class="timer-display">Start Mining</span>
-          <span class="earned-display" id="earnedDisplay">0.000000 FT</span>
+          <span class="earned-display" id="earnedDisplay">0.000000 FZ</span>
         </button>
       </div>
 
-      <!-- Home Page Ad Slot -->
       <div id="homeAdContainer" class="dynamic-ad-slot"></div>
 
       <div class="mining-info bg-white p-4 rounded-xl shadow w-full max-w-[400px]">
@@ -437,11 +432,11 @@
         </div>
         <div class="flex justify-between py-2 border-b">
           <span class="text-gray-600">Current Earned</span>
-          <span class="text-green-600 font-semibold" id="currentEarned">0.000000 FT</span>
+          <span class="text-green-600 font-semibold" id="currentEarned">0.000000 FZ</span>
         </div>
         <div class="flex justify-between py-2">
           <span class="text-gray-600">Total Mined</span>
-          <span class="text-green-600 font-semibold" id="totalMined">0.00 FT</span>
+          <span class="text-green-600 font-semibold" id="totalMined">0.00 FZ</span>
         </div>
       </div>
     </div>
@@ -451,7 +446,7 @@
     <div class="bg-white shadow rounded-xl p-4 sm:p-6 space-y-3 sm:space-y-4">
       <div class="flex justify-between border-b pb-2 sm:pb-3">
         <p class="text-gray-600 text-base sm:text-lg">Balance</p>
-        <p id="profileBalance" class="text-green-600 font-bold text-base sm:text-lg">0.00 FT</p>
+        <p id="profileBalance" class="text-green-600 font-bold text-base sm:text-lg">0.00 FZ</p>
       </div>
       <div class="flex justify-between border-b pb-2 sm:pb-3 items-center gap-2">
         <div class="flex-1 min-w-0">
@@ -463,7 +458,7 @@
       <div class="flex justify-between border-b pb-2 sm:pb-3">
         <p class="text-gray-600 text-base sm:text-lg">Referral Rewards</p>
         <div class="flex items-center gap-2">
-          <p id="referralRewards" class="text-green-600 font-bold text-base sm:text-lg">0.00 FT</p>
+          <p id="referralRewards" class="text-green-600 font-bold text-base sm:text-lg">0.00 FZ</p>
           <button id="claimReferralBtn" class="text-xs sm:text-sm bg-yellow-500 text-white px-2 sm:px-3 py-1.5 rounded-lg hover:bg-yellow-600 transition-all" style="display: none;">Claim</button>
         </div>
       </div>
@@ -481,10 +476,10 @@
     </div>
 
     <div id="referralSubmitBox" class="bg-white shadow rounded-xl p-4 sm:p-6">
-      <p class="font-semibold text-base sm:text-lg mb-2">📢 Have a Referral Code?</p>
+      <p class="font-semibold text-base sm:text-lg mb-2">Have a Referral Code?</p>
       <p class="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">Enter your friend's referral code to connect with them!</p>
       <div class="flex flex-col sm:flex-row gap-2">
-        <input id="referralCodeInput" type="text" placeholder="Enter code (e.g., FT-XXXXX)" class="flex-1 border rounded-lg sm:rounded-l-lg sm:rounded-r-none p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-green-500">
+        <input id="referralCodeInput" type="text" placeholder="Enter code (e.g., FZ-XXXXX)" class="flex-1 border rounded-lg sm:rounded-l-lg sm:rounded-r-none p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-green-500">
         <button id="submitReferralBtn" class="bg-green-500 text-white px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-l-none sm:rounded-r-lg text-sm sm:text-base hover:bg-green-600 transition-colors">Submit</button>
       </div>
       <p id="referralStatus" class="text-xs sm:text-sm mt-2 sm:mt-3 hidden"></p>
@@ -494,10 +489,9 @@
       </div>
     </div>
     <div id="referralSubmittedBox" class="bg-green-100 border-2 border-green-200 rounded-xl p-4 text-green-700 text-center text-sm sm:text-base font-semibold" style="display: none;">
-      ✅ Referral code already submitted!
+      Referral code already submitted!
     </div>
 
-    <!-- Profile Page Ad Slot -->
     <div id="profileAdContainer" class="dynamic-ad-slot"></div>
 
     <button id="authBtn" class="w-full bg-red-500 text-white py-2.5 sm:py-3 rounded-lg shadow text-base sm:text-lg hover:bg-red-600 transition-colors">Logout</button>
@@ -508,11 +502,11 @@
       <h2 class="text-lg sm:text-xl font-semibold mb-3">Wallet Overview</h2>
       <div class="flex justify-between border-b pb-2 sm:pb-3">
         <p class="text-gray-600 text-base sm:text-lg">Balance</p>
-        <p id="walletBalance" class="text-green-600 font-bold text-base sm:text-lg">0.00 FT</p>
+        <p id="walletBalance" class="text-green-600 font-bold text-base sm:text-lg">0.00 FZ</p>
       </div>
       <div class="flex justify-between pt-2 sm:pt-3">
         <p class="text-gray-600 text-base sm:text-lg">Total Mined</p>
-        <p id="totalMinedWallet" class="text-green-600 font-bold text-base sm:text-lg">0.00 FT</p>
+        <p id="totalMinedWallet" class="text-green-600 font-bold text-base sm:text-lg">0.00 FZ</p>
       </div>
     </div>
 
@@ -521,7 +515,6 @@
       <a href="Withdraw.html" class="home-button flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-teal-500 transition-all">Withdraw Funds</a>
     </div>
 
-    <!-- Wallet Page Ad Slot -->
     <div id="walletAdContainer" class="dynamic-ad-slot"></div>
   </section>
 
@@ -554,7 +547,6 @@
   </footer>
 
   <script>
-    // Ad configurations
     const adConfigs = [
       {
         key: '63718988f07bc6d276f3c6a441757cae',
@@ -579,17 +571,15 @@
       }
     ];
 
-    // Function to get a random ad configuration
     function getRandomAdConfig() {
       const index = Math.floor(Math.random() * adConfigs.length);
       return adConfigs[index];
     }
 
-    // Function to load an ad into a container
     function loadAd(containerId, adConfig) {
       const container = document.getElementById(containerId);
       if (container) {
-        container.innerHTML = ''; // Clear previous content
+        container.innerHTML = '';
         const script1 = document.createElement('script');
         script1.type = 'text/javascript';
         script1.innerHTML = `
@@ -609,7 +599,6 @@
       }
     }
 
-    // Show ad modal
     function showAdModal() {
       const adModal = document.getElementById('adModal');
       if (adModal) {
@@ -617,11 +606,10 @@
         adModal.style.display = 'flex';
         setTimeout(() => {
           closeAdModal();
-        }, 5000); // Auto-close after 5 seconds
+        }, 5000);
       }
     }
 
-    // Close ad modal
     window.closeAdModal = function() {
       const adModal = document.getElementById('adModal');
       if (adModal) {
@@ -629,35 +617,24 @@
       }
     };
 
-    // Load ads and initialize other functionalities on page load
     window.addEventListener('load', () => {
-      // --- START: New Random Ad Placement Logic ---
       const adSlots = ['homeAdContainer', 'profileAdContainer', 'walletAdContainer'];
-      // Select one random slot to display an ad
       const randomSlotId = adSlots[Math.floor(Math.random() * adSlots.length)];
-      // Load a random ad into the chosen slot
       loadAd(randomSlotId, getRandomAdConfig());
-      // --- END: New Random Ad Placement Logic ---
 
-      // Navigation Indicator Enhancement
       const navIndicator = document.getElementById('navIndicator');
       const homeBtn = document.getElementById('homeBtn');
       const profileBtn = document.getElementById('profileBtn');
       const walletBtn = document.getElementById('walletBtn');
 
       if (navIndicator && homeBtn && profileBtn && walletBtn) {
-        const navBtns = {
-          home: homeBtn,
-          profile: profileBtn,
-          wallet: walletBtn
-        };
+        const navBtns = { home: homeBtn, profile: profileBtn, wallet: walletBtn };
 
         function updateNavIndicator(btn) {
           const btnRect = btn.getBoundingClientRect();
           const parentRect = btn.parentElement.getBoundingClientRect();
           const left = btnRect.left - parentRect.left;
           const width = btnRect.width;
-          
           navIndicator.style.left = `${left}px`;
           navIndicator.style.width = `${width}px`;
         }
@@ -687,7 +664,6 @@
         });
       }
 
-      // New Menu Functionality
       const menuBtn = document.getElementById('menuBtn');
       const closeMenuBtn = document.getElementById('closeMenuBtn');
       const menuOverlay = document.getElementById('menuOverlay');
