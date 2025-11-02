@@ -89,21 +89,29 @@ function formatTime(seconds) {
 }
 
 function switchSection(section) {
-    const sections = ['homeSection', 'profileSection', 'walletSection'];
-    const btns = ['homeBtn', 'profileBtn', 'walletBtn'];
+    const sections = ['homeSection', 'profileSection'];
+    const btns = ['homeBtn', 'profileBtn'];
 
     sections.forEach(s => document.getElementById(s)?.classList.remove('active'));
-    btns.forEach(b => document.getElementById(b)?.classList.remove('text-green-400', 'font-semibold'));
+    btns.forEach(b => {
+        const btn = document.getElementById(b);
+        if (btn) {
+            btn.classList.remove('text-green-600', 'active');
+        }
+    });
 
     if (section === 'home') {
         document.getElementById('homeSection')?.classList.add('active');
-        document.getElementById('homeBtn')?.classList.add('text-green-400', 'font-semibold');
+        const homeBtn = document.getElementById('homeBtn');
+        if (homeBtn) {
+            homeBtn.classList.add('text-green-600', 'active');
+        }
     } else if (section === 'profile') {
         document.getElementById('profileSection')?.classList.add('active');
-        document.getElementById('profileBtn')?.classList.add('text-green-400', 'font-semibold');
-    } else if (section === 'wallet') {
-        document.getElementById('walletSection')?.classList.add('active');
-        document.getElementById('walletBtn')?.classList.add('text-green-400', 'font-semibold');
+        const profileBtn = document.getElementById('profileBtn');
+        if (profileBtn) {
+            profileBtn.classList.add('text-green-600', 'active');
+        }
     }
 }
 
@@ -146,11 +154,9 @@ function updateUI() {
     const els = {
         totalBalance: document.getElementById('totalBalance'),
         profileBalance: document.getElementById('profileBalance'),
-        walletBalance: document.getElementById('walletBalance'),
         miningRate: document.getElementById('miningRate'),
         referralCount: document.getElementById('referralCount'),
         totalMined: document.getElementById('totalMined'),
-        totalMinedWallet: document.getElementById('totalMinedWallet'),
         currentEarned: document.getElementById('currentEarned'),
         referralRewards: document.getElementById('referralRewards'),
         refCode: document.getElementById('refCode'),
@@ -174,11 +180,9 @@ function updateUI() {
     // Update Balance & Mining
     els.totalBalance && (els.totalBalance.textContent = `${balance} FZ`);
     els.profileBalance && (els.profileBalance.textContent = `${balance} FZ`);
-    els.walletBalance && (els.walletBalance.textContent = `${balance} FZ`);
     els.miningRate && (els.miningRate.textContent = `${miningRate}/hr`);
     els.referralCount && (els.referralCount.textContent = referralCount);
     els.totalMined && (els.totalMined.textContent = `${totalMined.toFixed(2)} FZ`);
-    els.totalMinedWallet && (els.totalMinedWallet.textContent = `${totalMined.toFixed(2)} FZ`);
     els.currentEarned && (els.currentEarned.textContent = `${currentEarned.toFixed(6)} FZ`);
     els.earnedDisplay && (els.earnedDisplay.textContent = `${currentEarned.toFixed(6)} FZ`);
     els.referralRewards && (els.referralRewards.textContent = `${referralRewards} FZ`);
@@ -214,7 +218,7 @@ function updateUI() {
         if (userData.miningStartTime && Date.now() < userData.miningEndTime) {
             els.miningBtn.disabled = true;
             els.miningStatus.textContent = 'Active';
-            els.miningStatus.classList.add('text-green-400');
+            els.miningStatus.classList.add('text-green-600');
             if (!countdownInterval) startCountdown(userData.miningEndTime);
             if (!miningInterval) miningInterval = setInterval(updateMiningDisplay, 1000);
         } else if (userData.miningStartTime && Date.now() >= userData.miningEndTime) {
@@ -223,14 +227,14 @@ function updateUI() {
             const timerDisplay = els.miningBtn.querySelector('.timer-display');
             if (timerDisplay) timerDisplay.textContent = 'Claim';
             els.miningStatus.textContent = 'Ready to Claim';
-            els.miningStatus.classList.remove('text-green-400');
+            els.miningStatus.classList.remove('text-green-600');
         } else {
             els.miningBtn.classList.remove('claim');
             els.miningBtn.disabled = false;
             const timerDisplay = els.miningBtn.querySelector('.timer-display');
             if (timerDisplay) timerDisplay.textContent = 'Start Mining';
             els.miningStatus.textContent = 'Inactive';
-            els.miningStatus.classList.remove('text-green-400');
+            els.miningStatus.classList.remove('text-green-600');
         }
     }
 }
@@ -277,8 +281,10 @@ function startMining() {
 function updateMiningDisplay() {
     if (!userData || !userData.miningStartTime) return;
     const currentEarned = calculateCurrentEarned();
-    document.getElementById('currentEarned')?.setAttribute('textContent', `${currentEarned.toFixed(6)} FZ`);
-    document.getElementById('earnedDisplay')?.setAttribute('textContent', `${currentEarned.toFixed(6)} FZ`);
+    const currentEarnedEl = document.getElementById('currentEarned');
+    const earnedDisplayEl = document.getElementById('earnedDisplay');
+    if (currentEarnedEl) currentEarnedEl.textContent = `${currentEarned.toFixed(6)} FZ`;
+    if (earnedDisplayEl) earnedDisplayEl.textContent = `${currentEarned.toFixed(6)} FZ`;
     if (Date.now() >= userData.miningEndTime) stopMining();
 }
 
@@ -298,7 +304,7 @@ function stopMining() {
     }
     if (miningStatus) {
         miningStatus.textContent = 'Ready to Claim';
-        miningStatus.classList.remove('text-green-400');
+        miningStatus.classList.remove('text-green-600');
     }
 }
 
@@ -347,7 +353,8 @@ async function claimMiningReward() {
 async function claimReferralRewards() {
     if (!userData || userData.referralRewards <= 0) return showNotification('No referral rewards to claim.', 'error');
     const userRef = ref(database, `users/${currentUser.uid}`);
-    const newBalance = (userData.balance || 0) + userData.referralRewards;
+    const rewardAmount = userData.referralRewards;
+    const newBalance = (userData.balance || 0) + rewardAmount;
 
     try {
         await update(userRef, { balance: newBalance, referralRewards: 0 });
@@ -355,12 +362,12 @@ async function claimReferralRewards() {
         const transactionRef = ref(database, `users/${currentUser.uid}/transactions/${transactionId}`);
         await set(transactionRef, {
             type: 'referral',
-            amount: userData.referralRewards,
+            amount: rewardAmount,
             description: 'Referral Rewards Claimed',
             timestamp: Date.now(),
             status: 'completed'
         });
-        showNotification(`Claimed ${userData.referralRewards.toFixed(2)} FZ from referrals!`);
+        showNotification(`Claimed ${rewardAmount.toFixed(2)} FZ from referrals!`);
         showAdModal();
     } catch (err) {
         console.error('Referral claim error:', err);
@@ -481,7 +488,15 @@ async function initializeUserData(user) {
             const referralCode = generateReferralCode();
             const joinDate = new Date().toISOString().split('T')[0];
             await set(userRef, {
-                balance: 0, totalMined: 0, referralCode, joinDate, referrals: {}, referralRewards: 0, referralMilestones: {}, transactions: {}
+                balance: 0,
+                totalMined: 0,
+                usdtBalance: 0,
+                referralCode,
+                joinDate,
+                referrals: {},
+                referralRewards: 0,
+                referralMilestones: {},
+                transactions: {}
             });
         }
         userData = snapshot.val();
@@ -495,7 +510,7 @@ function populateSidebar() {
     if (!sidebarContent) return;
 
     const iconHTML = sidebarIcons.map(icon => `
-        <a href="${icon.href}" title="${icon.name}" class="group relative flex justify-center items-center h-12 w-12 rounded-full bg-gray-700 hover:bg-green-500 transition-all duration-300">
+        <a href="${icon.href}" title="${icon.name}" class="group relative flex justify-center items-center h-12 w-12 rounded-full bg-gray-200 hover:bg-green-500 hover:text-white text-gray-700 transition-all duration-300">
             ${icon.svg}
             <span class="absolute left-full ml-4 w-auto min-w-max px-3 py-1.5 text-sm font-medium text-white bg-gray-900 rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
                 ${icon.name}
@@ -512,8 +527,8 @@ function setupSidebar() {
     const sidebarOverlay = document.getElementById('sidebarOverlay');
 
     const toggleSidebar = () => {
-        sidebar.classList.toggle('open');
-        sidebarOverlay.classList.toggle('hidden');
+        sidebar?.classList.toggle('open');
+        sidebarOverlay?.classList.toggle('hidden');
     };
 
     if (sidebar && sidebarToggleBtn && sidebarOverlay) {
@@ -522,7 +537,7 @@ function setupSidebar() {
     }
 }
 
-
+// --- Event Listeners ---
 document.addEventListener('DOMContentLoaded', () => {
     const loading = document.getElementById('loading');
     if (loading) loading.style.display = 'none';
@@ -546,7 +561,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     els.homeBtn?.addEventListener('click', () => switchSection('home'));
     els.profileBtn?.addEventListener('click', () => switchSection('profile'));
-    els.walletBtn?.addEventListener('click', () => switchSection('wallet'));
+    // ✅ আপডেট: wallet.html পেজে redirect
+    els.walletBtn?.addEventListener('click', () => window.location.href = 'wallet.html');
     els.miningBtn?.addEventListener('click', () => els.miningBtn.classList.contains('claim') ? claimMiningReward() : startMining());
     els.claimReferralBtn?.addEventListener('click', claimReferralRewards);
     els.submitReferralBtn?.addEventListener('click', submitReferralCode);
