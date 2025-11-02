@@ -2,6 +2,7 @@
 import { auth, database } from './config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { ref, get, set, update, onValue, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+import { sidebarIcons } from './icon.js'; // icon.js থেকে ডেটা ইম্পোর্ট
 
 let currentUser = null;
 let userData = null;
@@ -92,17 +93,17 @@ function switchSection(section) {
     const btns = ['homeBtn', 'profileBtn', 'walletBtn'];
 
     sections.forEach(s => document.getElementById(s)?.classList.remove('active'));
-    btns.forEach(b => document.getElementById(b)?.classList.remove('text-green-600', 'font-semibold'));
+    btns.forEach(b => document.getElementById(b)?.classList.remove('text-green-400', 'font-semibold'));
 
     if (section === 'home') {
         document.getElementById('homeSection')?.classList.add('active');
-        document.getElementById('homeBtn')?.classList.add('text-green-600', 'font-semibold');
+        document.getElementById('homeBtn')?.classList.add('text-green-400', 'font-semibold');
     } else if (section === 'profile') {
         document.getElementById('profileSection')?.classList.add('active');
-        document.getElementById('profileBtn')?.classList.add('text-green-600', 'font-semibold');
+        document.getElementById('profileBtn')?.classList.add('text-green-400', 'font-semibold');
     } else if (section === 'wallet') {
         document.getElementById('walletSection')?.classList.add('active');
-        document.getElementById('walletBtn')?.classList.add('text-green-600', 'font-semibold');
+        document.getElementById('walletBtn')?.classList.add('text-green-400', 'font-semibold');
     }
 }
 
@@ -213,7 +214,7 @@ function updateUI() {
         if (userData.miningStartTime && Date.now() < userData.miningEndTime) {
             els.miningBtn.disabled = true;
             els.miningStatus.textContent = 'Active';
-            els.miningStatus.classList.add('text-green-600');
+            els.miningStatus.classList.add('text-green-400');
             if (!countdownInterval) startCountdown(userData.miningEndTime);
             if (!miningInterval) miningInterval = setInterval(updateMiningDisplay, 1000);
         } else if (userData.miningStartTime && Date.now() >= userData.miningEndTime) {
@@ -222,14 +223,14 @@ function updateUI() {
             const timerDisplay = els.miningBtn.querySelector('.timer-display');
             if (timerDisplay) timerDisplay.textContent = 'Claim';
             els.miningStatus.textContent = 'Ready to Claim';
-            els.miningStatus.classList.remove('text-green-600');
+            els.miningStatus.classList.remove('text-green-400');
         } else {
             els.miningBtn.classList.remove('claim');
             els.miningBtn.disabled = false;
             const timerDisplay = els.miningBtn.querySelector('.timer-display');
             if (timerDisplay) timerDisplay.textContent = 'Start Mining';
             els.miningStatus.textContent = 'Inactive';
-            els.miningStatus.classList.remove('text-green-600');
+            els.miningStatus.classList.remove('text-green-400');
         }
     }
 }
@@ -297,7 +298,7 @@ function stopMining() {
     }
     if (miningStatus) {
         miningStatus.textContent = 'Ready to Claim';
-        miningStatus.classList.remove('text-green-600');
+        miningStatus.classList.remove('text-green-400');
     }
 }
 
@@ -488,9 +489,47 @@ async function initializeUserData(user) {
     });
 }
 
+// --- Sidebar Logic ---
+function populateSidebar() {
+    const sidebarContent = document.getElementById('sidebar-content');
+    if (!sidebarContent) return;
+
+    const iconHTML = sidebarIcons.map(icon => `
+        <a href="${icon.href}" title="${icon.name}" class="group relative flex justify-center items-center h-12 w-12 rounded-full bg-gray-700 hover:bg-green-500 transition-all duration-300">
+            ${icon.svg}
+            <span class="absolute left-full ml-4 w-auto min-w-max px-3 py-1.5 text-sm font-medium text-white bg-gray-900 rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity">
+                ${icon.name}
+            </span>
+        </a>
+    `).join('');
+
+    sidebarContent.innerHTML = iconHTML;
+}
+
+function setupSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    const toggleSidebar = () => {
+        sidebar.classList.toggle('open');
+        sidebarOverlay.classList.toggle('hidden');
+    };
+
+    if (sidebar && sidebarToggleBtn && sidebarOverlay) {
+        sidebarToggleBtn.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+    }
+}
+
+
 document.addEventListener('DOMContentLoaded', () => {
     const loading = document.getElementById('loading');
     if (loading) loading.style.display = 'none';
+
+    // Populate and setup sidebar
+    populateSidebar();
+    setupSidebar();
 
     const els = {
         homeBtn: document.getElementById('homeBtn'),
@@ -503,9 +542,6 @@ document.addEventListener('DOMContentLoaded', () => {
         shareWA: document.getElementById('shareWA'),
         shareTG: document.getElementById('shareTG'),
         authBtn: document.getElementById('authBtn'),
-        menuBtn: document.getElementById('menuBtn'),
-        closeMenuBtn: document.getElementById('closeMenuBtn'),
-        menuOverlay: document.getElementById('menuOverlay')
     };
 
     els.homeBtn?.addEventListener('click', () => switchSection('home'));
@@ -518,12 +554,6 @@ document.addEventListener('DOMContentLoaded', () => {
     els.shareWA?.addEventListener('click', () => shareReferralCode('whatsapp'));
     els.shareTG?.addEventListener('click', () => shareReferralCode('telegram'));
     els.authBtn?.addEventListener('click', logout);
-
-    if (els.menuBtn && els.closeMenuBtn && els.menuOverlay) {
-        els.menuBtn.addEventListener('click', () => els.menuOverlay.classList.remove('hidden'));
-        els.closeMenuBtn.addEventListener('click', () => els.menuOverlay.classList.add('hidden'));
-        els.menuOverlay.addEventListener('click', (e) => e.target === els.menuOverlay && els.menuOverlay.classList.add('hidden'));
-    }
 });
 
 onAuthStateChanged(auth, user => {
