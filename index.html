@@ -171,12 +171,24 @@
         background-color: #374151;
         color: white;
     }
+    /* --- Ad Modal Styles --- */
+    #adModal {
+        display: none; position: fixed; z-index: 1001;
+        left: 0; top: 0; width: 100%; height: 100%;
+        overflow: auto; background-color: rgba(0,0,0,0.5);
+        justify-content: center; align-items: center;
+    }
+    .ad-modal-content {
+        background-color: #fefefe; padding: 20px;
+        border-radius: 10px; width: 340px; text-align: center;
+    }
 
     @media (max-width: 640px) {
       .mining-btn { width: 90px; height: 90px; font-size: 14px; }
       .timer-display { font-size: 12px; }
       .earned-display { font-size: 9px; }
       .nav-text { font-size: 11px; }
+      .ad-container { text-align: center; margin: 1rem 0; }
     }
   </style>
 </head>
@@ -186,6 +198,15 @@
   </div>
 
   <div id="notification" class="notification"></div>
+  
+  <!-- Ad Modal -->
+  <div id="adModal">
+      <div class="ad-modal-content">
+          <p class="mb-2">Thank you for your activity!</p>
+          <div id="claimAd"></div>
+          <button onclick="closeAdModal()" class="mt-3 bg-red-500 text-white px-4 py-1 rounded">Close</button>
+      </div>
+  </div>
 
   <!-- Sidebar Overlay -->
   <div id="sidebarOverlay" class="hidden"></div>
@@ -217,6 +238,9 @@
       </button>
     </div>
   </header>
+
+  <!-- Banner Ad 1 -->
+  <div id="bannerAdContainer1" class="ad-container max-w-lg mx-auto my-4"></div>
 
   <section id="homeSection" class="section active p-3 sm:p-4 max-w-lg mx-auto w-full">
     <div class="stats-bar flex justify-around p-4 bg-white rounded-xl shadow mb-4">
@@ -313,24 +337,8 @@
     <button id="authBtn" class="w-full bg-red-500 text-white py-2.5 sm:py-3 rounded-lg shadow text-base sm:text-lg hover:bg-red-600 transition-colors">Logout</button>
   </section>
 
-  <section id="walletSection" class="section p-3 sm:p-4 max-w-lg mx-auto w-full space-y-4 sm:space-y-6">
-    <div class="bg-white shadow rounded-xl p-4 sm:p-6">
-      <h2 class="text-lg sm:text-xl font-semibold mb-3">Wallet Overview</h2>
-      <div class="flex justify-between border-b pb-2 sm:pb-3">
-        <p class="text-gray-600 text-base sm:text-lg">Balance</p>
-        <p id="walletBalance" class="text-green-600 font-bold text-base sm:text-lg">0.00 FZ</p>
-      </div>
-      <div class="flex justify-between pt-2 sm:pt-3">
-        <p class="text-gray-600 text-base sm:text-lg">Total Mined</p>
-        <p id="totalMinedWallet" class="text-green-600 font-bold text-base sm:text-lg">0.00 FZ</p>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-2 gap-3 mt-4">
-      <a href="History.html" class="home-button flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-teal-500 transition-all">Transaction History</a>
-      <a href="wallet.html" class="home-button flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-teal-500 transition-all">Swap & Withdraw</a>
-    </div>
-  </section>
+  <!-- Banner Ad 2 -->
+  <div id="bannerAdContainer2" class="ad-container max-w-lg mx-auto my-4"></div>
 
   <footer class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-20">
     <div class="relative max-w-lg mx-auto">
@@ -354,5 +362,6 @@
   </footer>
 
   <script type="module" src="app.js"></script>
+  <script type="module" src="ad.js"></script>
 </body>
 </html>
