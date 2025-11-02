@@ -31,25 +31,24 @@ function showAdModal() {
     if (!adModal) return;
 
     const adKey = '78ade24182729fceea8e45203dad915b';
-    const adContainer = document.createElement('div');
-    const script1 = document.createElement('script');
-    script1.type = 'text/javascript';
-    script1.innerHTML = `atOptions = {'key': '${adKey}','format': 'iframe','height': 250,'width': 300,'params': {}};`;
-    const script2 = document.createElement('script');
-    script2.type = 'text/javascript';
-    script2.src = `//www.highperformanceformat.com/${adKey}/invoke.js`;
-    
-    adContainer.appendChild(script1);
-    adContainer.appendChild(script2);
+    const claimAdContainer = document.getElementById('claimAd');
 
-    const claimAd = document.getElementById('claimAd');
-    if (claimAd) {
-        claimAd.innerHTML = '';
-        claimAd.appendChild(adContainer);
+    if (claimAdContainer) {
+        const script1 = document.createElement('script');
+        script1.type = 'text/javascript';
+        script1.innerHTML = `atOptions = {'key': '${adKey}','format': 'iframe','height': 50,'width': 320,'params': {}};`;
+        
+        const script2 = document.createElement('script');
+        script2.type = 'text/javascript';
+        script2.src = `//www.highperformanceformat.com/${adKey}/invoke.js`;
+        
+        claimAdContainer.innerHTML = '';
+        claimAdContainer.appendChild(script1);
+        claimAdContainer.appendChild(script2);
     }
 
     adModal.style.display = 'flex';
-    setTimeout(closeAdModal, 5000);
+    setTimeout(closeAdModal, 10000); // 10 সেকেন্ড পর মোডাল বন্ধ হবে
 }
 
 window.closeAdModal = function () {
