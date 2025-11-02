@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="FarmZone - Bonus Page">
+  <title>FarmZone - Bonus</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      overflow-x: hidden;
+      padding-bottom: 80px;
+      min-height: 100vh;
+      background: #f9fafb;
+      transition: background 0.3s ease;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #888; border-radius: 2px; }
+
+    .section { display: none; animation: fadeIn 0.4s ease; }
+    .section.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #28a745; /* Updated color */
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .bonus-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+    }
+    .bonus-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+    .modal-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-content {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      text-align: center;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+      max-width: 90%;
+      width: 320px;
+    }
+    .modal-overlay.visible .modal-content {
+      transform: scale(1);
+    }
+
+    .progress-bar {
+      width: 100%;
+      background-color: #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 16px 0;
+      height: 12px;
+    }
+    .progress-bar-inner {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #28a745, #20c997); /* Updated color */
+      border-radius: 8px;
+      transition: width 0.1s linear;
+    }
+
+    .nav-btn {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 10px 0;
+      flex: 1;
+    }
+    .nav-btn svg {
+      transition: all 0.3s ease;
+    }
+    .nav-btn:hover svg {
+      transform: translateY(-2px) scale(1.05);
+    }
+    .nav-btn.active {
+      color: #28a745; /* Updated color */
+    }
+    .nav-btn.active svg {
+      transform: scale(1.1);
+      filter: drop-shadow(0 2px 4px rgba(40, 167, 69, 0.3)); /* Updated color */
+    }
+
+    .nav-indicator {
+      position: absolute;
+      top: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #28a745, #20c997); /* Updated color */
+      border-radius: 0 0 3px 3px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4); /* Updated color */
+    }
+
+    .task-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+    }
+    .task-card:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+      transform: translateY(-2px);
+    }
+
+    .toast {
+      padding: 12px 16px;
+      border-radius: 12px;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.4s ease forwards, fadeOut 0.4s ease 2.6s forwards;
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    .toast-success { background: #28a745; } /* Updated color */
+    .toast-error { background: #ef4444; }
+    .toast-info { background: #3b82f6; }
+
+    @keyframes slideIn {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateX(100%); }
+    }
+
+    .ad-viewer {
+      min-height: 90px;
+      background: #f8fafc;
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 14px;
+      color: #64748b;
+    }
+
+    @media (max-width: 640px) {
+      .bonus-card, .task-card { padding: 12px; }
+      .modal-content { width: 90%; }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+  <!-- Header -->
+  <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-40 border-b border-gray-200">
+    <!-- Back Button -->
+    <a href="index.html" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all">
+      <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+    </a>
+    
+    <!-- Title -->
+    <div>
+      <h1 class="text-xl font-bold text-green-600">Bonus Rewards</h1>
+    </div>
+
+    <!-- Balance -->
+    <div class="bg-green-50 text-green-700 px-3 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 border border-green-200">
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/></svg>
+      <span id="balanceAmount">0.00</span> FZ
+    </div>
+  </header>
+
+  <!-- Daily Bonus Section -->
+  <section id="dailyBonusSection" class="section active p-4 max-w-md mx-auto w-full">
+    <div id="dailyLoading" class="text-center py-10">
+      <div class="spinner mb-3"></div>
+      <p class="text-gray-600">Loading rewards...</p>
+    </div>
+    <div id="dailyContent" style="display: none;">
+      <h2 class="text-xl font-bold text-gray-800 mb-6 text-center flex items-center justify-center gap-2">
+        <span>Daily Bonus</span>
+      </h2>
+      <div class="grid grid-cols-3 gap-3 sm:gap-4" id="bonusGrid"></div>
+    </div>
+  </section>
+
+  <!-- Extra Reward Section -->
+  <section id="extraRewardSection" class="section p-4 max-w-md mx-auto w-full">
+    <div id="extraLoading" class="text-center py-10">
+      <div class="spinner mb-3"></div>
+      <p class="text-gray-600">Loading...</p>
+    </div>
+    <div id="extraContent" class="space-y-4" style="display: none;">
+      <div class="bg-white rounded-xl shadow p-5">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-xl p-3">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-gray-800">Watch Ads to Earn</h3>
+            <p class="text-xs text-gray-600">Watch 4 ads → Get 5 FZ</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div class="bg-gradient-to-br from-green-50 to-teal-50 p-3 rounded-xl text-center border border-green-200">
+            <p class="text-xs text-gray-600">Progress</p>
+            <p class="text-2xl font-bold text-green-600" id="adsWatched">0/4</p>
+          </div>
+          <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-xl text-center border border-blue-200">
+            <p class="text-xs text-gray-600">Reward</p>
+            <p class="text-2xl font-bold text-blue-600">5 FZ</p>
+          </div>
+        </div>
+        <div id="adTaskContainer">
+          <div id="adViewer" class="ad-viewer mb-3">
+            <div class="spinner" style="width:32px;height:32px;border-width:3px;"></div>
+            <p>Loading ad...</p>
+          </div>
+          <button id="adActionBtn" class="w-full py-3 rounded-xl text-sm font-bold transition-all bg-gradient-to-r from-green-500 to-teal-500 text-white hover:from-green-600 hover:to-teal-600 shadow-lg">
+            Watch Ad (1/4)
+          </button>
+        </div>
+        <div id="cooldownInfo" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-center text-sm" style="display: none;">
+          <p class="text-amber-800 font-bold">Daily task completed!</p>
+          <p class="text-amber-700 mt-1">Next in: <span id="cooldownTimer" class="font-mono font-bold">23:59:59</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- History Section -->
+  <section id="historySection" class="section p-4 max-w-2xl mx-auto w-full">
+    <div id="historyLoading" class="text-center py-10">
+      <div class="spinner mb-3"></div>
+      <p class="text-gray-600">Loading transactions...</p>
+    </div>
+    <div id="historyContent" style="display: none;">
+      <div class="filter-tabs flex gap-2 mb-4 overflow-x-auto bg-white p-3 rounded-xl shadow-sm">
+        <div class="filter-tab px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-green-500 text-white" data-filter="all">All</div>
+        <div class="filter-tab px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-gray-100 text-gray-600" data-filter="daily_bonus">Daily</div>
+        <div class="filter-tab px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-gray-100 text-gray-600" data-filter="extra_reward">Extra</div>
+        <div class="filter-tab px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-gray-100 text-gray-600" data-filter="withdrawal">Withdraw</div>
+      </div>
+      <div id="transactionsList" class="space-y-3"></div>
+      <div id="emptyState" class="text-center py-16 bg-white rounded-xl" style="display: none;">
+        <div class="text-6xl mb-4 opacity-20">No transactions</div>
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">No Activity Yet</h3>
+        <p class="text-sm text-gray-500">Start earning to see history</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reward Modal -->
+  <div id="rewardedAdModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3 class="text-xl font-bold text-gray-800 mb-2">Claim Daily Bonus!</h3>
+      <p class="text-gray-600 mb-6">Watch a short ad to receive your reward.</p>
+      <div class="flex justify-center gap-3">
+        <button id="cancelAdBtn" class="flex-1 px-5 py-2.5 rounded-lg bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200">Cancel</button>
+        <button id="watchAdBtn" class="flex-1 px-5 py-2.5 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600">Watch Ad</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ad Player Modal -->
+  <div id="adPlayerModal" class="modal-overlay">
+    <div class="modal-content">
+      <p class="text-gray-700 font-semibold mb-3">Ad is playing...</p>
+      <div class="progress-bar">
+        <div id="adProgressBar" class="progress-bar-inner"></div>
+      </div>
+      <p id="adCountdownText" class="text-sm text-gray-500 mt-2">Watch for 8s...</p>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <footer class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 z-30">
+    <div class="relative max-w-lg mx-auto">
+      <div class="nav-indicator" id="navIndicator" style="width: 33.33%; left: 0;"></div>
+      <div class="flex justify-around">
+        <button id="dailyBtn" class="nav-btn active text-green-600">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <span class="text-xs">Daily</span>
+        </button>
+        <button id="extraBtn" class="nav-btn text-gray-600">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <span class="text-xs">Extra</span>
+        </button>
+        <button id="historyBtn" class="nav-btn text-gray-600">
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <span class="text-xs">History</span>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <script type="module" src="Bonus.js"></script>
+</body>
+</html>
