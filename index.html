@@ -13,14 +13,13 @@
       margin: 0;
       padding: 0;
     }
-
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
       overflow-x: hidden;
       padding-bottom: 80px;
       min-height: 100vh;
+      background-color: #f9fafb; /* bg-gray-50 */
     }
-
     ::-webkit-scrollbar {
       width: 4px;
     }
@@ -31,21 +30,17 @@
       background: #888;
       border-radius: 2px;
     }
-
     .section {
       display: none;
       animation: fadeIn 0.4s ease;
     }
-
     .section.active {
       display: block;
     }
-
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     .mining-btn {
       background: linear-gradient(135deg, #28a745, #20c997);
       color: #fff;
@@ -69,28 +64,23 @@
       left: 50%;
       transform: translate(-50%, -50%);
     }
-
     .mining-btn:not(:disabled):active {
       transform: translate(-50%, -50%) scale(0.95);
       box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
     }
-
     .mining-btn:not(:disabled):hover {
       background: linear-gradient(135deg, #218838, #1aa179);
       transform: translate(-50%, -50%) scale(1.02);
     }
-
     .mining-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
     }
-
     .mining-btn.claim {
       background: linear-gradient(135deg, #ffc107, #ff9800);
       box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
       animation: pulse 1.5s infinite;
     }
-
     @keyframes pulse {
       0%, 100% { 
         transform: translate(-50%, -50%) scale(1); 
@@ -101,7 +91,6 @@
         box-shadow: 0 8px 25px rgba(255, 193, 7, 0.6);
       }
     }
-
     .loading {
       position: fixed;
       top: 0;
@@ -114,7 +103,6 @@
       align-items: center;
       z-index: 1000;
     }
-
     .spinner {
       width: 60px;
       height: 60px;
@@ -123,192 +111,72 @@
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
-
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
-    .timer-display {
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .earned-display {
-      font-size: 10px;
-      margin-top: 2px;
-      opacity: 0.9;
-    }
-
-    .mining-container {
-      position: relative;
-      width: 100%;
-      max-width: 400px;
-      margin-bottom: 1.5rem;
-    }
-
+    .timer-display { font-size: 14px; font-weight: 600; }
+    .earned-display { font-size: 10px; margin-top: 2px; opacity: 0.9; }
+    .mining-container { position: relative; width: 100%; max-width: 400px; margin-bottom: 1.5rem; }
     .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #28a745;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      z-index: 1000;
-      opacity: 0;
-      transition: opacity 0.3s ease;
+      position: fixed; top: 20px; right: 20px; background: #28a745;
+      color: white; padding: 10px 20px; border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); z-index: 1000;
+      opacity: 0; transition: opacity 0.3s ease;
     }
-
-    .notification.show {
-      opacity: 1;
-    }
-
-    .transaction-item {
-      transition: all 0.3s ease;
-    }
-
-    .transaction-item:hover {
-      background-color: #f3f3f3;
-    }
-
+    .notification.show { opacity: 1; }
     .nav-btn {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      padding: 10px 0;
+      position: relative; display: flex; flex-direction: column; align-items: center;
+      gap: 4px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 10px 0;
     }
+    .nav-btn.active { color: #28a745; }
 
-    .nav-btn svg {
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* --- Sidebar Styles --- */
+    #sidebarOverlay {
+      position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.5);
+      z-index: 30; transition: opacity 0.3s;
     }
-
-    .nav-btn:hover svg {
-      transform: translateY(-2px) scale(1.05);
+    #sidebar {
+      position: fixed; top: 0; right: 0; bottom: 0; z-index: 40;
+      width: 72px; background-color: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+      border-left: 1px solid #e5e7eb;
+      transform: translateX(100%);
+      transition: transform 0.3s ease-in-out;
     }
-
-    .nav-btn.active {
-      color: #28a745;
+    #sidebar.open {
+      transform: translateX(0);
     }
-
-    .nav-btn.active svg {
-      transform: scale(1.1);
-      filter: drop-shadow(0 2px 4px rgba(40, 167, 69, 0.3));
+    #sidebarToggleBtn {
+      position: fixed; bottom: 100px; right: 16px; z-index: 50;
+      width: 48px; height: 48px; border-radius: 50%;
+      background: #28a745; color: white;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+      transition: transform 0.2s;
     }
-
-    .nav-indicator {
-      position: absolute;
-      top: 0;
-      height: 3px;
-      background: linear-gradient(90deg, #28a745, #20c997);
-      border-radius: 0 0 3px 3px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
+    #sidebarToggleBtn:active {
+      transform: scale(0.9);
     }
-
-    .nav-badge {
-      position: absolute;
-      top: 6px;
-      right: calc(50% - 20px);
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
-      font-size: 10px;
-      padding: 2px 5px;
-      border-radius: 10px;
-      font-weight: 700;
-      box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
-      animation: bounce 2s infinite;
+    /* Sidebar icon styling */
+    #sidebar-content a {
+        background-color: #f3f4f6;
+        color: #4b5563;
     }
-
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-3px); }
+    #sidebar-content a:hover {
+        background-color: #28a745;
+        color: white;
     }
-
-    .ad-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-    }
-
-    .ad-modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      position: relative;
-      max-width: 750px;
-      width: 100%;
-    }
-
-    .ad-modal-content p {
-      margin-bottom: 10px;
-      font-size: 16px;
-      color: #333;
-    }
-
-    .close-ad {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 24px;
-      cursor: pointer;
-      color: #555;
-    }
-
-    .dynamic-ad-slot {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      margin: 1.5rem 0;
-    }
-    
-    #menuOverlay.hidden {
-        display: none;
-    }
-    #menuPanel {
-        transition: transform 0.3s ease-in-out;
-    }
-    #menuOverlay:not(.hidden) #menuPanel {
-        transform: translateX(0);
+    #sidebar-content a span {
+        background-color: #374151;
+        color: white;
     }
 
     @media (max-width: 640px) {
-      .mining-btn {
-        width: 90px;
-        height: 90px;
-        font-size: 14px;
-      }
-      .timer-display {
-        font-size: 12px;
-      }
-      .earned-display {
-        font-size: 9px;
-      }
-      .notification {
-        top: 10px;
-        right: 10px;
-        padding: 8px 16px;
-        font-size: 14px;
-      }
-      .nav-text {
-        font-size: 11px;
-      }
-      .ad-modal-content {
-        max-width: 340px;
-      }
+      .mining-btn { width: 90px; height: 90px; font-size: 14px; }
+      .timer-display { font-size: 12px; }
+      .earned-display { font-size: 9px; }
+      .nav-text { font-size: 11px; }
     }
   </style>
 </head>
@@ -319,84 +187,36 @@
 
   <div id="notification" class="notification"></div>
 
-  <!-- Ad Modal for Claim -->
-  <div id="adModal" class="ad-modal">
-    <div class="ad-modal-content">
-      <span class="close-ad" onclick="closeAdModal()">&times;</span>
-      <p>Thank you for claiming your reward!</p>
-      <div id="claimAd"></div>
-    </div>
-  </div>
+  <!-- Sidebar Overlay -->
+  <div id="sidebarOverlay" class="hidden"></div>
+  
+  <!-- Sidebar -->
+  <aside id="sidebar">
+      <div id="sidebar-content" class="flex flex-col items-center justify-center h-full gap-6 p-2">
+          <!-- Icons will be populated by app.js -->
+      </div>
+  </aside>
 
+  <!-- Sidebar Toggle Button -->
+  <button id="sidebarToggleBtn" aria-label="Toggle Sidebar">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+      </svg>
+  </button>
+  
   <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-10">
     <div class="flex items-center gap-2">
       <img src="Logo.png" alt="FarmZone Logo" class="h-10 w-10 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
       <h1 class="text-xl sm:text-2xl font-bold text-red-600">FarmZone</h1>
     </div>
     <div class="flex items-center gap-2 sm:gap-3">
-      <button id="menuBtn" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all duration-300 transform hover:scale-110">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+      <button id="bonusBtn" onclick="window.location.href='Bonus.html'" class="p-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 transform hover:scale-110 shadow-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
         </svg>
       </button>
     </div>
   </header>
-
-  <!-- START: Side Menu -->
-  <div id="menuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
-    <div id="menuPanel" class="fixed top-0 right-0 h-full w-72 sm:w-80 bg-white shadow-xl transform translate-x-full">
-      <div class="flex justify-between items-center p-4 border-b">
-        <div class="flex items-center gap-2">
-            <img src="Logo.png" alt="FarmZone Logo" class="h-8 w-8 object-contain">
-            <h2 class="text-lg font-bold text-gray-800">FarmZone Menu</h2>
-        </div>
-        <button id="closeMenuBtn" class="p-2 hover:bg-gray-200 rounded-full">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-      <nav class="p-2 space-y-1">
-        <a href="Daily Bonus.html" class="flex items-center gap-x-4 px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors group">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 group-hover:text-green-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-            <span>Daily Bonus</span>
-        </a>
-        <a href="Extra Reward.html" class="flex items-center gap-x-4 px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors group">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 group-hover:text-green-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <span>Extra Reward</span>
-        </a>
-        <a href="Withdraw.html" class="flex items-center gap-x-4 px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors group">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 group-hover:text-green-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5l-3-3-3 3" /></svg>
-            <span>Withdraw</span>
-        </a>
-        <a href="History.html" class="flex items-center gap-x-4 px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors group">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 group-hover:text-green-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <span>History</span>
-        </a>
-        <a href="Connect.html" class="flex items-center gap-x-4 px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors group">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 group-hover:text-green-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-            <span>Connect</span>
-        </a>
-        <a href="Roadmap.html" class="flex items-center gap-x-4 px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors group">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 group-hover:text-green-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 16.382V5.618a1 1 0 00-.553-.894L15 2m-6 5l6-3m0 0l6 3m-6-3v10" /></svg>
-            <span>Roadmap</span>
-        </a>
-        <a href="privacy-policy.html" class="flex items-center gap-x-4 px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors group">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 group-hover:text-green-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-            <span>Privacy Policy</span>
-        </a>
-        <a href="usage-policy.html" class="flex items-center gap-x-4 px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors group">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 group-hover:text-green-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V7a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            <span>Usage Policy</span>
-        </a>
-        <a href="Settings.html" class="flex items-center gap-x-4 px-4 py-3 text-gray-700 rounded-md hover:bg-green-50 hover:text-green-600 transition-colors group">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 group-hover:text-green-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            <span>Settings</span>
-        </a>
-      </nav>
-    </div>
-  </div>
-  <!-- END: Side Menu -->
 
   <section id="homeSection" class="section active p-3 sm:p-4 max-w-lg mx-auto w-full">
     <div class="stats-bar flex justify-around p-4 bg-white rounded-xl shadow mb-4">
@@ -422,8 +242,6 @@
           <span class="earned-display" id="earnedDisplay">0.000000 FZ</span>
         </button>
       </div>
-
-      <div id="homeAdContainer" class="dynamic-ad-slot"></div>
 
       <div class="mining-info bg-white p-4 rounded-xl shadow w-full max-w-[400px]">
         <div class="flex justify-between py-2 border-b">
@@ -492,8 +310,6 @@
       Referral code already submitted!
     </div>
 
-    <div id="profileAdContainer" class="dynamic-ad-slot"></div>
-
     <button id="authBtn" class="w-full bg-red-500 text-white py-2.5 sm:py-3 rounded-lg shadow text-base sm:text-lg hover:bg-red-600 transition-colors">Logout</button>
   </section>
 
@@ -514,177 +330,29 @@
       <a href="History.html" class="home-button flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-teal-500 transition-all">Transaction History</a>
       <a href="Withdraw.html" class="home-button flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-green-500 to-teal-400 text-white rounded-lg text-sm font-semibold hover:from-green-600 hover:to-teal-500 transition-all">Withdraw Funds</a>
     </div>
-
-    <div id="walletAdContainer" class="dynamic-ad-slot"></div>
   </section>
 
   <footer class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-20">
     <div class="relative max-w-lg mx-auto">
-      <div class="nav-indicator" id="navIndicator"></div>
       <div class="flex justify-around">
         <button id="homeBtn" class="nav-btn active text-green-600 flex-1 relative">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
           <span class="nav-text">Home</span>
         </button>
         
         <button id="profileBtn" class="nav-btn text-gray-600 flex-1 relative">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
           <span class="nav-text">Profile</span>
         </button>
         
         <button id="walletBtn" class="nav-btn text-gray-600 flex-1 relative">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-          </svg>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
           <span class="nav-text">Wallet</span>
         </button>
       </div>
     </div>
   </footer>
 
-  <script>
-    const adConfigs = [
-      {
-        key: '63718988f07bc6d276f3c6a441757cae',
-        format: 'iframe',
-        height: 90,
-        width: 728,
-        src: '//www.highperformanceformat.com/63718988f07bc6d276f3c6a441757cae/invoke.js'
-      },
-      {
-        key: 'c620af328467e6de19dc04af696ee0fb',
-        format: 'iframe',
-        height: 250,
-        width: 300,
-        src: '//www.highperformanceformat.com/c620af328467e6de19dc04af696ee0fb/invoke.js'
-      },
-      {
-        key: '78ade24182729fceea8e45203dad915b',
-        format: 'iframe',
-        height: 50,
-        width: 320,
-        src: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js'
-      }
-    ];
-
-    function getRandomAdConfig() {
-      const index = Math.floor(Math.random() * adConfigs.length);
-      return adConfigs[index];
-    }
-
-    function loadAd(containerId, adConfig) {
-      const container = document.getElementById(containerId);
-      if (container) {
-        container.innerHTML = '';
-        const script1 = document.createElement('script');
-        script1.type = 'text/javascript';
-        script1.innerHTML = `
-          atOptions = {
-            'key': '${adConfig.key}',
-            'format': '${adConfig.format}',
-            'height': ${adConfig.height},
-            'width': ${adConfig.width},
-            'params': {}
-          };
-        `;
-        const script2 = document.createElement('script');
-        script2.type = 'text/javascript';
-        script2.src = adConfig.src;
-        container.appendChild(script1);
-        container.appendChild(script2);
-      }
-    }
-
-    function showAdModal() {
-      const adModal = document.getElementById('adModal');
-      if (adModal) {
-        loadAd('claimAd', getRandomAdConfig());
-        adModal.style.display = 'flex';
-        setTimeout(() => {
-          closeAdModal();
-        }, 5000);
-      }
-    }
-
-    window.closeAdModal = function() {
-      const adModal = document.getElementById('adModal');
-      if (adModal) {
-        adModal.style.display = 'none';
-      }
-    };
-
-    window.addEventListener('load', () => {
-      const adSlots = ['homeAdContainer', 'profileAdContainer', 'walletAdContainer'];
-      const randomSlotId = adSlots[Math.floor(Math.random() * adSlots.length)];
-      loadAd(randomSlotId, getRandomAdConfig());
-
-      const navIndicator = document.getElementById('navIndicator');
-      const homeBtn = document.getElementById('homeBtn');
-      const profileBtn = document.getElementById('profileBtn');
-      const walletBtn = document.getElementById('walletBtn');
-
-      if (navIndicator && homeBtn && profileBtn && walletBtn) {
-        const navBtns = { home: homeBtn, profile: profileBtn, wallet: walletBtn };
-
-        function updateNavIndicator(btn) {
-          const btnRect = btn.getBoundingClientRect();
-          const parentRect = btn.parentElement.getBoundingClientRect();
-          const left = btnRect.left - parentRect.left;
-          const width = btnRect.width;
-          navIndicator.style.left = `${left}px`;
-          navIndicator.style.width = `${width}px`;
-        }
-
-        Object.keys(navBtns).forEach(key => {
-          navBtns[key].addEventListener('click', function() {
-            setTimeout(() => {
-              Object.values(navBtns).forEach(b => {
-                b.classList.remove('active', 'text-green-600');
-                b.classList.add('text-gray-600');
-              });
-              this.classList.add('active', 'text-green-600');
-              this.classList.remove('text-gray-600');
-              updateNavIndicator(this);
-            }, 50);
-          });
-        });
-
-        setTimeout(() => {
-          const activeBtn = document.querySelector('.nav-btn.active') || navBtns.home;
-          updateNavIndicator(activeBtn);
-        }, 100);
-
-        window.addEventListener('resize', () => {
-          const activeBtn = document.querySelector('.nav-btn.active');
-          if (activeBtn) updateNavIndicator(activeBtn);
-        });
-      }
-
-      const menuBtn = document.getElementById('menuBtn');
-      const closeMenuBtn = document.getElementById('closeMenuBtn');
-      const menuOverlay = document.getElementById('menuOverlay');
-      
-      if (menuBtn && closeMenuBtn && menuOverlay) {
-        menuBtn.addEventListener('click', () => {
-          menuOverlay.classList.remove('hidden');
-        });
-
-        closeMenuBtn.addEventListener('click', () => {
-          menuOverlay.classList.add('hidden');
-        });
-
-        menuOverlay.addEventListener('click', (event) => {
-          if (event.target === menuOverlay) {
-            menuOverlay.classList.add('hidden');
-          }
-        });
-      }
-    });
-  </script>
   <script type="module" src="app.js"></script>
 </body>
 </html>
