@@ -124,9 +124,16 @@
     }
 
     .swap-btn:disabled {
-      opacity: 0.6;
+      opacity: 0.5;
       cursor: not-allowed;
       transform: none;
+      background: linear-gradient(135deg, #9ca3af, #6b7280);
+      box-shadow: none;
+    }
+
+    .swap-btn:disabled:hover {
+      transform: none;
+      box-shadow: none;
     }
 
     .withdraw-section {
@@ -183,9 +190,16 @@
     }
 
     .withdraw-btn:disabled {
-      opacity: 0.6;
+      opacity: 0.5;
       cursor: not-allowed;
       transform: none;
+      background: linear-gradient(135deg, #9ca3af, #6b7280);
+      box-shadow: none;
+    }
+
+    .withdraw-btn:disabled:hover {
+      transform: none;
+      box-shadow: none;
     }
 
     .balance-card {
@@ -371,8 +385,8 @@
         <strong>Exchange Rate:</strong> 1000 FZ = 1 USDT
       </div>
 
-      <button id="swapBtn" class="swap-btn mt-6">
-        Swap Tokens
+      <button id="swapBtn" class="swap-btn mt-6" disabled>
+        Swap Currently Unavailable
       </button>
     </div>
 
@@ -412,8 +426,8 @@
           <p><strong>Processing Time:</strong> 5-30 minutes</p>
         </div>
 
-        <button id="withdrawBtn" class="withdraw-btn">
-          Withdraw USDT
+        <button id="withdrawBtn" class="withdraw-btn" disabled>
+          Withdrawal Currently Unavailable
         </button>
       </div>
     </div>
@@ -523,141 +537,16 @@
       showNotification('Swap direction changed', 'success');
     }
 
-    // Handle Swap
+    // Handle Swap (Disabled)
     async function handleSwap() {
-      if (!currentUser) {
-        showNotification('Please login first', 'error');
-        return;
-      }
-
-      const fromAmount = parseFloat(document.getElementById('fromAmount').value);
-      
-      if (!fromAmount || fromAmount <= 0) {
-        showNotification('Please enter a valid amount', 'error');
-        return;
-      }
-
-      showLoading(true);
-
-      try {
-        if (userData.swapDirection === 'FZ_TO_USDT') {
-          if (fromAmount > userData.balance) {
-            showNotification('Insufficient FZ balance', 'error');
-            showLoading(false);
-            return;
-          }
-          
-          const toAmount = fromAmount / userData.exchangeRate;
-          userData.balance -= fromAmount;
-          userData.usdtBalance += toAmount;
-          
-          await update(ref(database, `users/${currentUser.uid}`), {
-            balance: userData.balance,
-            usdtBalance: userData.usdtBalance
-          });
-          
-          showNotification(`Successfully swapped ${fromAmount.toFixed(2)} FZ to ${toAmount.toFixed(6)} USDT`, 'success');
-        } else {
-          if (fromAmount > userData.usdtBalance) {
-            showNotification('Insufficient USDT balance', 'error');
-            showLoading(false);
-            return;
-          }
-          
-          const toAmount = fromAmount * userData.exchangeRate;
-          userData.usdtBalance -= fromAmount;
-          userData.balance += toAmount;
-          
-          await update(ref(database, `users/${currentUser.uid}`), {
-            balance: userData.balance,
-            usdtBalance: userData.usdtBalance
-          });
-          
-          showNotification(`Successfully swapped ${fromAmount.toFixed(2)} USDT to ${toAmount.toFixed(2)} FZ`, 'success');
-        }
-
-        document.getElementById('fromAmount').value = '';
-        document.getElementById('toAmount').value = '';
-        updateBalances();
-      } catch (error) {
-        console.error('Swap error:', error);
-        showNotification('Swap failed. Please try again.', 'error');
-      } finally {
-        showLoading(false);
-      }
+      showNotification('Swap feature is currently unavailable', 'error');
+      return;
     }
 
-    // Handle Withdraw
+    // Handle Withdraw (Disabled)
     async function handleWithdraw() {
-      if (!currentUser) {
-        showNotification('Please login first', 'error');
-        return;
-      }
-
-      const amount = parseFloat(document.getElementById('withdrawAmount').value);
-      const address = document.getElementById('walletAddress').value.trim();
-
-      if (!amount || amount <= 0) {
-        showNotification('Please enter a valid amount', 'error');
-        return;
-      }
-
-      if (amount < 1) {
-        showNotification('Minimum withdrawal amount is 1 USDT', 'error');
-        return;
-      }
-
-      if (amount > userData.usdtBalance) {
-        showNotification('Insufficient USDT balance', 'error');
-        return;
-      }
-
-      if (!address || !address.startsWith('T')) {
-        showNotification('Please enter a valid TRC20 address', 'error');
-        return;
-      }
-
-      if (address.length < 34) {
-        showNotification('Invalid TRC20 address format', 'error');
-        return;
-      }
-
-      showLoading(true);
-
-      try {
-        userData.usdtBalance -= amount;
-        
-        const withdrawalData = {
-          amount: amount,
-          address: address,
-          timestamp: Date.now(),
-          status: 'pending',
-          type: 'withdrawal',
-          network: 'TRC20'
-        };
-
-        await update(ref(database, `users/${currentUser.uid}`), {
-          usdtBalance: userData.usdtBalance
-        });
-
-        await set(ref(database, `users/${currentUser.uid}/transactions/${Date.now()}`), withdrawalData);
-        
-        showNotification(`Withdrawal of ${amount.toFixed(2)} USDT initiated successfully!`, 'success');
-        
-        document.getElementById('withdrawAmount').value = '';
-        document.getElementById('walletAddress').value = '';
-        updateBalances();
-
-        setTimeout(() => {
-          showNotification('Your withdrawal is being processed. Check transaction history for updates.', 'success');
-        }, 2000);
-      } catch (error) {
-        console.error('Withdrawal error:', error);
-        showNotification('Withdrawal failed. Please try again.', 'error');
-        userData.usdtBalance += amount;
-      } finally {
-        showLoading(false);
-      }
+      showNotification('Withdrawal feature is currently unavailable', 'error');
+      return;
     }
 
     // Event Listeners
