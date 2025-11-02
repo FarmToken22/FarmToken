@@ -25,9 +25,6 @@ let currentFilter = 'all';
 // DOM Elements
 const balanceEl = document.getElementById('balanceAmount');
 const toastContainer = document.getElementById('toastContainer');
-const persistentAdBanner = document.getElementById('persistentAdBanner');
-const persistentAdContainer = document.getElementById('persistentAdContainer');
-const closeAdBannerBtn = document.getElementById('closeAdBannerBtn');
 
 // Toast Notification
 function showToast(message, type = 'info', duration = 3000) {
@@ -502,43 +499,6 @@ function formatDate(ts) {
     });
 }
 
-// --- NEW --- Persistent Ad Banner Functionality
-function loadPersistentBannerAd() {
-  if (!persistentAdBanner) return;
-
-  const bannerAdConfig = adConfigs.find(ad => ad.width === 320 && ad.height === 50);
-  if (!bannerAdConfig) {
-    return;
-  }
-
-  try {
-    persistentAdContainer.innerHTML = ''; // Clear loading text
-    const script1 = document.createElement('script');
-    script1.type = 'text/javascript';
-    script1.innerHTML = `atOptions = {'key': '${bannerAdConfig.key}','format': '${bannerAdConfig.format}','height': ${bannerAdConfig.height},'width': ${bannerAdConfig.width},'params': {}};`;
-
-    const script2 = document.createElement('script');
-    script2.type = 'text/javascript';
-    script2.src = bannerAdConfig.src;
-
-    script2.onload = () => {
-      persistentAdBanner.style.display = 'block';
-      setTimeout(() => {
-        persistentAdBanner.classList.remove('translate-y-[200%]');
-      }, 100);
-    };
-
-    script2.onerror = () => {
-      persistentAdBanner.style.display = 'none';
-    };
-
-    persistentAdContainer.appendChild(script1);
-    persistentAdContainer.appendChild(script2);
-  } catch (e) {
-    persistentAdBanner.style.display = 'none';
-  }
-}
-
 // Event Listeners
 document.getElementById('adActionBtn')?.addEventListener('click', handleAdAction);
 
@@ -555,13 +515,6 @@ document.querySelectorAll('.filter-tab').forEach(tab => {
   });
 });
 
-closeAdBannerBtn?.addEventListener('click', () => {
-  persistentAdBanner.classList.add('translate-y-[200%]');
-  setTimeout(() => {
-    persistentAdBanner.style.display = 'none';
-  }, 500);
-});
-
 // Auth State
 onAuthStateChanged(auth, user => {
   if (user) {
@@ -569,8 +522,7 @@ onAuthStateChanged(auth, user => {
     currentUser = user;
     initNavigation();
     loadDailyBonus();
-    loadPersistentBannerAd(); // Load the banner ad
-    
+    // Load initial data
     get(ref(database, 'users/' + userId)).then(snap => {
         if(snap.exists()) {
             userData = snap.val();
