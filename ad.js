@@ -1,17 +1,10 @@
 /**
  * FarmZone Ad Management System
- * Handles loading of banner and rewarded ads
+ * Handles loading of mobile banner and rewarded ads
  */
 
 // Ad Configuration
 const AD_CONFIG = {
-  desktopBanner: {
-    key: '63718988f07bc6d276f3c6a441757cae',
-    format: 'iframe',
-    height: 90,
-    width: 728,
-    invokeUrl: '//www.highperformanceformat.com/63718988f07bc6d276f3c6a441757cae/invoke.js'
-  },
   mobileBanner: {
     key: '78ade24182729fceea8e45203dad915b',
     format: 'iframe',
@@ -38,81 +31,14 @@ const loadedAds = new Set();
 function showAdContainer(container) {
   if (container) {
     container.classList.add('loaded');
-    console.log('Ad container shown with loaded class');
-  }
-}
-
-/**
- * Show parent banner container (for desktop top banner)
- * @param {string} containerId - ID of the ad container
- */
-function showParentBanner(containerId) {
-  if (containerId === 'topBannerAdContent') {
-    const parentBanner = document.getElementById('topBannerAd');
-    if (parentBanner) {
-      parentBanner.style.display = 'block';
-      console.log('Parent banner container shown');
+    
+    // Show parent container if it's hidden
+    const parentContainer = container.closest('.ad-container');
+    if (parentContainer) {
+      parentContainer.classList.add('loaded');
     }
-  }
-}
-
-/**
- * Load Desktop Banner Ad (728x90)
- * @param {string} containerId - ID of the container element
- */
-export function loadDesktopBannerAd(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    console.warn(`Container ${containerId} not found for desktop banner ad`);
-    return;
-  }
-
-  // Prevent duplicate loading
-  const adKey = `desktop-${containerId}`;
-  if (loadedAds.has(adKey)) {
-    console.log('Desktop banner ad already loaded in this container');
-    return;
-  }
-
-  try {
-    // Clear container
-    container.innerHTML = '';
-
-    // Set global atOptions for this ad
-    window.atOptions = {
-      key: AD_CONFIG.desktopBanner.key,
-      format: AD_CONFIG.desktopBanner.format,
-      height: AD_CONFIG.desktopBanner.height,
-      width: AD_CONFIG.desktopBanner.width,
-      params: {}
-    };
-
-    // Create script element
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = AD_CONFIG.desktopBanner.invokeUrl;
-    script.async = true;
     
-    script.onload = () => {
-      // Show container when ad loads successfully
-      setTimeout(() => {
-        showAdContainer(container);
-        showParentBanner(containerId);
-        loadedAds.add(adKey);
-        console.log('Desktop banner ad loaded successfully');
-      }, 500);
-    };
-    
-    script.onerror = () => {
-      console.error('Failed to load desktop banner ad');
-      // Don't show container if ad fails to load
-    };
-
-    // Append to container
-    container.appendChild(script);
-
-  } catch (error) {
-    console.error('Error loading desktop banner ad:', error);
+    console.log('✅ Ad container shown with loaded class');
   }
 }
 
@@ -123,14 +49,14 @@ export function loadDesktopBannerAd(containerId) {
 export function loadMobileBannerAd(containerId) {
   const container = document.getElementById(containerId);
   if (!container) {
-    console.warn(`Container ${containerId} not found for mobile banner ad`);
+    console.warn(`⚠️ Container ${containerId} not found for mobile banner ad`);
     return;
   }
 
   // Prevent duplicate loading
   const adKey = `mobile-${containerId}`;
   if (loadedAds.has(adKey)) {
-    console.log('Mobile banner ad already loaded in this container');
+    console.log('ℹ️ Mobile banner ad already loaded in this container');
     return;
   }
 
@@ -158,12 +84,12 @@ export function loadMobileBannerAd(containerId) {
       setTimeout(() => {
         showAdContainer(container);
         loadedAds.add(adKey);
-        console.log('Mobile banner ad loaded successfully');
+        console.log(`✅ Mobile banner ad loaded successfully in ${containerId}`);
       }, 500);
     };
     
     script.onerror = () => {
-      console.error('Failed to load mobile banner ad');
+      console.error(`❌ Failed to load mobile banner ad in ${containerId}`);
       // Don't show container if ad fails to load
     };
 
@@ -171,7 +97,7 @@ export function loadMobileBannerAd(containerId) {
     container.appendChild(script);
 
   } catch (error) {
-    console.error('Error loading mobile banner ad:', error);
+    console.error('❌ Error loading mobile banner ad:', error);
   }
 }
 
@@ -182,14 +108,14 @@ export function loadMobileBannerAd(containerId) {
 export function loadRewardedAd(containerId) {
   const container = document.getElementById(containerId);
   if (!container) {
-    console.warn(`Container ${containerId} not found for rewarded ad`);
+    console.warn(`⚠️ Container ${containerId} not found for rewarded ad`);
     return;
   }
 
   try {
     // Clear container (rewarded ads can be loaded multiple times)
     container.innerHTML = '';
-    container.classList.remove('loaded'); // Reset loaded state
+    container.classList.remove('loaded');
 
     // Set global atOptions for this ad
     window.atOptions = {
@@ -210,23 +136,25 @@ export function loadRewardedAd(containerId) {
       // Show container when ad loads successfully
       setTimeout(() => {
         showAdContainer(container);
-        console.log('Rewarded ad loaded successfully');
+        console.log('✅ Rewarded ad loaded successfully');
       }, 500);
     };
     
     script.onerror = () => {
-      console.error('Failed to load rewarded ad');
-      container.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">Loading ad...</div>';
-      showAdContainer(container); // Show even on error for modal
+      console.error('❌ Failed to load rewarded ad');
+      container.innerHTML = '<div style="text-align: center; color: #999; padding: 20px; font-size: 14px;">Loading ad...</div>';
+      // Show container even on error for modal
+      container.classList.add('loaded');
     };
 
     // Append to container
     container.appendChild(script);
 
   } catch (error) {
-    console.error('Error loading rewarded ad:', error);
-    container.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">Ad loading...</div>';
-    showAdContainer(container); // Show even on error for modal
+    console.error('❌ Error loading rewarded ad:', error);
+    container.innerHTML = '<div style="text-align: center; color: #999; padding: 20px; font-size: 14px;">Ad loading...</div>';
+    // Show container even on error for modal
+    container.classList.add('loaded');
   }
 }
 
@@ -235,11 +163,10 @@ export function loadRewardedAd(containerId) {
  * Call this function early in your app lifecycle
  */
 export function preloadAds() {
-  console.log('Preloading ad scripts...');
+  console.log('🔄 Preloading ad scripts...');
   
   // Preload scripts by creating link elements
   const scripts = [
-    AD_CONFIG.desktopBanner.invokeUrl,
     AD_CONFIG.mobileBanner.invokeUrl,
     AD_CONFIG.rewarded.invokeUrl
   ];
@@ -251,6 +178,8 @@ export function preloadAds() {
     link.href = src;
     document.head.appendChild(link);
   });
+  
+  console.log('✅ Ad scripts preloaded');
 }
 
 /**
@@ -263,12 +192,10 @@ export function clearAd(containerId) {
     container.innerHTML = '';
     container.classList.remove('loaded');
     
-    // Hide parent banner if needed
-    if (containerId === 'topBannerAdContent') {
-      const parentBanner = document.getElementById('topBannerAd');
-      if (parentBanner) {
-        parentBanner.style.display = 'none';
-      }
+    // Hide parent container if needed
+    const parentContainer = container.closest('.ad-container');
+    if (parentContainer) {
+      parentContainer.classList.remove('loaded');
     }
     
     // Remove from loaded ads set
@@ -277,22 +204,22 @@ export function clearAd(containerId) {
         loadedAds.delete(key);
       }
     });
+    
+    console.log(`🗑️ Ad cleared from ${containerId}`);
   }
 }
 
 /**
  * Refresh ad in container
  * @param {string} containerId - ID of the container element
- * @param {string} adType - Type of ad: 'desktop', 'mobile', or 'rewarded'
+ * @param {string} adType - Type of ad: 'mobile' or 'rewarded'
  */
 export function refreshAd(containerId, adType) {
+  console.log(`🔄 Refreshing ${adType} ad in ${containerId}`);
   clearAd(containerId);
   
   setTimeout(() => {
     switch(adType) {
-      case 'desktop':
-        loadDesktopBannerAd(containerId);
-        break;
       case 'mobile':
         loadMobileBannerAd(containerId);
         break;
@@ -300,21 +227,49 @@ export function refreshAd(containerId, adType) {
         loadRewardedAd(containerId);
         break;
       default:
-        console.warn(`Unknown ad type: ${adType}`);
+        console.warn(`⚠️ Unknown ad type: ${adType}`);
     }
   }, 100);
 }
 
+/**
+ * Check if an ad is loaded in a container
+ * @param {string} containerId - ID of the container element
+ * @returns {boolean} - True if ad is loaded
+ */
+export function isAdLoaded(containerId) {
+  const adKey = `mobile-${containerId}`;
+  return loadedAds.has(adKey);
+}
+
+/**
+ * Get ad statistics
+ * @returns {object} - Statistics about loaded ads
+ */
+export function getAdStats() {
+  return {
+    totalLoaded: loadedAds.size,
+    loadedAds: Array.from(loadedAds),
+    config: {
+      mobileBanner: AD_CONFIG.mobileBanner.key,
+      rewarded: AD_CONFIG.rewarded.key
+    }
+  };
+}
+
 // Auto-initialize on module load
-console.log('🎯 Ad system initialized with dynamic loading');
+console.log('🎯 FarmZone Ad System initialized (Mobile + Rewarded only)');
+console.log('📱 Mobile Banner Ad Key:', AD_CONFIG.mobileBanner.key);
+console.log('🎁 Rewarded Ad Key:', AD_CONFIG.rewarded.key);
 
 // Export all functions
 export default {
-  loadDesktopBannerAd,
   loadMobileBannerAd,
   loadRewardedAd,
   preloadAds,
   clearAd,
   refreshAd,
+  isAdLoaded,
+  getAdStats,
   AD_CONFIG
 };
