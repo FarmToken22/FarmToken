@@ -339,8 +339,7 @@ async function claimMiningReward() {
     const userRef = ref(database, `users/${currentUser.uid}`);
     try {
         const result = await runTransaction(userRef, (currentData) => {
-            const now = Date.now() + serverTimeOffset;
-            if (!currentData || !currentData.miningStartTime || now < currentData.miningEndTime) {
+            if (!currentData || !currentData.miningStartTime || getServerTime() < currentData.miningEndTime) {
                 return;
             }
             const rewardToClaim = TOTAL_REWARD;
@@ -353,7 +352,7 @@ async function claimMiningReward() {
                 miningStartTime: null,
                 miningEndTime: null
             };
-        }, { maxRetries: 3 });
+        });
         if (result.committed) {
             const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             const transactionRef = ref(database, `users/${currentUser.uid}/transactions/${transactionId}`);
@@ -470,9 +469,10 @@ async function submitReferralCode() {
             }
             return {
                 ...currentData,
-                referredBy: code
+                referredBy: code,
+                referralRewards: (currentData.referralRewards || 0) + REFERRAL_BONUS
             };
-        }, { maxRetries: 3 });
+        });
 
         if (!userResult.committed) {
             return showStatus(statusEl, 'Referral already submitted or failed.', true);
@@ -484,9 +484,10 @@ async function submitReferralCode() {
             }
             return {
                 ...currentData,
+                referralRewards: (currentData.referralRewards || 0) + REFERRAL_BONUS,
                 referrals: { ...currentData.referrals || {}, [currentUser.uid]: true }
             };
-        }, { maxRetries: 3 });
+        });
 
         if (!referrerResult.committed) {
             return showStatus(statusEl, 'Failed to update referrer.', true);
@@ -499,10 +500,6 @@ async function submitReferralCode() {
         const referrerTxId = `tx_${Date.now()}_r`;
         const referrerTxRef = ref(database, `users/${referrerId}/transactions/${referrerTxId}`);
         await set(referrerTxRef, { type: 'referral', amount: REFERRAL_BONUS, description: `Bonus from new referral`, timestamp: Date.now(), status: 'completed' });
-
-        // Update rewards after transaction records
-        await update(userRef, { referralRewards: (userData.referralRewards || 0) + REFERRAL_BONUS });
-        await update(referrerRef, { referralRewards: (referrerData.referralRewards || 0) + REFERRAL_BONUS });
 
         showStatus(statusEl, `Success! You and your referrer each received ${REFERRAL_BONUS} FZ bonus!`);
         if (input) input.value = '';
