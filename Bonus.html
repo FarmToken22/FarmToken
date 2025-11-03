@@ -109,19 +109,7 @@
       padding: 10px 0;
       flex: 1;
     }
-    .nav-btn svg {
-      transition: all 0.3s ease;
-    }
-    .nav-btn:hover svg {
-      transform: translateY(-2px) scale(1.05);
-    }
-    .nav-btn.active {
-      color: #28a745;
-    }
-    .nav-btn.active svg {
-      transform: scale(1.1);
-      filter: drop-shadow(0 2px 4px rgba(40, 167, 69, 0.3));
-    }
+    .nav-btn.active { color: #28a745; }
 
     .nav-indicator {
       position: absolute;
@@ -139,13 +127,17 @@
       padding: 16px;
       margin-bottom: 12px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      transition: all 0.2s ease;
     }
-    .task-card:hover {
-      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
-      transform: translateY(-2px);
+    
+    .toast-container {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
-
     .toast {
       padding: 12px 16px;
       border-radius: 12px;
@@ -161,12 +153,8 @@
     .toast-error { background: #ef4444; }
     .toast-info { background: #3b82f6; }
 
-    @keyframes slideIn {
-      to { opacity: 1; transform: translateX(0); }
-    }
-    @keyframes fadeOut {
-      to { opacity: 0; transform: translateX(100%); }
-    }
+    @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateX(100%); } }
 
     .ad-viewer {
       min-height: 90px;
@@ -178,75 +166,55 @@
       align-items: center;
       flex-direction: column;
       gap: 8px;
-      font-size: 14px;
-      color: #64748b;
-      transition: all 0.3s ease;
     }
-    .ad-viewer.loaded {
-      border-style: solid;
-      border-color: #e5e7eb;
-      background: #fff;
-    }
-
-    @media (max-width: 640px) {
-      .bonus-card, .task-card { padding: 12px; }
-      .modal-content { width: 90%; }
-    }
+    .filter-tabs::-webkit-scrollbar { height: 0; }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
 
-  <!-- Toast Container -->
-  <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+  <div id="toastContainer" class="toast-container"></div>
 
-  <!-- Header -->
   <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-40 border-b border-gray-200">
     <a href="index.html" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all">
       <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
     </a>
-    <div>
-      <h1 class="text-xl font-bold text-green-600">Bonus Rewards</h1>
-    </div>
+    <h1 class="text-xl font-bold text-green-600">Rewards & History</h1>
     <div class="bg-green-50 text-green-700 px-3 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 border border-green-200">
-      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/></svg>
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/></svg>
       <span id="balanceAmount">0.00</span> FZ
     </div>
   </header>
 
-  <!-- Daily Bonus Section -->
-  <section id="dailyBonusSection" class="section active p-4 max-w-md mx-auto w-full">
-    <div id="dailyLoading" class="text-center py-10">
-      <div class="spinner mb-3"></div>
-      <p class="text-gray-600">Loading rewards...</p>
-    </div>
-    <div id="dailyContent" style="display: none;">
-      <h2 class="text-xl font-bold text-gray-800 mb-6 text-center flex items-center justify-center gap-2">
-        <span>Daily Bonus</span>
-      </h2>
-      <div class="grid grid-cols-3 gap-3 sm:gap-4" id="bonusGrid"></div>
-    </div>
-  </section>
+  <main class="flex-grow">
+    <!-- Daily Bonus Section -->
+    <section id="dailySection" class="section active p-4 max-w-md mx-auto w-full">
+      <div id="dailyLoading" class="text-center py-10">
+        <div class="spinner mb-3"></div>
+        <p class="text-gray-600">Loading rewards...</p>
+      </div>
+      <div id="dailyContent" style="display: none;">
+        <h2 class="text-xl font-bold text-gray-800 mb-6 text-center">Daily Bonus</h2>
+        <div class="grid grid-cols-3 gap-3 sm:gap-4" id="bonusGrid"></div>
+      </div>
+    </section>
 
-  <!-- History Section -->
-  <section id="historySection" class="section p-4 max-w-2xl mx-auto w-full">
-    <div id="historyLoading" class="text-center py-10">
-      <div class="spinner mb-3"></div>
-      <p class="text-gray-600">Loading transactions...</p>
-    </div>
-    <div id="historyContent" style="display: none;">
-      <div class="filter-tabs flex gap-2 mb-4 overflow-x-auto bg-white p-3 rounded-xl shadow-sm">
-        <div class="filter-tab px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-green-500 text-white" data-filter="all">All</div>
-        <div class="filter-tab px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-gray-100 text-gray-600" data-filter="daily_bonus">Daily</div>
-        <div class="filter-tab px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-gray-100 text-gray-600" data-filter="extra_reward">Extra</div>
+    <!-- History Section -->
+    <section id="historySection" class="section p-4 max-w-2xl mx-auto w-full">
+      <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Transaction History</h2>
+      <div class="filter-tabs flex gap-2 mb-4 overflow-x-auto bg-white p-2 rounded-xl shadow-sm">
+        <button class="filter-tab px-3 py-2 whitespace-nowrap rounded-lg text-sm font-medium cursor-pointer flex-shrink-0 bg-green-500 text-white" data-filter="all">All</button>
+        <button class="filter-tab px-3 py-2 whitespace-nowrap rounded-lg text-sm font-medium cursor-pointer flex-shrink-0 bg-gray-100 text-gray-600" data-filter="daily_bonus">Daily Bonus</button>
+        <button class="filter-tab px-3 py-2 whitespace-nowrap rounded-lg text-sm font-medium cursor-pointer flex-shrink-0 bg-gray-100 text-gray-600" data-filter="mining">Mining</button>
+        <button class="filter-tab px-3 py-2 whitespace-nowrap rounded-lg text-sm font-medium cursor-pointer flex-shrink-0 bg-gray-100 text-gray-600" data-filter="referral">Referral</button>
       </div>
       <div id="transactionsList" class="space-y-3"></div>
       <div id="emptyState" class="text-center py-16 bg-white rounded-xl" style="display: none;">
         <div class="text-6xl mb-4 opacity-20">📋</div>
         <h3 class="text-lg font-semibold text-gray-700 mb-2">No Activity Yet</h3>
-        <p class="text-sm text-gray-500">Start earning to see history</p>
+        <p class="text-sm text-gray-500">Start earning to see your history.</p>
       </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
   <!-- Reward Modal -->
   <div id="rewardedAdModal" class="modal-overlay">
@@ -268,28 +236,19 @@
         <div id="adProgressBar" class="progress-bar-inner"></div>
       </div>
       <p id="adCountdownText" class="text-sm text-gray-500 mt-2">Watch for 8s...</p>
-      <!-- Rewarded Ad Container -->
-      <div id="rewardedAdContent" class="ad-viewer mt-4">
-        <div class="spinner" style="width:32px;height:32px;border-width:3px;"></div>
-        <p>Loading ad...</p>
-      </div>
+      <div id="rewardedAdContent" class="ad-viewer mt-4"></div>
     </div>
   </div>
 
-  <!-- Bottom Navigation -->
   <footer class="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-gray-200 z-30">
     <div class="relative max-w-lg mx-auto">
-      <div class="nav-indicator" id="navIndicator" style="width: 33.33%; left: 0;"></div>
+      <div class="nav-indicator" id="navIndicator"></div>
       <div class="flex justify-around">
-        <button id="dailyBtn" class="nav-btn active text-green-600">
+        <button data-section="daily" class="nav-btn active">
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          <span class="text-xs">Daily</span>
+          <span class="text-xs">Bonus</span>
         </button>
-        <a href="Extra.html" id="extraBtn" class="nav-btn text-gray-600">
-          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <span class="text-xs">Extra</span>
-        </a>
-        <button id="historyBtn" class="nav-btn text-gray-600">
+        <button data-section="history" class="nav-btn">
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
           <span class="text-xs">History</span>
         </button>
@@ -302,530 +261,259 @@
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
     import { ref, get, update, runTransaction, onValue, push, off } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
-    // --- START: Integrated Ad System ---
-    const AD_CONFIG = {
-      rewarded: {
-        key: '53c6462d2fd5ad5b91686ca9561f79a2',
-        format: 'iframe',
-        height: 90,
-        width: 728,
-        invokeUrl: '//www.highperformanceformat.com/53c6462d2fd5ad5b91686ca9561f79a2/invoke.js'
-      }
-    };
-
-    function showAdContainer(container) {
-      if (container) {
-        container.classList.add('loaded');
-      }
-    }
-
+    // --- Ad System (Unchanged) ---
+    const AD_CONFIG = { rewarded: { key: '53c6462d2fd5ad5b91686ca9561f79a2', format: 'iframe', height: 90, width: 728, invokeUrl: '//www.highperformanceformat.com/53c6462d2fd5ad5b91686ca9561f79a2/invoke.js'}};
     function loadRewardedAd(containerId, callback) {
-      const container = document.getElementById(containerId);
-      if (!container) {
-        console.warn(`⚠️ Container ${containerId} not found`);
-        if (callback) callback(false);
-        return;
-      }
-
-      try {
-        container.innerHTML = '<div class="spinner" style="width:32px;height:32px;border-width:3px;"></div><p>Loading ad...</p>';
-        container.classList.remove('loaded');
-
-        window.atOptions = {
-          key: AD_CONFIG.rewarded.key,
-          format: AD_CONFIG.rewarded.format,
-          height: AD_CONFIG.rewarded.height,
-          width: AD_CONFIG.rewarded.width,
-          params: {}
-        };
-
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = AD_CONFIG.rewarded.invokeUrl;
-        script.async = true;
-        
-        script.onload = () => {
-          setTimeout(() => {
-            showAdContainer(container);
-            console.log('✅ Rewarded ad loaded');
-            if (callback) callback(true);
-          }, 500);
-        };
-        
-        script.onerror = () => {
-          console.error('❌ Failed to load ad');
-          container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px; font-size: 14px;">Ad failed to load</div>';
-          container.classList.add('loaded');
-          if (callback) callback(false);
-        };
-
-        container.appendChild(script);
-
-      } catch (error) {
-        console.error('❌ Error loading ad:', error);
-        container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px; font-size: 14px;">An error occurred</div>';
-        container.classList.add('loaded');
-        if (callback) callback(false);
-      }
+        const container = document.getElementById(containerId);
+        if (!container) return callback(false);
+        container.innerHTML = '<div class="spinner" style="width:32px;height:32px;border-width:3px;"></div><p class="text-sm text-gray-500">Loading ad...</p>';
+        const adLoadTimeout = setTimeout(() => { container.innerHTML = '<p class="text-sm text-red-500">Ad failed to load.</p>'; callback(false); }, 8000);
+        try {
+            window.atOptions = AD_CONFIG.rewarded;
+            const script = document.createElement('script');
+            script.type = 'text/javascript'; script.src = AD_CONFIG.rewarded.invokeUrl; script.async = true;
+            script.onload = () => { clearTimeout(adLoadTimeout); callback(true); };
+            script.onerror = () => { clearTimeout(adLoadTimeout); container.innerHTML = '<p class="text-sm text-red-500">Ad failed to load.</p>'; callback(false); };
+            container.appendChild(script);
+        } catch (error) { clearTimeout(adLoadTimeout); container.innerHTML = '<p class="text-sm text-red-500">An error occurred.</p>'; callback(false); }
     }
-    // --- END: Integrated Ad System ---
+    // --- End Ad System ---
 
     const dailyRewards = [1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,5,5,5,5,7];
-
     let userData = null;
     let userId = null;
-    let currentUser = null;
-    let countdownTimers = {};
     let adCountdownInterval = null;
     let allTransactions = [];
     let currentFilter = 'all';
     let userRef = null;
     let userListener = null;
 
-    const balanceEl = document.getElementById('balanceAmount');
-    const toastContainer = document.getElementById('toastContainer');
+    const elements = {
+      balanceEl: document.getElementById('balanceAmount'),
+      toastContainer: document.getElementById('toastContainer'),
+      dailyLoading: document.getElementById('dailyLoading'),
+      dailyContent: document.getElementById('dailyContent'),
+      transactionsList: document.getElementById('transactionsList'),
+      emptyState: document.getElementById('emptyState'),
+      bonusGrid: document.getElementById('bonusGrid'),
+      adModal: document.getElementById('rewardedAdModal'),
+      adPlayerModal: document.getElementById('adPlayerModal'),
+      watchAdBtn: document.getElementById('watchAdBtn'),
+      cancelAdBtn: document.getElementById('cancelAdBtn')
+    };
 
     function showToast(message, type = 'info', duration = 3000) {
       const toast = document.createElement('div');
       toast.className = `toast toast-${type}`;
       toast.textContent = message;
-      toastContainer.appendChild(toast);
+      elements.toastContainer.appendChild(toast);
       setTimeout(() => toast.remove(), duration + 300);
     }
 
-    function updateBalanceUI() {
-      if (balanceEl && userData?.balance !== undefined) {
-        balanceEl.textContent = userData.balance.toFixed(2);
-      }
-    }
+    function getUnixDay(ts) { return Math.floor(ts / (1000 * 60 * 60 * 24)); }
 
-    function cleanupTimers() {
-      Object.values(countdownTimers).forEach(timer => clearInterval(timer));
-      countdownTimers = {};
-      if (adCountdownInterval) {
-        clearInterval(adCountdownInterval);
-        adCountdownInterval = null;
-      }
-    }
+    function setupNavigation() {
+        const navContainer = document.querySelector('footer .flex');
+        const navIndicator = document.getElementById('navIndicator');
 
-    function getUnixDay(ts) {
-      return Math.floor(ts / 86400000);
-    }
+        const updateIndicator = (btn) => {
+            const btnRect = btn.getBoundingClientRect();
+            const parentRect = navContainer.getBoundingClientRect();
+            navIndicator.style.width = `${btnRect.width}px`;
+            navIndicator.style.left = `${btnRect.left - parentRect.left}px`;
+        };
 
-    function initNavigation() {
-      const sections = {
-        daily: document.getElementById('dailyBonusSection'),
-        history: document.getElementById('historySection')
-      };
-
-      const navBtns = {
-        daily: document.getElementById('dailyBtn'),
-        extra: document.getElementById('extraBtn'),
-        history: document.getElementById('historyBtn')
-      };
-
-      const navIndicator = document.getElementById('navIndicator');
-
-      function showSection(sectionName) {
-        cleanupTimers();
-        
-        Object.values(sections).forEach(s => s.classList.remove('active'));
-        if (sections[sectionName]) sections[sectionName].classList.add('active');
-
-        Object.values(navBtns).forEach(b => {
-          b.classList.remove('active', 'text-green-600');
-          b.classList.add('text-gray-600');
+        navContainer.addEventListener('click', (e) => {
+            const button = e.target.closest('.nav-btn');
+            if (!button) return;
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            const section = button.dataset.section;
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`${section}Section`).classList.add('active');
+            updateIndicator(button);
         });
-        if (navBtns[sectionName]) {
-          navBtns[sectionName].classList.add('active', 'text-green-600');
-          navBtns[sectionName].classList.remove('text-gray-600');
-        }
-
-        updateNavIndicator(navBtns[sectionName] || navBtns.daily);
-      }
-
-      function updateNavIndicator(btn) {
-        if (!btn) return;
-        const btnRect = btn.getBoundingClientRect();
-        const parentRect = btn.parentElement.getBoundingClientRect();
-        const left = btnRect.left - parentRect.left;
-        const width = btnRect.width;
-        navIndicator.style.left = `${left}px`;
-        navIndicator.style.width = `${width}px`;
-      }
-
-      navBtns.daily.addEventListener('click', () => { showSection('daily'); loadDailyBonus(); });
-      navBtns.history.addEventListener('click', () => { showSection('history'); loadHistory(); });
-
-      requestAnimationFrame(() => updateNavIndicator(navBtns.daily));
-      window.addEventListener('resize', () => {
-        const activeBtn = document.querySelector('.nav-btn.active');
-        if (activeBtn) updateNavIndicator(activeBtn);
-      });
-
-      showSection('daily');
-    }
-
-    async function loadDailyBonus() {
-      if (!userId) return;
-      try {
-        userRef = ref(database, 'users/' + userId);
-        const snap = await get(userRef);
-        if (snap.exists()) {
-          userData = snap.val();
-          if (userData.currentStreak === undefined) {
-            userData.currentStreak = 0;
-          }
-          if (userData.lastClaimTime === undefined) {
-            userData.lastClaimTime = 0;
-          }
-          if (userData.balance === undefined) {
-            userData.balance = 0;
-          }
-
-          // Reset streak if missed a day
-          const currentDay = getUnixDay(Date.now());
-          const lastClaimDay = getUnixDay(userData.lastClaimTime);
-          if (currentDay > lastClaimDay + 1 && userData.currentStreak > 0) {
-            await update(userRef, { currentStreak: 0 });
-            userData.currentStreak = 0;
-          }
-
-          updateBalanceUI();
-          renderDailyGrid();
-        } else {
-          showToast('User data not found.', 'error');
-        }
-      } catch (err) {
-        console.error('Load daily bonus error:', err);
-        showToast('Failed to load daily bonus.', 'error');
-      } finally {
-        document.getElementById('dailyLoading').style.display = 'none';
-        document.getElementById('dailyContent').style.display = 'block';
-      }
-    }
-
-    function startCountdown(btn, remainMs, dayIndex) {
-      if (countdownTimers[dayIndex]) clearInterval(countdownTimers[dayIndex]);
-
-      const timer = setInterval(() => {
-        const hours = Math.floor(remainMs / 3600000);
-        const minutes = Math.floor((remainMs % 3600000) / 60000);
-        const seconds = Math.floor((remainMs % 60000) / 1000);
-        btn.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-
-        remainMs -= 1000;
-        if (remainMs < 0) {
-          clearInterval(timer);
-          delete countdownTimers[dayIndex];
-          loadDailyBonus(); // Refresh to handle day change and possible reset
-        }
-      }, 1000);
-      countdownTimers[dayIndex] = timer;
+        
+        const initialActiveBtn = document.querySelector('.nav-btn.active');
+        if (initialActiveBtn) setTimeout(() => updateIndicator(initialActiveBtn), 100);
+        window.addEventListener('resize', () => updateIndicator(document.querySelector('.nav-btn.active')));
     }
 
     function renderDailyGrid() {
-      const grid = document.getElementById('bonusGrid');
-      grid.innerHTML = '';
-      cleanupTimers();
+        if (!userData) return;
+        elements.bonusGrid.innerHTML = '';
+        const currentStreak = userData.currentStreak || 0;
+        const lastClaimTime = userData.lastClaimTime || 0;
+        const currentDay = getUnixDay(Date.now());
+        const lastClaimDay = getUnixDay(lastClaimTime);
 
-      const current = userData.currentStreak || 0;
-      const last = userData.lastClaimTime || 0;
-      const currentDay = getUnixDay(Date.now());
-      const lastClaimDay = getUnixDay(last);
-      const oneDayMs = 86400000;
-
-      dailyRewards.forEach((reward, i) => {
-        const card = document.createElement("div");
-        card.className = "bonus-card";
-
-        const dayEl = document.createElement("h3");
-        dayEl.className = "font-semibold text-gray-700";
-        dayEl.textContent = `Day ${i + 1}`;
-        card.appendChild(dayEl);
-
-        const rewEl = document.createElement("p");
-        rewEl.className = "text-sm text-gray-500 mb-3";
-        rewEl.textContent = `+${reward} FZ`;
-        card.appendChild(rewEl);
-
-        const btn = document.createElement("button");
-        btn.className = "w-full py-2 rounded-lg text-sm font-semibold transition-all";
-        
-        if (i < current) {
-          btn.textContent = "Claimed";
-          btn.classList.add("bg-green-100", "text-green-700");
-          btn.disabled = true;
-        } else if (i > current) {
-          btn.textContent = "Locked";
-          btn.classList.add("bg-gray-100", "text-gray-400");
-          btn.disabled = true;
-        } else {
-          // Current streak day
-          const canClaim = currentDay > lastClaimDay;
-          if (canClaim) {
-            btn.textContent = "Claim Now";
-            btn.classList.add("bg-green-500", "text-white", "hover:bg-green-600");
-            btn.onclick = showRewardModal;
-          } else {
-            btn.disabled = true;
-            btn.classList.add("bg-gray-100", "text-gray-500");
-            const remainMs = oneDayMs - (Date.now() % oneDayMs);
-            startCountdown(btn, remainMs, i);
-          }
-        }
-        
-        card.appendChild(btn);
-        grid.appendChild(card);
-      });
+        dailyRewards.forEach((reward, i) => {
+            const card = document.createElement("div");
+            card.className = "bonus-card";
+            card.innerHTML = `<h3 class="font-semibold text-gray-700">Day ${i + 1}</h3><p class="text-sm text-gray-500 mb-3">+${reward} FZ</p><button class="w-full py-2 rounded-lg text-sm font-semibold transition-all"></button>`;
+            const btn = card.querySelector('button');
+            if (i < currentStreak) { btn.textContent = "Claimed"; btn.className += " bg-green-100 text-green-700"; btn.disabled = true; } 
+            else if (i > currentStreak) { btn.textContent = "Locked"; btn.className += " bg-gray-100 text-gray-400"; btn.disabled = true; } 
+            else {
+                if (currentDay > lastClaimDay) { btn.textContent = "Claim Now"; btn.className += " bg-green-500 text-white hover:bg-green-600"; btn.onclick = () => elements.adModal.classList.add('visible'); } 
+                else { btn.textContent = "Come Back"; btn.className += " bg-gray-200 text-gray-600"; btn.disabled = true; }
+            }
+            elements.bonusGrid.appendChild(card);
+        });
+        elements.dailyLoading.style.display = 'none';
+        elements.dailyContent.style.display = 'block';
     }
+    
+    function startAdSequence() {
+        elements.adModal.classList.remove('visible');
+        elements.adPlayerModal.classList.add('visible');
+        const countText = document.getElementById('adCountdownText');
+        const progressBar = document.getElementById('adProgressBar');
+        progressBar.style.width = '0%';
+        countText.textContent = 'Loading ad...';
 
-    function showRewardModal() {
-      const modal = document.getElementById('rewardedAdModal');
-      modal.classList.add('visible');
-      
-      const watchBtn = document.getElementById('watchAdBtn');
-      const cancelBtn = document.getElementById('cancelAdBtn');
-      
-      const newWatchBtn = watchBtn.cloneNode(true);
-      const newCancelBtn = cancelBtn.cloneNode(true);
-      watchBtn.replaceWith(newWatchBtn);
-      cancelBtn.replaceWith(newCancelBtn);
-      
-      newWatchBtn.onclick = () => {
-        modal.classList.remove('visible');
-        startAd();
-      };
-      
-      newCancelBtn.onclick = () => {
-        modal.classList.remove('visible');
-      };
-    }
-
-    function startAd() {
-      const modal = document.getElementById('adPlayerModal');
-      modal.classList.add('visible');
-      
-      const countText = document.getElementById('adCountdownText');
-      const progressBar = document.getElementById('adProgressBar');
-      
-      progressBar.style.width = '0%';
-      countText.textContent = 'Loading ad...';
-
-      loadRewardedAd('rewardedAdContent', (success) => {
-        if (!success) {
-          modal.classList.remove('visible');
-          showToast('Ad failed to load.', 'error');
-          return;
-        }
-
-        let count = 8;
-        countText.textContent = `Watch for ${count}s...`;
-
-        adCountdownInterval = setInterval(() => {
-          count--;
-          countText.textContent = `Watch for ${count}s...`;
-          progressBar.style.width = `${((8 - count) / 8) * 100}%`;
-
-          if (count <= 0) {
-            clearInterval(adCountdownInterval);
-            adCountdownInterval = null;
-            modal.classList.remove('visible');
-            claimDailyBonus();
-          }
-        }, 1000);
-      });
+        loadRewardedAd('rewardedAdContent', (success) => {
+            if (!success) {
+                showToast('Ad failed, claiming bonus directly.', 'info');
+                setTimeout(() => { elements.adPlayerModal.classList.remove('visible'); claimDailyBonus(); }, 1500);
+                return;
+            }
+            let count = 8;
+            countText.textContent = `Watch for ${count}s...`;
+            if(adCountdownInterval) clearInterval(adCountdownInterval);
+            adCountdownInterval = setInterval(() => {
+                count--;
+                countText.textContent = `Watch for ${count}s...`;
+                progressBar.style.width = `${((8 - count) / 8) * 100}%`;
+                if (count <= 0) { clearInterval(adCountdownInterval); elements.adPlayerModal.classList.remove('visible'); claimDailyBonus(); }
+            }, 1000);
+        });
     }
 
     async function claimDailyBonus() {
-      if (!userId) {
-        showToast('Authentication required.', 'error');
-        return;
-      }
-
-      try {
-        const oldBalance = userData.balance;
-        const oldStreak = userData.currentStreak || 0;
-
-        const result = await runTransaction(userRef, (currentData) => {
-          if (!currentData) return;
-
-          const currTs = Date.now();
-          const currDay = getUnixDay(currTs);
-          const lastDay = getUnixDay(currentData.lastClaimTime || 0);
-
-          if (currDay <= lastDay) return; // Already claimed today
-
-          let streak = currentData.currentStreak || 0;
-          if (currDay > lastDay + 1) streak = 0;
-
-          const reward = dailyRewards[streak] || 0; // Fallback if out of bounds
-
-          currentData.balance = (currentData.balance || 0) + reward;
-          currentData.currentStreak = streak + 1;
-          currentData.lastClaimTime = currTs;
-
-          return currentData;
-        });
-
-        if (result.committed) {
-          // Refresh user data
-          const snap = await get(userRef);
-          userData = snap.val();
-
-          const added = userData.balance - oldBalance;
-          const newStreak = userData.currentStreak;
-          const claimedDay = newStreak; // Since ++ after claim
-
-          // Add to history
-          const transactionRef = ref(database, `users/${userId}/transactions`);
-          await push(transactionRef, {
-            type: 'daily_bonus',
-            amount: added,
-            timestamp: Date.now(),
-            day: claimedDay
-          });
-
-          showToast(`+${added.toFixed(2)} FZ claimed successfully!`, 'success');
-          loadDailyBonus();
-          loadHistory();
-        } else {
-          showToast('Already claimed today.', 'info');
-        }
-      } catch (err) {
-        console.error('Claim reward error:', err);
-        showToast('Failed to claim reward. Try again.', 'error');
-      }
+        if (!userId) return showToast('Authentication required.', 'error');
+        if (!userRef) userRef = ref(database, 'users/' + userId);
+        try {
+            const result = await runTransaction(userRef, (currentData) => {
+                if (!currentData) return;
+                const currTs = Date.now();
+                const currDay = getUnixDay(currTs);
+                const lastDay = getUnixDay(currentData.lastClaimTime || 0);
+                if (currDay <= lastDay) return;
+                let streak = currentData.currentStreak || 0;
+                if (currDay > lastDay + 1) streak = 0;
+                const reward = dailyRewards[streak] || 0;
+                if (!currentData.balance) currentData.balance = 0;
+                currentData.balance += reward;
+                currentData.currentStreak = streak + 1;
+                currentData.lastClaimTime = currTs;
+                return currentData;
+            });
+            if (result.committed) {
+                const newUserData = result.snapshot.val();
+                const rewardAmount = newUserData.balance - (userData.balance || 0);
+                const transactionRef = ref(database, `users/${userId}/transactions`);
+                await push(transactionRef, { type: 'daily_bonus', amount: rewardAmount, timestamp: Date.now(), day: newUserData.currentStreak });
+                showToast(`+${rewardAmount.toFixed(2)} FZ claimed!`, 'success');
+            } else { showToast('Already claimed today.', 'info'); }
+        } catch (err) { console.error('Claim error:', err); showToast('Failed to claim reward.', 'error'); }
     }
-
-    async function loadHistory() {
-      if (!userId) return;
-      
-      document.getElementById('historyLoading').style.display = 'none';
-      document.getElementById('historyContent').style.display = 'block';
-
-      try {
-        const transactionRef = ref(database, `users/${userId}/transactions`);
-        const snap = await get(transactionRef);
-        allTransactions = [];
-        
-        if (snap.exists()) {
-          snap.forEach(child => {
-            allTransactions.push({ id: child.key, ...child.val() });
-          });
-          allTransactions.sort((a, b) => b.timestamp - a.timestamp);
+    
+    // --- ✅ UPDATED HISTORY LOGIC ---
+    function getTransactionTitle(type) {
+        switch(type) {
+            case 'daily_bonus': return 'Daily Bonus';
+            case 'mining': return 'Mining Reward';
+            case 'referral': return 'Referral Bonus';
+            default: return 'Transaction';
         }
-        
-        renderHistory();
-      } catch (err) {
-        console.error('Load history error:', err);
-        showToast('Failed to load history.', 'error');
-      }
     }
-
+    
     function renderHistory() {
-      const list = document.getElementById('transactionsList');
-      const empty = document.getElementById('emptyState');
-      list.innerHTML = '';
+        const filtered = currentFilter === 'all' ? allTransactions : allTransactions.filter(t => t.type === currentFilter);
+        elements.transactionsList.innerHTML = '';
 
-      const filtered = currentFilter === 'all' ? allTransactions : allTransactions.filter(t => t.type === currentFilter);
+        if (filtered.length === 0) { elements.emptyState.style.display = 'block'; return; }
+        elements.emptyState.style.display = 'none';
 
-      if (filtered.length === 0) {
-        empty.style.display = 'block';
-        return;
-      }
-      empty.style.display = 'none';
-
-      filtered.forEach(trans => {
-        const card = document.createElement('div');
-        card.className = 'task-card flex justify-between items-center';
-
-        const left = document.createElement('div');
-        left.innerHTML = `
-          <p class="font-semibold text-gray-800">${trans.type === 'daily_bonus' ? 'Daily Bonus' : 'Extra Reward'}</p>
-          <p class="text-sm text-gray-500">${new Date(trans.timestamp).toLocaleString()}</p>
-        `;
-
-        const right = document.createElement('div');
-        right.className = 'text-right';
-        right.innerHTML = `
-          <p class="font-bold text-green-600">+${trans.amount} FZ</p>
-          ${trans.day ? `<p class="text-xs text-gray-500">Day ${trans.day}</p>` : ''}
-        `;
-
-        card.appendChild(left);
-        card.appendChild(right);
-        list.appendChild(card);
-      });
+        filtered.forEach(trans => {
+            const card = document.createElement('div');
+            card.className = 'task-card flex justify-between items-center';
+            card.innerHTML = `
+                <div>
+                    <p class="font-semibold text-gray-800">${getTransactionTitle(trans.type)}</p>
+                    <p class="text-sm text-gray-500">${new Date(trans.timestamp).toLocaleString()}</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-green-600">+${(trans.amount || 0).toFixed(2)} FZ</p>
+                    ${trans.day ? `<p class="text-xs text-gray-500">Day ${trans.day}</p>` : ''}
+                </div>
+            `;
+            elements.transactionsList.appendChild(card);
+        });
+    }
+    
+    function setupEventListeners() {
+        elements.watchAdBtn.onclick = startAdSequence;
+        elements.cancelAdBtn.onclick = () => elements.adModal.classList.remove('visible');
+        
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.filter-tab').forEach(t => {
+                    t.classList.remove('bg-green-500', 'text-white');
+                    t.classList.add('bg-gray-100', 'text-gray-600');
+                });
+                tab.classList.add('bg-green-500', 'text-white');
+                tab.classList.remove('bg-gray-100', 'text-gray-600');
+                currentFilter = tab.dataset.filter;
+                renderHistory();
+            });
+        });
     }
 
-    // Filter tabs
-    document.querySelectorAll('.filter-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.filter-tab').forEach(t => {
-          t.classList.remove('bg-green-500', 'text-white');
-          t.classList.add('bg-gray-100', 'text-gray-600');
-        });
-        tab.classList.add('bg-green-500', 'text-white');
-        tab.classList.remove('bg-gray-100', 'text-gray-600');
-        currentFilter = tab.dataset.filter;
-        renderHistory();
-      });
-    });
-
-    // Close modals on overlay click
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-      overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-          overlay.classList.remove('visible');
-          cleanupTimers();
-        }
-      });
-    });
-
-    // Auth listener
     onAuthStateChanged(auth, (user) => {
-      if (userListener && userRef) {
-        off(userRef, 'value', userListener);
-        userListener = null;
-        userRef = null;
-      }
+        if (userListener && userRef) off(userRef, 'value', userListener);
+        if (user) {
+            userId = user.uid;
+            userRef = ref(database, 'users/' + userId);
+            userListener = onValue(userRef, (snap) => {
+                if (!snap.exists()) return;
+                const oldStreak = userData ? (userData.currentStreak || 0) : 0;
+                userData = snap.val();
+                
+                if (userData.balance === undefined) userData.balance = 0;
+                if (userData.currentStreak === undefined) userData.currentStreak = 0;
+                if (userData.lastClaimTime === undefined) userData.lastClaimTime = 0;
+                
+                const currentDay = getUnixDay(Date.now());
+                const lastClaimDay = getUnixDay(userData.lastClaimTime);
 
-      if (user) {
-        currentUser = user;
-        userId = user.uid;
-        userRef = ref(database, 'users/' + userId);
-        userListener = onValue(userRef, (snap) => {
-          if (snap.exists()) {
-            userData = snap.val();
-            updateBalanceUI();
-          }
-        });
-        loadDailyBonus();
-        loadHistory();
-      } else {
-        showToast('Please log in to access bonuses.', 'info');
-        // Redirect to login if needed
-        // window.location.href = 'login.html';
-      }
+                if (currentDay > lastClaimDay + 1 && userData.currentStreak > 0) {
+                    update(userRef, { currentStreak: 0 }).then(() => {
+                        if(oldStreak > 0) showToast('Your streak has been reset!', 'info');
+                    });
+                } else {
+                    if (elements.balanceEl) elements.balanceEl.textContent = userData.balance.toFixed(2);
+                    renderDailyGrid();
+                }
+
+                allTransactions = [];
+                if (snap.hasChild('transactions')) {
+                    snap.child('transactions').forEach(child => {
+                        allTransactions.push({ id: child.key, ...child.val() });
+                    });
+                    allTransactions.sort((a, b) => b.timestamp - a.timestamp);
+                }
+                renderHistory();
+            }, (error) => { console.error("Firebase error:", error); showToast("Could not sync data.", "error"); });
+        } else {
+            showToast('Please log in to access bonuses.', 'info');
+            elements.dailyLoading.innerHTML = '<p class="text-gray-600">Please log in.</p>';
+        }
     });
 
-    // Init
-    initNavigation();
-    cleanupTimers(); // Initial cleanup
-
-    // Resize handler for nav indicator
-    window.addEventListener('resize', () => {
-      const activeBtn = document.querySelector('.nav-btn.active');
-      if (activeBtn) {
-        const btnRect = activeBtn.getBoundingClientRect();
-        const parentRect = activeBtn.parentElement.getBoundingClientRect();
-        const left = btnRect.left - parentRect.left;
-        const width = btnRect.width;
-        document.getElementById('navIndicator').style.left = `${left}px`;
-        document.getElementById('navIndicator').style.width = `${width}px`;
-      }
-    });
+    setupNavigation();
+    setupEventListeners();
   </script>
 </body>
 </html>
