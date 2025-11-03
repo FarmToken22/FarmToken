@@ -327,7 +327,7 @@
     import { ref, get, update, runTransaction, onValue, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
     
     // Import ad loading functions from ad.js
-    import { loadDesktopBannerAd, loadMobileBannerAd, loadRewardedAd } from './ad.js';
+    import { loadMobileBannerAd, loadRewardedAd } from './ad.js';
 
     const dailyRewards = [1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,5,5,5,5,7];
 
@@ -411,7 +411,8 @@
       // Load desktop ad
       setTimeout(() => {
         if (window.innerWidth >= 640) {
-          loadDesktopBannerAd('topBannerAdContent');
+          // Changed from loadDesktopBannerAd to loadRewardedAd
+          loadRewardedAd('topBannerAdContent');
         }
       }, 1000);
     }
