@@ -287,6 +287,40 @@
       animation: slideIn 0.4s ease;
     }
 
+    /* Ad Container Styles */
+    .ad-container {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 12px;
+      padding: 12px;
+      margin: 16px 0;
+      min-height: 100px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(0,0,0,0.05);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .ad-container.loaded {
+      display: flex;
+    }
+
+    .ad-container.hidden {
+      display: none !important;
+    }
+
+    .ad-label {
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      font-size: 10px;
+      color: rgba(0,0,0,0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     @media (max-width: 640px) {
       .currency-input {
         font-size: 20px;
@@ -294,6 +328,16 @@
       
       .swap-container, .withdraw-section, .balance-card {
         padding: 16px;
+      }
+
+      .ad-container { 
+        text-align: center; 
+        margin: 1rem 0;
+        min-height: 50px;
+        padding: 8px;
+      }
+      .ad-container.loaded {
+        display: flex;
       }
     }
   </style>
@@ -317,6 +361,14 @@
   </header>
 
   <div class="max-w-2xl mx-auto p-4 space-y-6 pb-8">
+    <!-- Banner Ad 1 (Top) -->
+    <div id="bannerAdContainer1" class="ad-container animate-in relative">
+      <span class="ad-label">Advertisement</span>
+      <div id="mobileAdContent1" style="min-height: 50px;">
+        <!-- Mobile Banner Ad loads here -->
+      </div>
+    </div>
+
     <!-- Balance Overview -->
     <div class="balance-card animate-in">
       <h2 class="text-lg opacity-90 mb-3">Available Balance</h2>
@@ -390,6 +442,14 @@
       </button>
     </div>
 
+    <!-- Banner Ad 2 (Middle) -->
+    <div id="bannerAdContainer2" class="ad-container animate-in relative">
+      <span class="ad-label">Advertisement</span>
+      <div id="mobileAdContent2" style="min-height: 50px;">
+        <!-- Mobile Banner Ad loads here -->
+      </div>
+    </div>
+
     <!-- Withdraw Section -->
     <div class="withdraw-section animate-in">
       <div class="flex items-center justify-between mb-4">
@@ -433,8 +493,26 @@
     </div>
   </div>
 
+  <!-- Ad System Script -->
   <script type="module">
-    // config.js থেকে import করুন
+    import { loadMobileBannerAd } from './ad.js';
+
+    // Load ads after page load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        loadMobileBannerAd('mobileAdContent1');
+      }, 1500);
+      
+      setTimeout(() => {
+        loadMobileBannerAd('mobileAdContent2');
+      }, 2000);
+      
+      console.log('🎯 Wallet Ad System initialized');
+    });
+  </script>
+
+  <!-- Main Wallet Script -->
+  <script type="module">
     import { auth, database } from './config.js';
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
     import { ref, get, set, update, onValue, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
