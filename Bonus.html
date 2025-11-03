@@ -31,7 +31,7 @@
 
     .spinner {
       border: 4px solid #f3f3f3;
-      border-top: 4px solid #28a745; /* Updated color */
+      border-top: 4px solid #28a745;
       border-radius: 50%;
       width: 40px;
       height: 40px;
@@ -94,7 +94,7 @@
     .progress-bar-inner {
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, #28a745, #20c997); /* Updated color */
+      background: linear-gradient(90deg, #28a745, #20c997);
       border-radius: 8px;
       transition: width 0.1s linear;
     }
@@ -116,21 +116,21 @@
       transform: translateY(-2px) scale(1.05);
     }
     .nav-btn.active {
-      color: #28a745; /* Updated color */
+      color: #28a745;
     }
     .nav-btn.active svg {
       transform: scale(1.1);
-      filter: drop-shadow(0 2px 4px rgba(40, 167, 69, 0.3)); /* Updated color */
+      filter: drop-shadow(0 2px 4px rgba(40, 167, 69, 0.3));
     }
 
     .nav-indicator {
       position: absolute;
       top: 0;
       height: 3px;
-      background: linear-gradient(90deg, #28a745, #20c997); /* Updated color */
+      background: linear-gradient(90deg, #28a745, #20c997);
       border-radius: 0 0 3px 3px;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4); /* Updated color */
+      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
     }
 
     .task-card {
@@ -157,7 +157,7 @@
       opacity: 0;
       transform: translateX(100%);
     }
-    .toast-success { background: #28a745; } /* Updated color */
+    .toast-success { background: #28a745; }
     .toast-error { background: #ef4444; }
     .toast-info { background: #3b82f6; }
 
@@ -168,18 +168,27 @@
       to { opacity: 0; transform: translateX(100%); }
     }
 
-    .ad-viewer {
-      min-height: 90px;
-      background: #f8fafc;
-      border: 2px dashed #cbd5e1;
+    .ad-container {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       border-radius: 12px;
+      padding: 12px;
+      margin: 16px 0;
+      min-height: 100px;
       display: flex;
-      justify-content: center;
       align-items: center;
-      flex-direction: column;
-      gap: 8px;
-      font-size: 14px;
-      color: #64748b;
+      justify-content: center;
+      border: 1px solid rgba(0,0,0,0.05);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .ad-label {
+      position: absolute;
+      top: 4px;
+      right: 8px;
+      font-size: 10px;
+      color: rgba(0,0,0,0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     @media (max-width: 640px) {
@@ -193,19 +202,24 @@
   <!-- Toast Container -->
   <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
+  <!-- Top Banner Ad Container (Desktop) -->
+  <div id="topBannerAd" class="hidden sm:block w-full bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200 relative">
+    <span class="ad-label">Advertisement</span>
+    <div class="max-w-4xl mx-auto py-3 flex justify-center items-center">
+      <div id="topBannerAdContent" class="ad-container" style="min-height: 90px;">
+        <!-- Desktop Banner Ad loads here -->
+      </div>
+    </div>
+  </div>
+
   <!-- Header -->
   <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-40 border-b border-gray-200">
-    <!-- Back Button -->
     <a href="index.html" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all">
       <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
     </a>
-    
-    <!-- Title -->
     <div>
       <h1 class="text-xl font-bold text-green-600">Bonus Rewards</h1>
     </div>
-
-    <!-- Balance -->
     <div class="bg-green-50 text-green-700 px-3 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 border border-green-200">
       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/></svg>
       <span id="balanceAmount">0.00</span> FZ
@@ -223,48 +237,12 @@
         <span>Daily Bonus</span>
       </h2>
       <div class="grid grid-cols-3 gap-3 sm:gap-4" id="bonusGrid"></div>
-    </div>
-  </section>
-
-  <!-- Extra Reward Section -->
-  <section id="extraRewardSection" class="section p-4 max-w-md mx-auto w-full">
-    <div id="extraLoading" class="text-center py-10">
-      <div class="spinner mb-3"></div>
-      <p class="text-gray-600">Loading...</p>
-    </div>
-    <div id="extraContent" class="space-y-4" style="display: none;">
-      <div class="bg-white rounded-xl shadow p-5">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-xl p-3">
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-          </div>
-          <div>
-            <h3 class="font-bold text-gray-800">Watch Ads to Earn</h3>
-            <p class="text-xs text-gray-600">Watch 4 ads → Get 5 FZ</p>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3 mb-4">
-          <div class="bg-gradient-to-br from-green-50 to-teal-50 p-3 rounded-xl text-center border border-green-200">
-            <p class="text-xs text-gray-600">Progress</p>
-            <p class="text-2xl font-bold text-green-600" id="adsWatched">0/4</p>
-          </div>
-          <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-xl text-center border border-blue-200">
-            <p class="text-xs text-gray-600">Reward</p>
-            <p class="text-2xl font-bold text-blue-600">5 FZ</p>
-          </div>
-        </div>
-        <div id="adTaskContainer">
-          <div id="adViewer" class="ad-viewer mb-3">
-            <div class="spinner" style="width:32px;height:32px;border-width:3px;"></div>
-            <p>Loading ad...</p>
-          </div>
-          <button id="adActionBtn" class="w-full py-3 rounded-xl text-sm font-bold transition-all bg-gradient-to-r from-green-500 to-teal-500 text-white hover:from-green-600 hover:to-teal-600 shadow-lg">
-            Watch Ad (1/4)
-          </button>
-        </div>
-        <div id="cooldownInfo" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-center text-sm" style="display: none;">
-          <p class="text-amber-800 font-bold">Daily task completed!</p>
-          <p class="text-amber-700 mt-1">Next in: <span id="cooldownTimer" class="font-mono font-bold">23:59:59</span></p>
+      
+      <!-- Inline Ad after bonus grid (Mobile) -->
+      <div id="inlineAdContainer" class="sm:hidden relative">
+        <span class="ad-label">Advertisement</span>
+        <div id="inlineAdContent" class="ad-container" style="min-height: 50px;">
+          <!-- Mobile Inline Ad loads here -->
         </div>
       </div>
     </div>
@@ -285,7 +263,7 @@
       </div>
       <div id="transactionsList" class="space-y-3"></div>
       <div id="emptyState" class="text-center py-16 bg-white rounded-xl" style="display: none;">
-        <div class="text-6xl mb-4 opacity-20">No transactions</div>
+        <div class="text-6xl mb-4 opacity-20">📋</div>
         <h3 class="text-lg font-semibold text-gray-700 mb-2">No Activity Yet</h3>
         <p class="text-sm text-gray-500">Start earning to see history</p>
       </div>
@@ -312,14 +290,10 @@
         <div id="adProgressBar" class="progress-bar-inner"></div>
       </div>
       <p id="adCountdownText" class="text-sm text-gray-500 mt-2">Watch for 8s...</p>
-    </div>
-  </div>
-
-  <!-- Persistent Ad Banner -->
-  <div id="persistentAdBanner" class="fixed bottom-[85px] sm:bottom-4 right-4 w-[320px] bg-white rounded-lg shadow-2xl z-20 p-2 transform translate-y-[200%] transition-transform duration-500 ease-in-out" style="display: none;">
-    <button id="closeAdBannerBtn" class="absolute -top-2 -right-2 bg-gray-800 text-white rounded-full h-6 w-6 flex items-center justify-center text-sm font-bold shadow-lg hover:bg-gray-900 transition-colors z-10">&times;</button>
-    <div id="persistentAdContainer" class="min-h-[50px] flex items-center justify-center bg-gray-50 rounded">
-      <span class="text-xs text-gray-400">Loading ad...</span>
+      <!-- Rewarded Ad Container -->
+      <div id="rewardedAdContent" class="mt-4 ad-container" style="min-height: 250px;">
+        <!-- Rewarded Video Ad loads here -->
+      </div>
     </div>
   </div>
 
@@ -332,10 +306,10 @@
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
           <span class="text-xs">Daily</span>
         </button>
-        <button id="extraBtn" class="nav-btn text-gray-600">
+        <a href="Extra.html" id="extraBtn" class="nav-btn text-gray-600">
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <span class="text-xs">Extra</span>
-        </button>
+        </a>
         <button id="historyBtn" class="nav-btn text-gray-600">
           <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
           <span class="text-xs">History</span>
@@ -344,6 +318,460 @@
     </div>
   </footer>
 
-  <script type="module" src="Bonus.js"></script>
+  <!-- Ad System -->
+  <script type="module" src="ad.js"></script>
+
+  <script type="module">
+    import { auth, database } from './config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { ref, get, update, runTransaction, onValue, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+    
+    // Import ad loading functions from ad.js
+    import { loadDesktopBannerAd, loadMobileBannerAd, loadRewardedAd } from './ad.js';
+
+    const dailyRewards = [1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,5,5,5,5,7];
+
+    let userData = null;
+    let userId = null;
+    let currentUser = null;
+    let countdownTimers = {};
+    let adCountdownInterval = null;
+    let allTransactions = [];
+    let currentFilter = 'all';
+
+    const balanceEl = document.getElementById('balanceAmount');
+    const toastContainer = document.getElementById('toastContainer');
+
+    function showToast(message, type = 'info', duration = 3000) {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      setTimeout(() => toast.remove(), duration + 300); // Extra time for fadeOut
+    }
+
+    function updateBalanceUI() {
+      if (balanceEl && userData?.balance !== undefined) {
+        balanceEl.textContent = userData.balance.toFixed(2);
+      }
+    }
+
+    function initNavigation() {
+      const sections = {
+        daily: document.getElementById('dailyBonusSection'),
+        history: document.getElementById('historySection')
+      };
+
+      const navBtns = {
+        daily: document.getElementById('dailyBtn'),
+        extra: document.getElementById('extraBtn'),
+        history: document.getElementById('historyBtn')
+      };
+
+      const navIndicator = document.getElementById('navIndicator');
+
+      function showSection(sectionName) {
+        Object.values(sections).forEach(s => s.classList.remove('active'));
+        if (sections[sectionName]) sections[sectionName].classList.add('active');
+
+        Object.values(navBtns).forEach(b => {
+          b.classList.remove('active', 'text-green-600');
+          b.classList.add('text-gray-600');
+        });
+        if (navBtns[sectionName]) {
+          navBtns[sectionName].classList.add('active', 'text-green-600');
+          navBtns[sectionName].classList.remove('text-gray-600');
+        }
+
+        updateNavIndicator(navBtns[sectionName] || navBtns.daily);
+      }
+
+      function updateNavIndicator(btn) {
+        if (!btn) return;
+        const btnRect = btn.getBoundingClientRect();
+        const parentRect = btn.parentElement.getBoundingClientRect();
+        const left = btnRect.left - parentRect.left;
+        const width = btnRect.width;
+        navIndicator.style.left = `${left}px`;
+        navIndicator.style.width = `${width}px`;
+      }
+
+      navBtns.daily.addEventListener('click', () => { showSection('daily'); loadDailyBonus(); });
+      navBtns.history.addEventListener('click', () => { showSection('history'); loadHistory(); });
+
+      // Initial indicator
+      requestAnimationFrame(() => updateNavIndicator(navBtns.daily));
+      window.addEventListener('resize', () => {
+        const activeBtn = document.querySelector('.nav-btn.active');
+        if (activeBtn) updateNavIndicator(activeBtn);
+      });
+
+      showSection('daily');
+      
+      // Load desktop ad
+      setTimeout(() => {
+        if (window.innerWidth >= 640) {
+          loadDesktopBannerAd('topBannerAdContent');
+        }
+      }, 1000);
+    }
+
+    async function loadDailyBonus() {
+      if (!userId) return;
+      try {
+        const userRef = ref(database, 'users/' + userId);
+        const snap = await get(userRef);
+        if (snap.exists()) {
+          userData = snap.val();
+          if (userData.dailyBonusDay === undefined) {
+            userData.dailyBonusDay = 0;
+            userData.lastClaimTime = 0;
+            // Optionally save defaults
+            await update(userRef, { dailyBonusDay: 0, lastClaimTime: 0 });
+          }
+          if (userData.balance === undefined) {
+            userData.balance = 0;
+          }
+          updateBalanceUI();
+          renderDailyGrid();
+        } else {
+          showToast('User data not found.', 'error');
+        }
+      } catch (err) {
+        console.error('Load daily bonus error:', err);
+        showToast('Failed to load daily bonus.', 'error');
+      }
+    }
+
+    function renderDailyGrid() {
+      document.getElementById('dailyLoading').style.display = 'none';
+      document.getElementById('dailyContent').style.display = 'block';
+      
+      const grid = document.getElementById('bonusGrid');
+      grid.innerHTML = '';
+      Object.values(countdownTimers).forEach(clearInterval);
+      countdownTimers = {};
+
+      const current = userData.dailyBonusDay || 0;
+      const last = userData.lastClaimTime || 0;
+
+      dailyRewards.forEach((reward, i) => {
+        const card = document.createElement("div");
+        card.className = "bonus-card";
+
+        const day = document.createElement("h3");
+        day.className = "font-semibold text-gray-700";
+        day.textContent = `Day ${i + 1}`;
+        card.appendChild(day);
+
+        const rew = document.createElement("p");
+        rew.className = "text-sm text-gray-500 mb-3";
+        rew.textContent = `+${reward} FZ`;
+        card.appendChild(rew);
+
+        const btn = document.createElement("button");
+        btn.className = "w-full py-2 rounded-lg text-sm font-semibold transition-all";
+        
+        if (i < current) {
+          btn.textContent = "Claimed";
+          btn.classList.add("bg-green-100", "text-green-700");
+          btn.disabled = true;
+        } else if (i === current) {
+          const diff = Date.now() - last;
+          const oneDay = 86400000;
+          const remain = oneDay - diff;
+          
+          if (remain > 0 && current > 0) {
+            btn.disabled = true;
+            btn.classList.add("bg-gray-100", "text-gray-500");
+            btn.textContent = 'Wait...';
+            startCountdown(btn, remain, i);
+          } else {
+            btn.textContent = "Claim Now";
+            btn.classList.add("bg-green-500", "text-white", "hover:bg-green-600");
+            btn.onclick = () => showRewardModal(i, reward);
+          }
+        } else {
+          btn.textContent = "Locked";
+          btn.classList.add("bg-gray-100", "text-gray-400");
+          btn.disabled = true;
+        }
+        
+        card.appendChild(btn);
+        grid.appendChild(card);
+      });
+      
+      // Load mobile inline ad
+      setTimeout(() => {
+        loadMobileBannerAd('inlineAdContent');
+      }, 500);
+    }
+
+    function showRewardModal(day, reward) {
+      const modal = document.getElementById('rewardedAdModal');
+      modal.classList.add('visible');
+      
+      const watchBtn = document.getElementById('watchAdBtn');
+      const cancelBtn = document.getElementById('cancelAdBtn');
+      
+      // Remove previous listeners to avoid duplicates
+      watchBtn.replaceWith(watchBtn.cloneNode(true));
+      cancelBtn.replaceWith(cancelBtn.cloneNode(true));
+      
+      document.getElementById('watchAdBtn').onclick = () => {
+        modal.classList.remove('visible');
+        startAd(day, reward);
+      };
+      
+      document.getElementById('cancelAdBtn').onclick = () => {
+        modal.classList.remove('visible');
+      };
+    }
+
+    function startAd(day, reward) {
+      const modal = document.getElementById('adPlayerModal');
+      modal.classList.add('visible');
+      
+      let count = 8;
+      const countText = document.getElementById('adCountdownText');
+      const progressBar = document.getElementById('adProgressBar');
+      
+      progressBar.style.width = '0%';
+      countText.textContent = `Watch for ${count}s...`;
+
+      loadRewardedAd('rewardedAdContent');
+
+      let canClaim = false;
+      if (adCountdownInterval) clearInterval(adCountdownInterval);
+      adCountdownInterval = setInterval(() => {
+        count--;
+        const progress = ((8 - count) / 8) * 100;
+        progressBar.style.width = `${progress}%`;
+        countText.textContent = `Watch for ${count}s...`;
+
+        if (count <= 0) {
+          clearInterval(adCountdownInterval);
+          adCountdownInterval = null;
+          canClaim = true;
+          countText.textContent = 'Ad completed! ✓';
+          setTimeout(() => {
+            modal.classList.remove('visible');
+            if (canClaim) claimDailyReward(day, reward);
+          }, 1000);
+        }
+      }, 1000);
+    }
+
+    async function claimDailyReward(index, reward) {
+      if (!userId) return;
+      const refUser = ref(database, 'users/' + userId);
+      try {
+        const success = await runTransaction(refUser, (data) => {
+          if (!data || data.dailyBonusDay !== index) {
+            return; // Abort if stale
+          }
+          data.dailyBonusDay = index + 1;
+          data.lastClaimTime = Date.now();
+          data.balance = (data.balance || 0) + reward;
+          return data;
+        });
+        if (success.committed) {
+          userData = success.snapshot.val();
+          updateBalanceUI();
+          renderDailyGrid(); // Refresh grid
+          showToast(`+${reward} FZ claimed! 🎉`, 'success');
+          await addTransaction('daily_bonus', reward, `Day ${index + 1} Reward`);
+        } else {
+          showToast('Claim failed, try again.', 'error');
+        }
+      } catch (err) {
+        console.error('Claim error:', err);
+        showToast('Claim failed.', 'error');
+      }
+    }
+
+    function startCountdown(btn, remain, idx) {
+      const tick = () => {
+        if (remain <= 0) {
+          clearInterval(countdownTimers[idx]);
+          delete countdownTimers[idx];
+          renderDailyGrid();
+          return;
+        }
+        const h = String(Math.floor(remain / 3600000)).padStart(2, '0');
+        const m = String(Math.floor((remain % 3600000) / 60000)).padStart(2, '0');
+        const s = String(Math.floor((remain % 60000) / 1000)).padStart(2, '0');
+        btn.textContent = `${h}:${m}:${s}`;
+        remain -= 1000;
+      };
+      tick();
+      countdownTimers[idx] = setInterval(tick, 1000);
+    }
+
+    async function addTransaction(type, amount, description) {
+      if (!userId) return;
+      const txRef = ref(database, `users/${userId}/transactions`);
+      try {
+        await push(txRef, {
+          type,
+          amount,
+          description,
+          timestamp: Date.now()
+        });
+      } catch (err) {
+        console.error('Transaction log error:', err);
+      }
+    }
+
+    function loadHistory() {
+      if (!userId) return;
+      document.getElementById('historyLoading').style.display = 'block';
+      document.getElementById('historyContent').style.display = 'none';
+      
+      const txRef = ref(database, `users/${userId}/transactions`);
+      const unsubscribe = onValue(txRef, snapshot => {
+        const data = snapshot.val();
+        allTransactions = data ? Object.entries(data).map(([key, val]) => ({ id: key, ...val })).sort((a, b) => b.timestamp - a.timestamp) : [];
+        document.getElementById('historyLoading').style.display = 'none';
+        document.getElementById('historyContent').style.display = 'block';
+        renderTransactions();
+      }, { onlyOnce: false });
+      
+      // Store unsubscribe if needed later
+      window.historyUnsubscribe = unsubscribe;
+    }
+
+    function renderTransactions() {
+      const list = document.getElementById('transactionsList');
+      const empty = document.getElementById('emptyState');
+      
+      let filtered = currentFilter === 'all' ? allTransactions : 
+                     allTransactions.filter(tx => tx.type === currentFilter);
+      
+      if (filtered.length === 0) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      
+      empty.style.display = 'none';
+      list.innerHTML = '';
+      
+      filtered.forEach(tx => {
+        const card = document.createElement('div');
+        card.className = 'task-card';
+        const isPositive = !['withdrawal'].includes(tx.type);
+        const amountColor = isPositive ? 'text-green-600' : 'text-red-600';
+        const amountSign = isPositive ? '+' : '-';
+        const date = new Date(tx.timestamp).toLocaleString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric', 
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
+        });
+        
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <h3 class="font-semibold text-gray-800">${tx.description || tx.type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</h3>
+              <p class="text-xs text-gray-500 mt-1">${date}</p>
+            </div>
+            <div class="text-right ml-4">
+              <p class="font-bold ${amountColor}">${amountSign}${tx.amount.toFixed(2)} FZ</p>
+            </div>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    // Filter tabs
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tab').forEach(t => {
+          t.classList.remove('bg-green-500', 'text-white');
+          t.classList.add('bg-gray-100', 'text-gray-600');
+        });
+        tab.classList.remove('bg-gray-100', 'text-gray-600');
+        tab.classList.add('bg-green-500', 'text-white');
+        currentFilter = tab.dataset.filter;
+        renderTransactions();
+      });
+    });
+
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+          overlay.classList.remove('visible');
+          if (adCountdownInterval) {
+            clearInterval(adCountdownInterval);
+            adCountdownInterval = null;
+          }
+        }
+      });
+    });
+
+    // Close modals on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.visible').forEach(m => {
+          m.classList.remove('visible');
+          if (adCountdownInterval) {
+            clearInterval(adCountdownInterval);
+            adCountdownInterval = null;
+          }
+        });
+      }
+    });
+
+    // Auth listener
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        userId = user.uid;
+        await loadDailyBonus();
+        loadHistory();
+      } else {
+        userId = null;
+        userData = null;
+        showToast('Please log in to access bonuses.', 'error');
+        document.getElementById('dailyLoading').style.display = 'none';
+        document.getElementById('dailyContent').style.display = 'block';
+        document.getElementById('bonusGrid').innerHTML = '<p class="text-center text-gray-500">Log in required</p>';
+      }
+    });
+
+    // Init
+    initNavigation();
+
+    // Periodic refresh
+    setInterval(() => {
+      if (userId) {
+        get(ref(database, 'users/' + userId)).then(snap => {
+          if (snap.exists()) {
+            const newData = snap.val();
+            if (newData.balance !== userData?.balance || newData.dailyBonusDay !== userData?.dailyBonusDay) {
+              userData = newData;
+              updateBalanceUI();
+              if (document.querySelector('#dailyBonusSection').classList.contains('active')) {
+                renderDailyGrid();
+              }
+            }
+          }
+        }).catch(err => console.error('Periodic update error:', err));
+      }
+    }, 15000);
+
+    // Cleanup on unload
+    window.addEventListener('beforeunload', () => {
+      Object.values(countdownTimers).forEach(clearInterval);
+      if (adCountdownInterval) clearInterval(adCountdownInterval);
+      if (window.historyUnsubscribe) window.historyUnsubscribe();
+    });
+
+  </script>
 </body>
 </html>
