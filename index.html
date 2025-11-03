@@ -196,10 +196,15 @@
       border: 1px solid rgba(0,0,0,0.05);
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       position: relative;
+      transition: all 0.3s ease;
     }
 
     .ad-container.loaded {
       display: flex;
+    }
+
+    .ad-container.hidden {
+      display: none !important;
     }
 
     .ad-label {
@@ -416,6 +421,42 @@
     // Import ad loading functions
     import { loadMobileBannerAd } from './ad.js';
 
+    // Track which ad containers are currently visible
+    let currentVisibleAd = null;
+
+    /**
+     * Show only one ad at a time
+     */
+    function showOnlyOneAd(adContainerId) {
+      const allAdContainers = ['bannerAdContainer1', 'bannerAdContainer2'];
+      
+      allAdContainers.forEach(containerId => {
+        const container = document.getElementById(containerId);
+        if (container) {
+          if (containerId === adContainerId) {
+            container.classList.remove('hidden');
+            currentVisibleAd = containerId;
+          } else {
+            container.classList.add('hidden');
+          }
+        }
+      });
+    }
+
+    /**
+     * Detect which section is currently visible
+     */
+    function detectVisibleSection() {
+      const homeSection = document.getElementById('homeSection');
+      const profileSection = document.getElementById('profileSection');
+      
+      if (homeSection && homeSection.classList.contains('active')) {
+        showOnlyOneAd('bannerAdContainer1');
+      } else if (profileSection && profileSection.classList.contains('active')) {
+        showOnlyOneAd('bannerAdContainer2');
+      }
+    }
+
     // Function to load all ads
     function loadAllAds() {
       // Load mobile banner ads
@@ -431,10 +472,40 @@
     // Load ads on page load
     window.addEventListener('load', () => {
       loadAllAds();
+      
+      // Show initial ad based on active section
+      setTimeout(() => {
+        detectVisibleSection();
+      }, 2500);
+    });
+
+    // Monitor section changes (navigation)
+    const observer = new MutationObserver(() => {
+      detectVisibleSection();
+    });
+
+    // Observe section visibility changes
+    const homeSection = document.getElementById('homeSection');
+    const profileSection = document.getElementById('profileSection');
+    
+    if (homeSection) {
+      observer.observe(homeSection, { attributes: true, attributeFilter: ['class'] });
+    }
+    if (profileSection) {
+      observer.observe(profileSection, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    // Also listen to navigation button clicks
+    document.getElementById('homeBtn')?.addEventListener('click', () => {
+      setTimeout(() => showOnlyOneAd('bannerAdContainer1'), 100);
+    });
+    
+    document.getElementById('profileBtn')?.addEventListener('click', () => {
+      setTimeout(() => showOnlyOneAd('bannerAdContainer2'), 100);
     });
 
     // Log ad system initialization
-    console.log('🎯 FarmZone Ad System initialized');
+    console.log('🎯 FarmZone Ad System initialized with smart visibility control');
   </script>
 </body>
 </html>
