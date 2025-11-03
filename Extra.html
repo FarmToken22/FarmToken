@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="FarmZone - Extra Reward">
+  <title>FarmZone - Extra Reward</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      overflow-x: hidden;
+      padding-bottom: 20px; /* Adjusted padding as nav bar is removed */
+      min-height: 100vh;
+      background: #f9fafb;
+      transition: background 0.3s ease;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #888; border-radius: 2px; }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #28a745;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast {
+      padding: 12px 16px;
+      border-radius: 12px;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.4s ease forwards, fadeOut 0.4s ease 2.6s forwards;
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    .toast-success { background: #28a745; }
+    .toast-error { background: #ef4444; }
+    .toast-info { background: #3b82f6; }
+
+    @keyframes slideIn {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateX(100%); }
+    }
+
+    .ad-viewer {
+      min-height: 90px;
+      background: #f8fafc;
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 14px;
+      color: #64748b;
+      transition: all 0.3s ease;
+    }
+    .ad-viewer.loaded {
+      border-style: solid;
+      border-color: #e5e7eb;
+      background: #fff;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+  <!-- Header -->
+  <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-40 border-b border-gray-200">
+    <a href="Bonus.html" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all">
+      <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+    </a>
+    <div>
+      <h1 class="text-xl font-bold text-green-600">Extra Rewards</h1>
+    </div>
+    <div class="bg-green-50 text-green-700 px-3 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 border border-green-200">
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/></svg>
+      <span id="balanceAmount">0.00</span> FZ
+    </div>
+  </header>
+
+  <!-- Extra Reward Section -->
+  <section id="extraRewardSection" class="p-4 max-w-md mx-auto w-full">
+    <div id="extraLoading" class="text-center py-10">
+      <div class="spinner mb-3"></div>
+      <p class="text-gray-600">Loading...</p>
+    </div>
+    <div id="extraContent" class="space-y-4" style="display: none;">
+      <div class="bg-white rounded-xl shadow p-5">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-xl p-3">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-gray-800">Watch Ads to Earn</h3>
+            <p class="text-xs text-gray-600">Watch 4 ads → Get 5 FZ</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div class="bg-gradient-to-br from-green-50 to-teal-50 p-3 rounded-xl text-center border border-green-200">
+            <p class="text-xs text-gray-600">Progress</p>
+            <p class="text-2xl font-bold text-green-600" id="adsWatched">0/4</p>
+          </div>
+          <div class="bg-gradient-to-br from-blue-50 to-cyan-50 p-3 rounded-xl text-center border border-blue-200">
+            <p class="text-xs text-gray-600">Reward</p>
+            <p class="text-2xl font-bold text-blue-600">5 FZ</p>
+          </div>
+        </div>
+        <div id="adTaskContainer">
+          <div id="adViewer" class="ad-viewer mb-3">
+            <p>Click "Watch Ad" to start</p>
+          </div>
+          <button id="adActionBtn" class="w-full py-3 rounded-xl text-sm font-bold transition-all bg-gradient-to-r from-green-500 to-teal-500 text-white hover:from-green-600 hover:to-teal-600 shadow-lg">
+            Watch Ad (1/4)
+          </button>
+        </div>
+        <div id="cooldownInfo" class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-center text-sm" style="display: none;">
+          <p class="text-amber-800 font-bold">Daily task completed!</p>
+          <p class="text-amber-700 mt-1">Next in: <span id="cooldownTimer" class="font-mono font-bold">23:59:59</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module">
+    import { auth, database } from './config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { ref, get, update, runTransaction, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+    // --- START: Integrated Ad System from ad.js ---
+
+    /**
+     * FarmZone Ad Management System
+     * Handles loading of mobile banner and rewarded ads
+     */
+
+    // Ad Configuration
+    const AD_CONFIG = {
+      mobileBanner: {
+        key: '78ade24182729fceea8e45203dad915b',
+        format: 'iframe',
+        height: 50,
+        width: 320,
+        invokeUrl: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js'
+      },
+      rewarded: {
+        key: '53c6462d2fd5ad5b91686ca9561f79a2',
+        format: 'iframe',
+        height: 90,
+        width: 728,
+        invokeUrl: '//www.highperformanceformat.com/53c6462d2fd5ad5b91686ca9561f79a2/invoke.js'
+      }
+    };
+
+    // Track loaded ads to prevent duplicates
+    const loadedAds = new Set();
+
+    /**
+     * Show ad container with loaded class
+     * @param {HTMLElement} container - The container element
+     */
+    function showAdContainer(container) {
+      if (container) {
+        container.classList.add('loaded');
+      }
+    }
+
+    /**
+     * Load Rewarded Ad (728x90 - shown during reward claiming)
+     * @param {string} containerId - ID of the container element
+     * @param {function} callback - Callback function to signal success or failure
+     */
+    function loadRewardedAd(containerId, callback) {
+      const container = document.getElementById(containerId);
+      if (!container) {
+        console.warn(`⚠️ Container ${containerId} not found for rewarded ad`);
+        if (callback) callback(false);
+        return;
+      }
+
+      try {
+        container.innerHTML = '';
+        container.classList.remove('loaded');
+
+        window.atOptions = {
+          key: AD_CONFIG.rewarded.key,
+          format: AD_CONFIG.rewarded.format,
+          height: AD_CONFIG.rewarded.height,
+          width: AD_CONFIG.rewarded.width,
+          params: {}
+        };
+
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = AD_CONFIG.rewarded.invokeUrl;
+        script.async = true;
+        
+        script.onload = () => {
+          setTimeout(() => {
+            showAdContainer(container);
+            console.log('✅ Rewarded ad loaded successfully');
+            if (callback) callback(true);
+          }, 500);
+        };
+        
+        script.onerror = () => {
+          console.error('❌ Failed to load rewarded ad');
+          container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px; font-size: 14px;">Failed to load ad. Try again.</div>';
+          container.classList.add('loaded');
+          if (callback) callback(false);
+        };
+
+        container.appendChild(script);
+
+      } catch (error) {
+        console.error('❌ Error loading rewarded ad:', error);
+        container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px; font-size: 14px;">An error occurred.</div>';
+        container.classList.add('loaded');
+        if (callback) callback(false);
+      }
+    }
+    
+    console.log('🎯 FarmZone Ad System initialized');
+
+    // --- END: Integrated Ad System ---
+
+
+    // --- START: Application Logic ---
+    let userData = null;
+    let userId = null;
+    let cooldownInterval = null;
+    let currentAdStep = 0;
+
+    const balanceEl = document.getElementById('balanceAmount');
+    const toastContainer = document.getElementById('toastContainer');
+
+    function showToast(message, type = 'info', duration = 3000) {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      setTimeout(() => toast.remove(), duration);
+    }
+
+    function updateBalanceUI() {
+      if (balanceEl && userData?.balance !== undefined) {
+        balanceEl.textContent = userData.balance.toFixed(2);
+      }
+    }
+
+    async function loadExtraReward() {
+      if (!userId) return;
+      document.getElementById('extraLoading').style.display = 'none';
+      document.getElementById('extraContent').style.display = 'block';
+      
+      try {
+        const snapshot = await get(ref(database, 'users/' + userId));
+        if (snapshot.exists()) {
+          userData = snapshot.val();
+          if (!userData.extraReward) {
+            userData.extraReward = { adsWatched: 0, lastRewardTime: 0 };
+          }
+          updateBalanceUI();
+          updateExtraUI();
+        }
+      } catch (err) {
+        showToast('Failed to load extra reward data.', 'error');
+      }
+    }
+
+    function updateExtraUI() {
+      const { lastRewardTime = 0, adsWatched = 0 } = userData.extraReward || {};
+      const now = Date.now();
+      const oneDayMs = 24 * 60 * 60 * 1000;
+
+      if (lastRewardTime && now - lastRewardTime < oneDayMs && adsWatched >= 4) {
+        document.getElementById('adTaskContainer').style.display = 'none';
+        document.getElementById('cooldownInfo').style.display = 'block';
+        document.getElementById('adsWatched').textContent = '4/4';
+        startCooldownTimer(lastRewardTime + oneDayMs);
+      } else {
+        currentAdStep = (adsWatched >= 4 || (now - lastRewardTime >= oneDayMs)) ? 0 : adsWatched;
+        if(userData.extraReward) userData.extraReward.adsWatched = currentAdStep;
+        
+        document.getElementById('adsWatched').textContent = `${currentAdStep}/4`;
+        document.getElementById('adTaskContainer').style.display = 'block';
+        document.getElementById('cooldownInfo').style.display = 'none';
+        updateAdActionButton();
+      }
+    }
+
+    function updateAdActionButton() {
+      const btn = document.getElementById('adActionBtn');
+      btn.disabled = false;
+      btn.innerHTML = currentAdStep >= 4 
+        ? 'Claim 5 FZ Reward' 
+        : `Watch Ad (${currentAdStep + 1}/4)`;
+    }
+
+    function startCooldownTimer(targetTime) {
+      if (cooldownInterval) clearInterval(cooldownInterval);
+      
+      function update() {
+        const remaining = targetTime - Date.now();
+        if (remaining <= 0) {
+          clearInterval(cooldownInterval);
+          loadExtraReward(); // Reload data to reset the state
+          return;
+        }
+        const h = Math.floor(remaining / 3600000);
+        const m = Math.floor((remaining % 3600000) / 60000);
+        const s = Math.floor((remaining % 60000) / 1000);
+        document.getElementById('cooldownTimer').textContent = 
+          `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+      }
+      update();
+      cooldownInterval = setInterval(update, 1000);
+    }
+
+    async function handleAdAction() {
+      if (currentAdStep >= 4) {
+        await claimExtraReward();
+      } else {
+        startAdViewingProcess();
+      }
+    }
+
+    function startAdViewingProcess() {
+      const btn = document.getElementById('adActionBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;"></div> Loading Ad...';
+      
+      const viewer = document.getElementById('adViewer');
+      viewer.innerHTML = '<div class="spinner" style="width:32px;height:32px;border-width:3px;"></div><p>Loading ad...</p>';
+
+      loadRewardedAd('adViewer', async (success) => {
+        if (success) {
+          showToast('Ad loaded. Watch for 5 seconds.', 'info');
+          await new Promise(r => setTimeout(r, 5000)); // Simulate watch time
+          await adViewCompleted();
+        } else {
+          showToast('Ad failed to load. Please try again.', 'error');
+          setTimeout(() => {
+            updateAdActionButton();
+            viewer.innerHTML = '<p>Click "Watch Ad" to try again.</p>';
+          }, 2000);
+        }
+      });
+    }
+
+    async function adViewCompleted() {
+      currentAdStep++;
+      document.getElementById('adViewer').innerHTML = `<p>Ad ${currentAdStep}/4 Completed!</p>`;
+      
+      try {
+        await update(ref(database, `users/${userId}/extraReward`), { adsWatched: currentAdStep });
+        if(userData.extraReward) userData.extraReward.adsWatched = currentAdStep;
+        document.getElementById('adsWatched').textContent = `${currentAdStep}/4`;
+        updateAdActionButton();
+        showToast(`Ad ${currentAdStep}/4 watched!`, 'success');
+      } catch (error) {
+        showToast('Failed to save progress.', 'error');
+        updateAdActionButton();
+      }
+    }
+
+    async function claimExtraReward() {
+      const btn = document.getElementById('adActionBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;"></div> Claiming...';
+
+      try {
+        await runTransaction(ref(database, 'users/' + userId), (data) => {
+          if (data) {
+              if(!data.extraReward) data.extraReward = {};
+              if (data.extraReward.adsWatched >= 4) {
+                data.balance = (data.balance || 0) + 5;
+                data.extraReward.lastRewardTime = Date.now();
+                data.extraReward.adsWatched = 4; // Set to 4 to indicate completion
+              }
+          }
+          return data;
+        });
+        await addTransaction('extra_reward', 5, 'Watched 4 Ads');
+        showToast('+5 FZ Reward Claimed!', 'success');
+        await loadExtraReward(); // Reload to update UI and start cooldown
+      } catch (error) {
+        showToast('Claim failed. Please try again.', 'error');
+        btn.innerHTML = 'Claim Failed';
+        setTimeout(() => updateAdActionButton(), 2000);
+      }
+    }
+
+    async function addTransaction(type, amount, description) {
+      if(!userId) return;
+      const txRef = ref(database, `users/${userId}/transactions`);
+      await push(txRef, {
+        type,
+        amount,
+        description,
+        timestamp: Date.now()
+      });
+    }
+
+    document.getElementById('adActionBtn')?.addEventListener('click', handleAdAction);
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        userId = user.uid;
+        loadExtraReward();
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      if(cooldownInterval) clearInterval(cooldownInterval);
+    });
+
+  </script>
+</body>
+</html>
