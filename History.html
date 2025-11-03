@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="FarmZone - Transaction History">
+  <title>FarmZone - History</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      overflow-x: hidden;
+      padding-bottom: 20px;
+      min-height: 100vh;
+      background: #f9fafb;
+      transition: background 0.3s ease;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #888; border-radius: 2px; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #28a745;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .task-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+    }
+    .task-card:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+      transform: translateY(-2px);
+    }
+
+    .toast {
+      padding: 12px 16px;
+      border-radius: 12px;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      animation: slideIn 0.4s ease forwards, fadeOut 0.4s ease 2.6s forwards;
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    .toast-success { background: #28a745; }
+    .toast-error { background: #ef4444; }
+    .toast-info { background: #3b82f6; }
+
+    @keyframes slideIn {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateX(100%); }
+    }
+
+    .filter-tab {
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .filter-tab:hover {
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 640px) {
+      .task-card { padding: 12px; }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+  <!-- Header -->
+  <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-40 border-b border-gray-200">
+    <a href="index.html" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all">
+      <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+    </a>
+    <div>
+      <h1 class="text-xl font-bold text-green-600">Transaction History</h1>
+    </div>
+    <div class="bg-green-50 text-green-700 px-3 py-1.5 rounded-lg font-bold text-sm flex items-center gap-1 border border-green-200">
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clip-rule="evenodd"/></svg>
+      <span id="balanceAmount">0.00</span> FZ
+    </div>
+  </header>
+
+  <!-- History Section -->
+  <section id="historySection" class="p-4 max-w-2xl mx-auto w-full">
+    <div id="historyLoading" class="text-center py-10">
+      <div class="spinner mb-3"></div>
+      <p class="text-gray-600">Loading transactions...</p>
+    </div>
+    <div id="historyContent" style="display: none;">
+      <!-- Filter Tabs -->
+      <div class="filter-tabs flex gap-2 mb-4 overflow-x-auto bg-white p-3 rounded-xl shadow-sm">
+        <div class="filter-tab px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-green-500 text-white" data-filter="all">All</div>
+        <div class="filter-tab px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-gray-100 text-gray-600" data-filter="mining">Mining</div>
+        <div class="filter-tab px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-gray-100 text-gray-600" data-filter="referral">Referral</div>
+        <div class="filter-tab px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-gray-100 text-gray-600" data-filter="daily_bonus">Daily Bonus</div>
+        <div class="filter-tab px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-gray-100 text-gray-600" data-filter="extra_reward">Extra Reward</div>
+        <div class="filter-tab px-4 py-2 rounded-lg text-sm font-medium cursor-pointer bg-gray-100 text-gray-600" data-filter="withdrawal">Withdrawal</div>
+      </div>
+
+      <!-- Transactions List -->
+      <div id="transactionsList" class="space-y-3"></div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="text-center py-16 bg-white rounded-xl" style="display: none;">
+        <div class="text-6xl mb-4 opacity-20">📋</div>
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">No Activity Yet</h3>
+        <p class="text-sm text-gray-500">Start earning to see your transaction history</p>
+      </div>
+    </div>
+  </section>
+
+  <script type="module">
+    import { auth, database } from './config.js';
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { ref, get, onValue, off } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+    let userData = null;
+    let userId = null;
+    let currentUser = null;
+    let allTransactions = [];
+    let currentFilter = 'all';
+    let userRef = null;
+    let userListener = null;
+
+    const balanceEl = document.getElementById('balanceAmount');
+    const toastContainer = document.getElementById('toastContainer');
+
+    function showToast(message, type = 'info', duration = 3000) {
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      toastContainer.appendChild(toast);
+      setTimeout(() => toast.remove(), duration + 300);
+    }
+
+    function updateBalanceUI() {
+      if (balanceEl && userData?.balance !== undefined) {
+        balanceEl.textContent = userData.balance.toFixed(2);
+      }
+    }
+
+    async function loadHistory() {
+      if (!userId) return;
+      
+      document.getElementById('historyLoading').style.display = 'none';
+      document.getElementById('historyContent').style.display = 'block';
+
+      try {
+        allTransactions = [];
+        
+        // Load all transaction types
+        const transactionRef = ref(database, `users/${userId}/transactions`);
+        const miningRef = ref(database, `users/${userId}/miningHistory`);
+        const referralRef = ref(database, `users/${userId}/referralEarnings`);
+        
+        // Get regular transactions
+        const transSnap = await get(transactionRef);
+        if (transSnap.exists()) {
+          transSnap.forEach(child => {
+            allTransactions.push({ id: child.key, ...child.val() });
+          });
+        }
+
+        // Get mining history
+        const miningSnap = await get(miningRef);
+        if (miningSnap.exists()) {
+          miningSnap.forEach(child => {
+            const data = child.val();
+            allTransactions.push({ 
+              id: child.key, 
+              type: 'mining',
+              amount: data.reward || data.amount || 0,
+              timestamp: data.timestamp || data.claimTime || Date.now()
+            });
+          });
+        }
+
+        // Get referral earnings
+        const referralSnap = await get(referralRef);
+        if (referralSnap.exists()) {
+          referralSnap.forEach(child => {
+            const data = child.val();
+            allTransactions.push({ 
+              id: child.key, 
+              type: 'referral',
+              amount: data.amount || 0,
+              timestamp: data.timestamp || Date.now(),
+              from: data.from || data.referredUser || 'Unknown'
+            });
+          });
+        }
+        
+        // Sort by timestamp
+        allTransactions.sort((a, b) => b.timestamp - a.timestamp);
+        
+        renderHistory();
+      } catch (err) {
+        console.error('Load history error:', err);
+        showToast('Failed to load history.', 'error');
+      }
+    }
+
+    function getTransactionIcon(type) {
+      switch(type) {
+        case 'mining':
+          return '⛏️';
+        case 'referral':
+          return '👥';
+        case 'daily_bonus':
+          return '🎁';
+        case 'extra_reward':
+          return '⭐';
+        case 'withdrawal':
+          return '💸';
+        default:
+          return '💰';
+      }
+    }
+
+    function getTransactionTitle(type) {
+      switch(type) {
+        case 'mining':
+          return 'Mining Reward';
+        case 'referral':
+          return 'Referral Bonus';
+        case 'daily_bonus':
+          return 'Daily Bonus';
+        case 'extra_reward':
+          return 'Extra Reward';
+        case 'withdrawal':
+          return 'Withdrawal';
+        default:
+          return 'Transaction';
+      }
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('transactionsList');
+      const empty = document.getElementById('emptyState');
+      list.innerHTML = '';
+
+      const filtered = currentFilter === 'all' ? allTransactions : allTransactions.filter(t => t.type === currentFilter);
+
+      if (filtered.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      filtered.forEach(trans => {
+        const card = document.createElement('div');
+        card.className = 'task-card flex justify-between items-center';
+
+        const left = document.createElement('div');
+        left.className = 'flex items-center gap-3';
+        
+        const icon = document.createElement('div');
+        icon.className = 'text-3xl';
+        icon.textContent = getTransactionIcon(trans.type);
+        
+        const info = document.createElement('div');
+        info.innerHTML = `
+          <p class="font-semibold text-gray-800">${getTransactionTitle(trans.type)}</p>
+          <p class="text-sm text-gray-500">${new Date(trans.timestamp).toLocaleString()}</p>
+        `;
+        
+        left.appendChild(icon);
+        left.appendChild(info);
+
+        const right = document.createElement('div');
+        right.className = 'text-right';
+        
+        const isNegative = trans.type === 'withdrawal';
+        const amountClass = isNegative ? 'text-red-600' : 'text-green-600';
+        const amountSign = isNegative ? '-' : '+';
+        
+        let extraInfo = '';
+        if (trans.day) {
+          extraInfo = `<p class="text-xs text-gray-500">Day ${trans.day}</p>`;
+        } else if (trans.from && trans.type === 'referral') {
+          extraInfo = `<p class="text-xs text-gray-500">From: ${trans.from}</p>`;
+        }
+        
+        right.innerHTML = `
+          <p class="font-bold ${amountClass}">${amountSign}${Math.abs(trans.amount).toFixed(2)} FZ</p>
+          ${extraInfo}
+        `;
+
+        card.appendChild(left);
+        card.appendChild(right);
+        list.appendChild(card);
+      });
+    }
+
+    // Filter tabs functionality
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tab').forEach(t => {
+          t.classList.remove('bg-green-500', 'text-white');
+          t.classList.add('bg-gray-100', 'text-gray-600');
+        });
+        tab.classList.add('bg-green-500', 'text-white');
+        tab.classList.remove('bg-gray-100', 'text-gray-600');
+        currentFilter = tab.dataset.filter;
+        renderHistory();
+      });
+    });
+
+    // Auth listener
+    onAuthStateChanged(auth, (user) => {
+      if (userListener && userRef) {
+        off(userRef, 'value', userListener);
+        userListener = null;
+        userRef = null;
+      }
+
+      if (user) {
+        currentUser = user;
+        userId = user.uid;
+        userRef = ref(database, 'users/' + userId);
+        userListener = onValue(userRef, (snap) => {
+          if (snap.exists()) {
+            userData = snap.val();
+            updateBalanceUI();
+          }
+        });
+        loadHistory();
+      } else {
+        showToast('Please log in to access history.', 'info');
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+</body>
+</html>
