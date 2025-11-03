@@ -1,8 +1,8 @@
 /**
- * @fileoverview Sidebar Navigation Icons Configuration (Filtered)
+ * @fileoverview Sidebar Navigation Icons Configuration (Filtered + History Added)
  * @author WebGamer Studio
- * @version 1.0.1
- * @description Sidebar will only show Settings, Roadmap, and Connect icons.
+ * @version 1.0.2
+ * @description Sidebar now includes Settings, Roadmap, Connect, and History icons.
  * @license MIT
  */
 
@@ -15,7 +15,7 @@
  */
 
 /**
- * Sidebar navigation icons (filtered)
+ * Sidebar navigation icons (updated)
  * @type {SidebarIcon[]}
  * @constant
  */
@@ -73,6 +73,18 @@ export const sidebarIcons = [
         10l5.447 2.724A1 1 0 0021 
         16.382V5.618a1 1 0 00-1.447
         -.894L15 7" />
+    </svg>`,
+  },
+  {
+    name: 'History',
+    href: 'History.html',
+    description: 'View transaction or activity history',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round"
+        d="M12 8v4l3 3m6-3a9 9 0 
+        11-9-9 9 9 0 019 9zM4.5 12A7.5 
+        7.5 0 1012 4.5" />
     </svg>`,
   },
 ];
