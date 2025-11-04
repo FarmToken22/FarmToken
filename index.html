@@ -118,6 +118,7 @@
     .timer-display { font-size: 14px; font-weight: 600; }
     .earned-display { font-size: 10px; margin-top: 2px; opacity: 0.9; }
     .mining-container { position: relative; width: 100%; max-width: 400px; margin-bottom: 1.5rem; }
+    
     .notification {
       position: fixed; top: 20px; right: 20px; background: #28a745;
       color: white; padding: 10px 20px; border-radius: 8px;
@@ -125,6 +126,16 @@
       opacity: 0; transition: opacity 0.3s ease;
     }
     .notification.show { opacity: 1; }
+
+    .status {
+      font-size: 0.875rem; margin-top: 0.5rem; opacity: 0; transition: opacity 0.3s;
+    }
+    .status.show { opacity: 1; }
+    .status.success { color: #28a745; }
+    .status.error { color: #dc3545; }
+
+    .mining-status { font-weight: 600; }
+
     .nav-btn {
       position: relative; display: flex; flex-direction: column; align-items: center;
       gap: 4px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 10px 0;
@@ -159,16 +170,10 @@
       transform: scale(0.9);
     }
     #sidebar-content a {
-        background-color: #f3f4f6;
-        color: #4b5563;
+        @apply group flex justify-center items-center h-12 w-12 rounded-full bg-gray-200 hover:bg-green-500 text-gray-700 hover:text-white transition-all;
     }
-    #sidebar-content a:hover {
-        background-color: #28a745;
-        color: white;
-    }
-    #sidebar-content a span {
-        background-color: #374151;
-        color: white;
+    #sidebar-content a .tooltip {
+        @apply absolute left-full ml-4 px-3 py-1.5 text-sm font-medium text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity;
     }
 
     /* Ad Modal Styles */
@@ -246,7 +251,7 @@
       <div class="ad-modal-content">
           <p class="mb-2">Thank you for your activity!</p>
           <div id="claimAd"></div>
-          <button onclick="closeAdModal()" class="mt-3 bg-red-500 text-white px-4 py-1 rounded">Close</button>
+          <button id="adCloseBtn" class="mt-3 bg-red-500 text-white px-4 py-1 rounded">Close</button>
       </div>
   </div>
 
@@ -282,7 +287,7 @@
   </header>
 
   <!-- Banner Ad 1 (Mobile Inline) -->
-  <div id="bannerAdContainer1" class="ad-container max-w-lg mx-auto my-4 relative">
+  <div id="bannerAdContainer1" class="ad-container max-w-lg mx-auto my-4 relative hidden">
     <span class="ad-label">Advertisement</span>
     <div id="mobileAdContent1" style="min-height: 50px;">
       <!-- Mobile Banner Ad loads here -->
@@ -317,7 +322,7 @@
       <div class="mining-info bg-white p-4 rounded-xl shadow w-full max-w-[400px]">
         <div class="flex justify-between py-2 border-b">
           <span class="text-gray-600">Mining Status</span>
-          <span class="text-green-600 font-semibold" id="miningStatus">Inactive</span>
+          <span class="mining-status" id="miningStatus">Inactive</span>
         </div>
         <div class="flex justify-between py-2 border-b">
           <span class="text-gray-600">Current Earned</span>
@@ -356,7 +361,7 @@
         <div class="w-full bg-gray-200 rounded-full h-3 sm:h-4">
           <div id="progressBar" class="bg-green-500 h-3 sm:h-4 rounded-full transition-all" style="width: 0%"></div>
         </div>
-        <p class="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2" id="levelText">Level 1 / 5</p>
+        <p class="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2" id="levelText">Level 1 / 5 (0/500 FZ)</p>
       </div>
       <div class="flex justify-between">
         <p class="text-gray-600 text-base sm:text-lg">Joined</p>
@@ -371,7 +376,7 @@
         <input id="referralCodeInput" type="text" placeholder="Enter code (e.g., FZ-XXXXX)" class="flex-1 border rounded-lg sm:rounded-l-lg sm:rounded-r-none p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-green-500">
         <button id="submitReferralBtn" class="bg-green-500 text-white px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-l-none sm:rounded-r-lg text-sm sm:text-base hover:bg-green-600 transition-colors">Submit</button>
       </div>
-      <p id="referralStatus" class="text-xs sm:text-sm mt-2 sm:mt-3 hidden"></p>
+      <p id="referralStatus" class="status mt-2"></p>
       <div class="flex gap-2 sm:gap-3 mt-3 sm:mt-4">
         <button id="shareWA" class="flex-1 text-xs sm:text-sm bg-green-500 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg hover:bg-green-600 transition-colors">Share WhatsApp</button>
         <button id="shareTG" class="flex-1 text-xs sm:text-sm bg-blue-500 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg hover:bg-blue-600 transition-colors">Share Telegram</button>
@@ -385,7 +390,7 @@
   </section>
 
   <!-- Banner Ad 2 (Mobile Inline - Profile Section) -->
-  <div id="bannerAdContainer2" class="ad-container max-w-lg mx-auto my-4 relative">
+  <div id="bannerAdContainer2" class="ad-container max-w-lg mx-auto my-4 relative hidden">
     <span class="ad-label">Advertisement</span>
     <div id="mobileAdContent2" style="min-height: 50px;">
       <!-- Mobile Banner Ad loads here -->
@@ -413,99 +418,62 @@
     </div>
   </footer>
 
+  <!-- Close Ad Modal Function -->
+  <script>
+    function closeAdModal() {
+      document.getElementById('adModal').style.display = 'none';
+    }
+  </script>
+
   <!-- Main App Script -->
   <script type="module" src="app.js"></script>
   
-  <!-- Ad System Script - Runs independently -->
+  <!-- Ad System Script -->
   <script type="module">
-    // Import ad loading functions
     import { loadMobileBannerAd } from './ad.js';
 
-    // Track which ad containers are currently visible
     let currentVisibleAd = null;
 
-    /**
-     * Show only one ad at a time
-     */
     function showOnlyOneAd(adContainerId) {
       const allAdContainers = ['bannerAdContainer1', 'bannerAdContainer2'];
-      
-      allAdContainers.forEach(containerId => {
-        const container = document.getElementById(containerId);
-        if (container) {
-          if (containerId === adContainerId) {
-            container.classList.remove('hidden');
-            currentVisibleAd = containerId;
+      allAdContainers.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          if (id === adContainerId) {
+            el.classList.remove('hidden');
+            el.classList.add('loaded');
+            currentVisibleAd = id;
           } else {
-            container.classList.add('hidden');
+            el.classList.add('hidden');
+            el.classList.remove('loaded');
           }
         }
       });
     }
 
-    /**
-     * Detect which section is currently visible
-     */
     function detectVisibleSection() {
-      const homeSection = document.getElementById('homeSection');
-      const profileSection = document.getElementById('profileSection');
-      
-      if (homeSection && homeSection.classList.contains('active')) {
-        showOnlyOneAd('bannerAdContainer1');
-      } else if (profileSection && profileSection.classList.contains('active')) {
-        showOnlyOneAd('bannerAdContainer2');
-      }
+      const home = document.getElementById('homeSection');
+      const profile = document.getElementById('profileSection');
+      if (home?.classList.contains('active')) showOnlyOneAd('bannerAdContainer1');
+      else if (profile?.classList.contains('active')) showOnlyOneAd('bannerAdContainer2');
     }
 
-    // Function to load all ads
-    function loadAllAds() {
-      // Load mobile banner ads
-      setTimeout(() => {
-        loadMobileBannerAd('mobileAdContent1');
-      }, 1500);
-      
-      setTimeout(() => {
-        loadMobileBannerAd('mobileAdContent2');
-      }, 2000);
-    }
-
-    // Load ads on page load
     window.addEventListener('load', () => {
-      loadAllAds();
-      
-      // Show initial ad based on active section
-      setTimeout(() => {
-        detectVisibleSection();
-      }, 2500);
+      setTimeout(() => loadMobileBannerAd('mobileAdContent1'), 1500);
+      setTimeout(() => loadMobileBannerAd('mobileAdContent2'), 2000);
+      setTimeout(detectVisibleSection, 2500);
     });
 
-    // Monitor section changes (navigation)
-    const observer = new MutationObserver(() => {
-      detectVisibleSection();
+    const observer = new MutationObserver(detectVisibleSection);
+    ['homeSection', 'profileSection'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el, { attributes: true, attributeFilter: ['class'] });
     });
 
-    // Observe section visibility changes
-    const homeSection = document.getElementById('homeSection');
-    const profileSection = document.getElementById('profileSection');
-    
-    if (homeSection) {
-      observer.observe(homeSection, { attributes: true, attributeFilter: ['class'] });
-    }
-    if (profileSection) {
-      observer.observe(profileSection, { attributes: true, attributeFilter: ['class'] });
-    }
+    document.getElementById('homeBtn')?.addEventListener('click', () => setTimeout(() => showOnlyOneAd('bannerAdContainer1'), 100));
+    document.getElementById('profileBtn')?.addEventListener('click', () => setTimeout(() => showOnlyOneAd('bannerAdContainer2'), 100));
 
-    // Also listen to navigation button clicks
-    document.getElementById('homeBtn')?.addEventListener('click', () => {
-      setTimeout(() => showOnlyOneAd('bannerAdContainer1'), 100);
-    });
-    
-    document.getElementById('profileBtn')?.addEventListener('click', () => {
-      setTimeout(() => showOnlyOneAd('bannerAdContainer2'), 100);
-    });
-
-    // Log ad system initialization
-    console.log('🎯 FarmZone Ad System initialized with smart visibility control');
+    console.log('FarmZone Ad System initialized');
   </script>
 </body>
 </html>
