@@ -287,7 +287,6 @@
       animation: slideIn 0.4s ease;
     }
 
-    /* Ad Container Styles */
     .ad-container {
       background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       border-radius: 12px;
@@ -382,7 +381,7 @@
         </div>
         <div class="flex justify-between items-center opacity-80">
           <div class="flex items-center gap-2">
-            <div class="currency-icon usdt-icon">₮</div>
+            <div class="currency-icon usdt-icon">T</div>
             <span class="text-xl font-semibold">USDT</span>
           </div>
           <span id="usdtBalance" class="text-3xl font-bold">0.00 USDT</span>
@@ -426,7 +425,7 @@
           <div class="flex justify-between items-center gap-3">
             <input type="number" id="toAmount" class="currency-input" placeholder="0.00" readonly>
             <div class="currency-label">
-              <div class="currency-icon usdt-icon" id="toIcon">₮</div>
+              <div class="currency-icon usdt-icon" id="toIcon">T</div>
               <span id="toCurrency">USDT</span>
             </div>
           </div>
@@ -434,11 +433,12 @@
       </div>
 
       <div class="info-box text-sm text-blue-700 mt-4">
-        <strong>Exchange Rate:</strong> 1000 FZ = 1 USDT
+        <strong>Exchange Rate:</strong> <span id="exchangeRateDisplay">1000 FZ = 1 USDT</span><br>
+        <strong>Minimum Swap:</strong> <span id="minSwapDisplay">100 FZ</span>
       </div>
 
-      <button id="swapBtn" class="swap-btn mt-6" disabled>
-        Swap Currently Unavailable
+      <button id="swapBtn" class="swap-btn mt-6">
+        Swap Now
       </button>
     </div>
 
@@ -477,52 +477,42 @@
         <div>
           <label class="block text-sm font-semibold text-gray-700 mb-2">TRC20 Wallet Address</label>
           <input type="text" id="walletAddress" class="input-field" placeholder="Enter your TRC20 address (e.g., TXxxx...)">
-          <p class="text-xs text-gray-500 mt-1">⚠️ Please ensure the address is correct. Transactions cannot be reversed.</p>
+          <p class="text-xs text-gray-500 mt-1">Warning: Please ensure the address is correct. Transactions cannot be reversed.</p>
         </div>
 
         <div class="info-box text-sm text-blue-700">
-          <p><strong>Minimum Withdrawal:</strong> 1 USDT</p>
-          <p><strong>Network Fee:</strong> 1 TRX (approx.)</p>
-          <p><strong>Processing Time:</strong> 5-30 minutes</p>
+          <p><strong>Minimum Withdrawal:</strong> <span id="minWithdrawDisplay">1 USDT</span></p>
+          <p><strong>Network Fee:</strong> <span id="networkFeeDisplay">1 TRX (approx.)</span></p>
+          <p><strong>Processing Time:</strong> <span id="processingTimeDisplay">5-30 minutes</span></p>
         </div>
 
-        <button id="withdrawBtn" class="withdraw-btn" disabled>
-          Withdrawal Currently Unavailable
+        <button id="withdrawBtn" class="withdraw-btn">
+          Request Withdrawal
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Ad System Script -->
-  <script type="module">
-    import { loadMobileBannerAd } from './ad.js';
-
-    // Load ads after page load
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        loadMobileBannerAd('mobileAdContent1');
-      }, 1500);
-      
-      setTimeout(() => {
-        loadMobileBannerAd('mobileAdContent2');
-      }, 2000);
-      
-      console.log('🎯 Wallet Ad System initialized');
-    });
-  </script>
-
-  <!-- Main Wallet Script -->
   <script type="module">
     import { auth, database } from './config.js';
-    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-    import { ref, get, set, update, onValue, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+    import { ref, get, update, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
     let currentUser = null;
     let userData = {
       balance: 0,
       usdtBalance: 0,
-      swapDirection: 'FZ_TO_USDT',
-      exchangeRate: 1000
+      swapDirection: 'FZ_TO_USDT'
+    };
+
+    let adminSettings = {
+      exchangeRate: 1000,
+      minSwapAmount: 100,
+      minWithdrawal: 1,
+      processingTime: '5-30 minutes',
+      networkFee: '1 TRX (approx.)',
+      swapEnabled: true,
+      withdrawEnabled: true
     };
 
     // Show/Hide Loading
@@ -539,6 +529,49 @@
       setTimeout(() => {
         notification.classList.remove('show');
       }, 3000);
+    }
+
+    // Load Admin Settings
+    async function loadAdminSettings() {
+      try {
+        const settingsRef = ref(database, 'adminSettings');
+        const snapshot = await get(settingsRef);
+        
+        if (snapshot.exists()) {
+          adminSettings = { ...adminSettings, ...snapshot.val() };
+          updateSettingsDisplay();
+        }
+      } catch (error) {
+        console.error('Error loading admin settings:', error);
+      }
+    }
+
+    // Update Settings Display
+    function updateSettingsDisplay() {
+      document.getElementById('exchangeRateDisplay').textContent = `${adminSettings.exchangeRate} FZ = 1 USDT`;
+      document.getElementById('minSwapDisplay').textContent = `${adminSettings.minSwapAmount} FZ`;
+      document.getElementById('minWithdrawDisplay').textContent = `${adminSettings.minWithdrawal} USDT`;
+      document.getElementById('networkFeeDisplay').textContent = adminSettings.networkFee;
+      document.getElementById('processingTimeDisplay').textContent = adminSettings.processingTime;
+
+      const swapBtn = document.getElementById('swapBtn');
+      const withdrawBtn = document.getElementById('withdrawBtn');
+
+      if (adminSettings.swapEnabled) {
+        swapBtn.disabled = false;
+        swapBtn.textContent = 'Swap Now';
+      } else {
+        swapBtn.disabled = true;
+        swapBtn.textContent = 'Swap Currently Unavailable';
+      }
+
+      if (adminSettings.withdrawEnabled) {
+        withdrawBtn.disabled = false;
+        withdrawBtn.textContent = 'Request Withdrawal';
+      } else {
+        withdrawBtn.disabled = true;
+        withdrawBtn.textContent = 'Withdrawal Currently Unavailable';
+      }
     }
 
     // Load User Data from Firebase
@@ -565,11 +598,11 @@
       document.getElementById('usdtBalance').textContent = userData.usdtBalance.toFixed(2) + ' USDT';
       
       if (userData.swapDirection === 'FZ_TO_USDT') {
-        document.getElementById('fromBalance').textContent = userData.balance.toFixed(2) + ' FZ';
-        document.getElementById('toBalance').textContent = userData.usdtBalance.toFixed(2) + ' USDT';
+        document.getElementById('fromBalance').textContent = userData.balance.toFixed(2);
+        document.getElementById('toBalance').textContent = userData.usdtBalance.toFixed(2);
       } else {
-        document.getElementById('fromBalance').textContent = userData.usdtBalance.toFixed(2) + ' USDT';
-        document.getElementById('toBalance').textContent = userData.balance.toFixed(2) + ' FZ';
+        document.getElementById('fromBalance').textContent = userData.usdtBalance.toFixed(2);
+        document.getElementById('toBalance').textContent = userData.balance.toFixed(2);
       }
       
       document.getElementById('availableUsdt').textContent = userData.usdtBalance.toFixed(2);
@@ -581,9 +614,9 @@
       let toAmount = 0;
 
       if (userData.swapDirection === 'FZ_TO_USDT') {
-        toAmount = fromAmount / userData.exchangeRate;
+        toAmount = fromAmount / adminSettings.exchangeRate;
       } else {
-        toAmount = fromAmount * userData.exchangeRate;
+        toAmount = fromAmount * adminSettings.exchangeRate;
       }
 
       document.getElementById('toAmount').value = toAmount.toFixed(6);
@@ -595,7 +628,7 @@
         userData.swapDirection = 'USDT_TO_FZ';
         document.getElementById('fromCurrency').textContent = 'USDT';
         document.getElementById('toCurrency').textContent = 'FZ';
-        document.getElementById('fromIcon').textContent = '₮';
+        document.getElementById('fromIcon').textContent = 'T';
         document.getElementById('fromIcon').classList.add('usdt-icon');
         document.getElementById('toIcon').textContent = 'FZ';
         document.getElementById('toIcon').classList.remove('usdt-icon');
@@ -605,7 +638,7 @@
         document.getElementById('toCurrency').textContent = 'USDT';
         document.getElementById('fromIcon').textContent = 'FZ';
         document.getElementById('fromIcon').classList.remove('usdt-icon');
-        document.getElementById('toIcon').textContent = '₮';
+        document.getElementById('toIcon').textContent = 'T';
         document.getElementById('toIcon').classList.add('usdt-icon');
       }
       
@@ -615,16 +648,147 @@
       showNotification('Swap direction changed', 'success');
     }
 
-    // Handle Swap (Disabled)
+    // Handle Swap
     async function handleSwap() {
-      showNotification('Swap feature is currently unavailable', 'error');
-      return;
+      if (!adminSettings.swapEnabled) {
+        showNotification('Swap feature is currently unavailable', 'error');
+        return;
+      }
+
+      const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
+      const toAmount = parseFloat(document.getElementById('toAmount').value) || 0;
+
+      if (fromAmount <= 0) {
+        showNotification('Please enter a valid amount', 'error');
+        return;
+      }
+
+      if (userData.swapDirection === 'FZ_TO_USDT') {
+        if (fromAmount < adminSettings.minSwapAmount) {
+          showNotification(`Minimum swap amount is ${adminSettings.minSwapAmount} FZ`, 'error');
+          return;
+        }
+
+        if (fromAmount > userData.balance) {
+          showNotification('Insufficient FZ balance', 'error');
+          return;
+        }
+      } else {
+        if (fromAmount > userData.usdtBalance) {
+          showNotification('Insufficient USDT balance', 'error');
+          return;
+        }
+      }
+
+      if (!confirm(`Confirm swap ${fromAmount.toFixed(2)} ${userData.swapDirection === 'FZ_TO_USDT' ? 'FZ' : 'USDT'} to ${toAmount.toFixed(6)} ${userData.swapDirection === 'FZ_TO_USDT' ? 'USDT' : 'FZ'}?`)) {
+        return;
+      }
+
+      showLoading(true);
+
+      try {
+        const userRef = ref(database, `users/${currentUser.uid}`);
+        
+        let updates = {};
+        if (userData.swapDirection === 'FZ_TO_USDT') {
+          updates.balance = userData.balance - fromAmount;
+          updates.usdtBalance = userData.usdtBalance + toAmount;
+        } else {
+          updates.usdtBalance = userData.usdtBalance - fromAmount;
+          updates.balance = userData.balance + toAmount;
+        }
+
+        await update(userRef, updates);
+
+        const transactionRef = ref(database, `users/${currentUser.uid}/transactions`);
+        await push(transactionRef, {
+          type: 'swap',
+          fromCurrency: userData.swapDirection === 'FZ_TO_USDT' ? 'FZ' : 'USDT',
+          toCurrency: userData.swapDirection === 'FZ_TO_USDT' ? 'USDT' : 'FZ',
+          fromAmount: fromAmount,
+          toAmount: toAmount,
+          exchangeRate: adminSettings.exchangeRate,
+          timestamp: Date.now(),
+          status: 'completed'
+        });
+
+        userData.balance = updates.balance ?? userData.balance;
+        userData.usdtBalance = updates.usdtBalance ?? userData.usdtBalance;
+        
+        updateBalances();
+        document.getElementById('fromAmount').value = '';
+        document.getElementById('toAmount').value = '';
+        
+        showNotification('Swap successful!', 'success');
+      } catch (error) {
+        console.error('Error processing swap:', error);
+        showNotification('Swap failed. Please try again.', 'error');
+      } finally {
+        showLoading(false);
+      }
     }
 
-    // Handle Withdraw (Disabled)
+    // Handle Withdraw
     async function handleWithdraw() {
-      showNotification('Withdrawal feature is currently unavailable', 'error');
-      return;
+      if (!adminSettings.withdrawEnabled) {
+        showNotification('Withdrawal feature is currently unavailable', 'error');
+        return;
+      }
+
+      const amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
+      const address = document.getElementById('walletAddress').value.trim();
+
+      if (amount < adminSettings.minWithdrawal) {
+        showNotification(`Minimum withdrawal amount is ${adminSettings.minWithdrawal} USDT`, 'error');
+        return;
+      }
+
+      if (amount > userData.usdtBalance) {
+        showNotification('Insufficient USDT balance', 'error');
+        return;
+      }
+
+      if (!address || !address.startsWith('T')) {
+        showNotification('Please enter a valid TRC20 address', 'error');
+        return;
+      }
+
+      if (!confirm(`Confirm withdrawal of ${amount.toFixed(2)} USDT to ${address}?`)) {
+        return;
+      }
+
+      showLoading(true);
+
+      try {
+        const userRef = ref(database, `users/${currentUser.uid}`);
+        
+        await update(userRef, {
+          usdtBalance: userData.usdtBalance - amount
+        });
+
+        const transactionRef = ref(database, `users/${currentUser.uid}/transactions`);
+        await push(transactionRef, {
+          type: 'withdrawal',
+          amount: amount,
+          address: address,
+          timestamp: Date.now(),
+          status: 'pending',
+          network: 'TRC20'
+        });
+
+        userData.usdtBalance -= amount;
+        updateBalances();
+        
+        document.getElementById('withdrawAmount').value = '';
+        document.getElementById('walletAddress').value = '';
+        
+        showNotification('Withdrawal request submitted successfully!', 'success');
+      } catch (error) {
+        console.error('Error processing withdrawal:', error);
+        showNotification('Withdrawal failed. Please try again.', 'error');
+      } finally {
+        showLoading(false);
+      }
     }
 
     // Event Listeners
@@ -633,18 +797,25 @@
     document.getElementById('swapBtn').addEventListener('click', handleSwap);
     document.getElementById('withdrawBtn').addEventListener('click', handleWithdraw);
 
-    // Auth State Observer
-    onAuthStateChanged(auth, (user) => {
+    // Simulate Ad Loading
+    setTimeout(() => {
+      document.getElementById('bannerAdContainer1').classList.add('loaded');
+      document.getElementById('bannerAdContainer2').classList.add('loaded');
+    }, 1000);
+
+    // Hide Loading Screen
+    setTimeout(() => {
+      showLoading(false);
+    }, 1500);
+
+    // Auth State Listener
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser = user;
-        loadUserData(user.uid);
-        showLoading(false);
+        await loadAdminSettings();
+        await loadUserData(user.uid);
       } else {
-        showLoading(false);
-        showNotification('Please login to access wallet', 'error');
-        setTimeout(() => {
-          window.location.href = 'index.html';
-        }, 2000);
+        window.location.href = 'login.html';
       }
     });
   </script>
