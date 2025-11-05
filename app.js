@@ -1,21 +1,37 @@
-// config.js থেকে import করুন
+// app.js - Main application file
 import { auth, database } from './config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { 
-    ref, get, set, update, onValue, query, orderByChild, equalTo, 
-    runTransaction, serverTimestamp, push 
-} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+import { ref, get, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 import { sidebarIcons } from './icon.js';
+
+// Import mining functions
+import { 
+    calculateCurrentEarned, 
+    startCountdown, 
+    startMining as startMiningFunc, 
+    updateMiningDisplay as updateMiningDisplayFunc,
+    stopMining as stopMiningFunc,
+    claimMiningReward as claimMiningRewardFunc,
+    cleanupMining,
+    miningInterval,
+    countdownInterval
+} from './mining.js';
+
+// Import referral functions
+import { 
+    submitReferralCode as submitReferralCodeFunc,
+    claimReferralRewards as claimReferralRewardsFunc,
+    checkReferralMilestones,
+    copyReferralCode as copyReferralCodeFunc,
+    shareReferralCode as shareReferralCodeFunc
+} from './referral.js';
 
 // ========================================
 // GLOBALS & CONSTANTS
 // ========================================
 let currentUser = null;
 let userData = null;
-let miningInterval = null;
-let countdownInterval = null;
 let serverTimeOffset = 0;
-let lastDisplayedEarned = -1;
 let unsubscribeUser = null;
 let unsubscribeSettings = null;
 let authUnsubscribe = null;
@@ -53,14 +69,14 @@ function getServerTime() {
     return Date.now() + serverTimeOffset;
 }
 
-// Cleanup
+// ========================================
+// CLEANUP
+// ========================================
 function cleanup() {
     if (unsubscribeUser) unsubscribeUser();
     if (unsubscribeSettings) unsubscribeSettings();
     if (authUnsubscribe) authUnsubscribe();
-    clearInterval(miningInterval);
-    clearInterval(countdownInterval);
-    miningInterval = countdownInterval = null;
+    cleanupMining();
 }
 window.addEventListener('beforeunload', cleanup);
 
@@ -85,13 +101,6 @@ function showStatus(el, message, isError = false) {
 
 function generateReferralCode() {
     return `FZ-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-}
-
-function formatTime(seconds) {
-    const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
-    const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-    const s = String(seconds % 60).padStart(2, '0');
-    return `${h}:${m}:${s}`;
 }
 
 function switchSection(section) {
@@ -122,7 +131,12 @@ function getCurrentLevelProgress(totalMined) {
     const start = level === 1 ? 0 : LEVEL_MILESTONES[level - 2];
     const end = level > MAX_LEVEL ? LEVEL_MILESTONES[MAX_LEVEL] : LEVEL_MILESTONES[level - 1];
     const progress = end > start ? ((totalMined - start) / (end - start)) * 100 : 100;
-    return { level, progress: Math.min(progress, 100), current: totalMined - start, required: end - start };
+    return { 
+        level, 
+        progress: Math.min(progress, 100), 
+        current: totalMined - start, 
+        required: end - start 
+    };
 }
 
 // ========================================
@@ -134,7 +148,7 @@ function updateUI() {
     const totalMined = userData.totalMined || 0;
     const levelInfo = getCurrentLevelProgress(totalMined);
     const referralCount = Object.keys(userData.referrals || {}).length;
-    const currentEarned = calculateCurrentEarned();
+    const currentEarned = calculateCurrentEarned(userData, appSettings, getServerTime);
 
     const miningRate = (appSettings.mining.totalReward / appSettings.mining.miningDuration).toFixed(4);
     const balance = (userData.balance || 0).toFixed(2);
@@ -199,8 +213,12 @@ function updateUI() {
             els.miningBtn.disabled = true;
             els.miningStatus.textContent = 'Active';
             els.miningStatus.className = 'mining-status text-green-600';
-            if (!countdownInterval) startCountdown(userData.miningEndTime);
-            if (!miningInterval) requestAnimationFrame(updateMiningDisplay);
+            if (!countdownInterval) {
+                startCountdown(userData.miningEndTime, getServerTime, appSettings, stopMining, showNotification);
+            }
+            if (!miningInterval) {
+                requestAnimationFrame(() => updateMiningDisplayFunc(userData, appSettings, getServerTime, calculateCurrentEarned, stopMining));
+            }
         } else if (userData.miningStartTime && now >= userData.miningEndTime) {
             els.miningBtn.classList.add('claim');
             els.miningBtn.disabled = false;
@@ -218,243 +236,45 @@ function updateUI() {
 }
 
 // ========================================
-// MINING LOGIC
+// WRAPPER FUNCTIONS FOR MINING
 // ========================================
-function calculateCurrentEarned() {
-    if (!userData?.miningStartTime) return 0;
-    const durationSec = appSettings.mining.miningDuration * 3600;
-    const rewardPerSec = appSettings.mining.totalReward / durationSec;
-    const now = getServerTime();
-    if (now >= userData.miningEndTime) return appSettings.mining.totalReward;
-    const elapsed = Math.floor((now - userData.miningStartTime) / 1000);
-    return Math.min(elapsed * rewardPerSec, appSettings.mining.totalReward);
-}
-
-function startCountdown(endTime) {
-    clearInterval(countdownInterval);
-    const timer = document.querySelector('#miningBtn .timer-display');
-    countdownInterval = setInterval(() => {
-        const left = Math.max(0, Math.floor((endTime - getServerTime()) / 1000));
-        if (timer) timer.textContent = formatTime(left);
-        if (left <= 0) {
-            clearInterval(countdownInterval);
-            countdownInterval = null;
-            stopMining();
-            showNotification(`Mining complete! Claim ${appSettings.mining.totalReward} FZ.`);
-        }
-    }, 1000);
-}
-
-async function startMining() {
-    if (!currentUser) return showNotification('Login required.', 'error');
-    if (userData.miningStartTime && getServerTime() < userData.miningEndTime) {
-        return showNotification('Mining already active.', 'error');
-    }
-
-    const userRef = ref(database, `users/${currentUser.uid}`);
-    try {
-        const startTime = serverTimestamp();
-        const durationMs = appSettings.mining.miningDuration * 3600 * 1000;
-        await update(userRef, { miningStartTime: startTime });
-        const snap = await get(userRef);
-        const start = snap.val().miningStartTime;
-        await update(userRef, { miningEndTime: start + durationMs });
-        showNotification(`Mining started for ${appSettings.mining.miningDuration} hours!`);
-    } catch (err) {
-        console.error(err);
-        showNotification('Failed to start mining.', 'error');
-    }
-}
-
-function updateMiningDisplay() {
-    if (!userData?.miningStartTime) return;
-    const earned = calculateCurrentEarned();
-    const rounded = Math.floor(earned * 1e6) / 1e6;
-    if (rounded === lastDisplayedEarned) {
-        requestAnimationFrame(updateMiningDisplay);
-        return;
-    }
-    lastDisplayedEarned = rounded;
-
-    const text = `${rounded.toFixed(6)} FZ`;
-    document.getElementById('currentEarned')?.setAttribute('textContent', text);
-    document.getElementById('earnedDisplay')?.setAttribute('textContent', text);
-
-    if (getServerTime() >= userData.miningEndTime) stopMining();
-    else requestAnimationFrame(updateMiningDisplay);
+function startMining() {
+    startMiningFunc(currentUser, userData, appSettings, getServerTime, showNotification);
 }
 
 function stopMining() {
-    miningInterval = null;
-    const btn = document.getElementById('miningBtn');
-    const status = document.getElementById('miningStatus');
-    if (btn) {
-        btn.classList.add('claim');
-        btn.disabled = false;
-        btn.querySelector('.timer-display')?.setAttribute('textContent', 'Claim');
-    }
-    if (status) {
-        status.textContent = 'Ready to Claim';
-        status.className = 'mining-status';
-    }
+    stopMiningFunc();
+}
+
+function claimMiningReward() {
+    claimMiningRewardFunc(
+        currentUser, 
+        userData, 
+        appSettings, 
+        getServerTime, 
+        showNotification, 
+        showAdModal, 
+        checkReferralMilestones
+    );
 }
 
 // ========================================
-// REFERRAL SYSTEM
+// WRAPPER FUNCTIONS FOR REFERRAL
 // ========================================
-async function submitReferralCode() {
-    const input = document.getElementById('referralCodeInput');
-    const statusEl = document.getElementById('referralStatus');
-    const code = input?.value.trim().toUpperCase();
-    if (!code) return showStatus(statusEl, 'Enter a code.', true);
-    if (userData.referredBy) return showStatus(statusEl, 'Already used.', true);
-    if (code === userData.referralCode) return showStatus(statusEl, 'Cannot use own code.', true);
-
-    try {
-        const q = query(ref(database, 'users'), orderByChild('referralCode'), equalTo(code));
-        const snap = await get(q);
-        if (!snap.exists()) return showStatus(statusEl, 'Invalid code.', true);
-
-        const referrerId = Object.keys(snap.val())[0];
-        if (referrerId === currentUser.uid) return showStatus(statusEl, 'Cannot use own.', true);
-
-        const userRef = ref(database, `users/${currentUser.uid}`);
-        const result = await runTransaction(userRef, (data) => {
-            if (!data || data.referredBy) return;
-            return { ...data, referredBy: code, referralRewards: (data.referralRewards || 0) + appSettings.referral.referralBonus };
-        });
-
-        if (!result.committed) return showStatus(statusEl, 'Already submitted.', true);
-
-        await updateReferrer(referrerId, currentUser.uid);
-        await recordReferralTransactions(currentUser.uid, referrerId);
-        showStatus(statusEl, `Success! +${appSettings.referral.referralBonus} FZ!`);
-        input.value = '';
-    } catch (err) {
-        console.error(err);
-        showStatus(statusEl, 'Failed. Try again.', true);
-    }
+function submitReferralCode() {
+    submitReferralCodeFunc(currentUser, userData, appSettings, showStatus);
 }
 
-async function updateReferrer(referrerId, refereeId) {
-    const refPath = ref(database, `users/${referrerId}`);
-    await runTransaction(refPath, (data) => {
-        if (!data || data.referrals?.[refereeId]) return;
-        return {
-            ...data,
-            referralRewards: (data.referralRewards || 0) + appSettings.referral.referralBonus,
-            referrals: { ...(data.referrals || {}), [refereeId]: true }
-        };
-    });
+function claimReferralRewards() {
+    claimReferralRewardsFunc(currentUser, userData, showNotification, showAdModal);
 }
 
-async function recordReferralTransactions(refereeId, referrerId) {
-    const txRef1 = push(ref(database, `users/${refereeId}/transactions`));
-    const txRef2 = push(ref(database, `users/${referrerId}/transactions`));
-    const bonus = appSettings.referral.referralBonus;
-    await Promise.all([
-        set(txRef1, { type: 'referral', amount: bonus, description: 'Join Bonus', timestamp: serverTimestamp(), status: 'completed' }),
-        set(txRef2, { type: 'referral', amount: bonus, description: 'Referral Bonus', timestamp: serverTimestamp(), status: 'completed' })
-    ]);
+function copyReferralCode() {
+    copyReferralCodeFunc(showNotification);
 }
 
-// ========================================
-// CLAIM REWARDS
-// ========================================
-async function claimMiningReward() {
-    const userRef = ref(database, `users/${currentUser.uid}`);
-    const now = getServerTime();
-    const reward = appSettings.mining.totalReward;
-
-    try {
-        const result = await runTransaction(userRef, (data) => {
-            if (!data || !data.miningStartTime || now < data.miningEndTime) return;
-            return {
-                ...data,
-                balance: (data.balance || 0) + reward,
-                totalMined: (data.totalMined || 0) + reward,
-                miningStartTime: null,
-                miningEndTime: null
-            };
-        });
-
-        if (result.committed) {
-            await recordMiningTransaction(currentUser.uid, reward);
-            showNotification(`Claimed ${reward.toFixed(2)} FZ!`);
-            showAdModal();
-            if (userData.referredBy) await checkReferralMilestones(currentUser.uid);
-        } else {
-            showNotification('Not ready.', 'error');
-        }
-    } catch (err) {
-        console.error(err);
-        showNotification('Claim failed.', 'error');
-    }
-}
-
-async function recordMiningTransaction(uid, amount) {
-    const txRef = push(ref(database, `users/${uid}/transactions`));
-    await set(txRef, { type: 'mining', amount, description: 'Mining Reward', timestamp: serverTimestamp(), status: 'completed' });
-}
-
-async function checkReferralMilestones(refereeId) {
-    const snap = await get(ref(database, `users/${refereeId}`));
-    if (!snap.exists()) return;
-    const referee = snap.val();
-    if (!referee.referredBy) return;
-
-    const q = query(ref(database, 'users'), orderByChild('referralCode'), equalTo(referee.referredBy));
-    const referrerSnap = await get(q);
-    if (!referrerSnap.exists()) return;
-
-    const referrerId = Object.keys(referrerSnap.val())[0];
-    const referrer = referrerSnap.val()[referrerId];
-    const total = referee.totalMined || 0;
-    const milestone = appSettings.referral.referralMilestone;
-    const achieved = Math.floor(total / milestone);
-    const previous = referrer.referralMilestones?.[refereeId] || 0;
-
-    if (achieved > previous) {
-        const bonus = (achieved - previous) * appSettings.referral.referralBonus;
-        await grantMilestoneBonus(referrerId, refereeId, achieved, bonus);
-    }
-}
-
-async function grantMilestoneBonus(referrerId, refereeId, count, bonus) {
-    const refPath = ref(database, `users/${referrerId}`);
-    await runTransaction(refPath, (data) => {
-        if (!data) return;
-        return {
-            ...data,
-            referralRewards: (data.referralRewards || 0) + bonus,
-            referralMilestones: { ...(data.referralMilestones || {}), [refereeId]: count }
-        };
-    });
-
-    const txRef = push(ref(database, `users/${referrerId}/transactions`));
-    await set(txRef, {
-        type: 'referral', amount: bonus,
-        description: `Milestone (${count * appSettings.referral.referralMilestone} FZ)`,
-        timestamp: serverTimestamp(), status: 'completed'
-    });
-}
-
-async function claimReferralRewards() {
-    if (!userData || userData.referralRewards <= 0) return showNotification('No rewards.', 'error');
-    const amount = userData.referralRewards;
-    const userRef = ref(database, `users/${currentUser.uid}`);
-
-    const result = await runTransaction(userRef, (data) => {
-        if (!data || data.referralRewards <= 0) return;
-        return { ...data, balance: (data.balance || 0) + data.referralRewards, referralRewards: 0 };
-    });
-
-    if (result.committed) {
-        const txRef = push(ref(database, `users/${currentUser.uid}/transactions`));
-        await set(txRef, { type: 'referral', amount, description: 'Referral Claim', timestamp: serverTimestamp(), status: 'completed' });
-        showNotification(`Claimed ${amount.toFixed(2)} FZ!`);
-        showAdModal();
-    }
+function shareReferralCode(platform) {
+    shareReferralCodeFunc(platform, appSettings, showNotification);
 }
 
 // ========================================
@@ -464,8 +284,9 @@ async function initializeUserData(user) {
     if (unsubscribeUser) unsubscribeUser();
     const userRef = ref(database, `users/${user.uid}`);
     unsubscribeUser = onValue(userRef, async (snap) => {
-        if (!snap.exists()) await createNewUser(user);
-        else {
+        if (!snap.exists()) {
+            await createNewUser(user);
+        } else {
             userData = snap.val();
             updateUI();
         }
@@ -475,61 +296,65 @@ async function initializeUserData(user) {
 async function createNewUser(user) {
     const userRef = ref(database, `users/${user.uid}`);
     await set(userRef, {
-        balance: 0, totalMined: 0, usdtBalance: 0,
+        balance: 0, 
+        totalMined: 0, 
+        usdtBalance: 0,
         referralCode: generateReferralCode(),
         joinDate: new Date().toISOString().split('T')[0],
-        referrals: {}, referralRewards: 0, referralMilestones: {}, transactions: {}, createdAt: Date.now()
+        referrals: {}, 
+        referralRewards: 0, 
+        referralMilestones: {}, 
+        transactions: {}, 
+        createdAt: Date.now()
     });
 }
 
 // ========================================
 // UTILITIES
 // ========================================
-function copyReferralCode() {
-    const code = document.getElementById('refCode')?.textContent;
-    if (!code || code === '---') return showNotification('No code.', 'error');
-    navigator.clipboard.writeText(code).then(() => showNotification('Copied!'));
-}
-
-function shareReferralCode(platform) {
-    const code = document.getElementById('refCode')?.textContent;
-    if (!code || code === '---') return showNotification('No code.', 'error');
-    const text = `Join FarmZone! Use code: ${code} and get ${appSettings.referral.referralBonus} FZ bonus!`;
-    const url = platform === 'whatsapp'
-        ? `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`
-        : `https://t.me/share/url?url=https://farmzone.com&text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
-}
-
 function logout() {
     cleanup();
     signOut(auth).then(() => location.href = 'login.html');
 }
 
 // ========================================
-// SIDEBAR & DOM
+// MENU DROPDOWN
 // ========================================
-function populateSidebar() {
-    const container = document.getElementById('sidebar-content');
+function populateMenu() {
+    const container = document.getElementById('menuDropdown');
     if (!container) return;
     container.innerHTML = sidebarIcons.map(i => `
-        <a href="${i.href}" class="group flex justify-center items-center h-12 w-12 rounded-full bg-gray-200 hover:bg-green-500 text-gray-700 hover:text-white transition-all">
+        <a href="${i.href}">
             ${i.svg}
-            <span class="tooltip">${i.name}</span>
+            <span>${i.name}</span>
         </a>
     `).join('');
 }
 
-function setupSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const toggle = document.getElementById('sidebarToggleBtn');
-    const overlay = document.getElementById('sidebarOverlay');
-    const toggleFn = () => {
-        sidebar?.classList.toggle('open');
-        overlay?.classList.toggle('hidden');
+function setupMenu() {
+    const menuBtn = document.getElementById('menuToggleBtn');
+    const menuDropdown = document.getElementById('menuDropdown');
+    const menuOverlay = document.getElementById('menuOverlay');
+    
+    const toggleMenu = () => {
+        menuDropdown?.classList.toggle('show');
+        menuOverlay?.classList.toggle('show');
     };
-    toggle?.addEventListener('click', toggleFn);
-    overlay?.addEventListener('click', toggleFn);
+    
+    const closeMenu = () => {
+        menuDropdown?.classList.remove('show');
+        menuOverlay?.classList.remove('show');
+    };
+    
+    menuBtn?.addEventListener('click', toggleMenu);
+    menuOverlay?.addEventListener('click', closeMenu);
+    
+    // Close menu when clicking on a link
+    menuDropdown?.addEventListener('click', (e) => {
+        if (e.target.tagName === 'A' || e.target.closest('a')) {
+            closeMenu();
+        }
+    });
 }
 
 // ========================================
@@ -563,8 +388,8 @@ function showAdModal() {
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loading')?.style.setProperty('display', 'none');
-    populateSidebar();
-    setupSidebar();
+    populateMenu();
+    setupMenu();
 
     const els = {
         homeBtn: document.getElementById('homeBtn'),
@@ -582,7 +407,13 @@ document.addEventListener('DOMContentLoaded', () => {
     els.homeBtn?.addEventListener('click', () => switchSection('home'));
     els.profileBtn?.addEventListener('click', () => switchSection('profile'));
     els.walletBtn?.addEventListener('click', () => location.href = 'wallet.html');
-    els.miningBtn?.addEventListener('click', () => els.miningBtn.classList.contains('claim') ? claimMiningReward() : startMining());
+    els.miningBtn?.addEventListener('click', () => {
+        if (els.miningBtn.classList.contains('claim')) {
+            claimMiningReward();
+        } else {
+            startMining();
+        }
+    });
     els.claimReferralBtn?.addEventListener('click', claimReferralRewards);
     els.submitReferralBtn?.addEventListener('click', submitReferralCode);
     els.copyCode?.addEventListener('click', copyReferralCode);
