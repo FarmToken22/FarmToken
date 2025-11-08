@@ -4,17 +4,14 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { ref, get, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 import { sidebarIcons } from './icon.js';
 
-// Import mining functions
+// Import NEW mining functions
 import { 
     calculateCurrentEarned, 
-    startCountdown, 
+    startCountdownAndEarned,
     startMining as startMiningFunc, 
-    updateMiningDisplay as updateMiningDisplayFunc,
     stopMining as stopMiningFunc,
     claimMiningReward as claimMiningRewardFunc,
-    cleanupMining,
-    miningInterval,
-    countdownInterval
+    cleanupMining
 } from './mining.js';
 
 // Import referral functions
@@ -206,19 +203,23 @@ function updateUI() {
         els.referralSubmittedBox.style.display = isReferred ? 'block' : 'none';
     }
 
-    // Mining Button
+    // Mining Button State
     if (els.miningBtn && els.miningStatus && els.timerDisplay) {
         const now = getServerTime();
         if (userData.miningStartTime && now < userData.miningEndTime) {
             els.miningBtn.disabled = true;
+            els.miningBtn.classList.remove('claim');
             els.miningStatus.textContent = 'Active';
             els.miningStatus.className = 'mining-status text-green-600';
-            if (!countdownInterval) {
-                startCountdown(userData.miningEndTime, getServerTime, appSettings, stopMining, showNotification);
-            }
-            if (!miningInterval) {
-                requestAnimationFrame(() => updateMiningDisplayFunc(userData, appSettings, getServerTime, calculateCurrentEarned, stopMining));
-            }
+            // Start countdown + earned update
+            startCountdownAndEarned(
+                userData.miningEndTime,
+                getServerTime,
+                appSettings,
+                userData,
+                stopMining,
+                showNotification
+            );
         } else if (userData.miningStartTime && now >= userData.miningEndTime) {
             els.miningBtn.classList.add('claim');
             els.miningBtn.disabled = false;
@@ -238,8 +239,15 @@ function updateUI() {
 // ========================================
 // WRAPPER FUNCTIONS FOR MINING
 // ========================================
-function startMining() {
-    startMiningFunc(currentUser, userData, appSettings, getServerTime, showNotification);
+async function startMining() {
+    await startMiningFunc(
+        currentUser, 
+        userData, 
+        appSettings, 
+        getServerTime, 
+        showNotification,
+        startCountdownAndEarned  // Pass new function
+    );
 }
 
 function stopMining() {
@@ -349,7 +357,6 @@ function setupMenu() {
     menuBtn?.addEventListener('click', toggleMenu);
     menuOverlay?.addEventListener('click', closeMenu);
     
-    // Close menu when clicking on a link
     menuDropdown?.addEventListener('click', (e) => {
         if (e.target.tagName === 'A' || e.target.closest('a')) {
             closeMenu();
@@ -362,7 +369,6 @@ function setupMenu() {
 // ========================================
 function showAdModal() {
     const modal = document.getElementById('adModal');
-    const closeBtn = document.getElementById('adCloseBtn');
     if (!modal) return;
 
     const key = '78ade24182729fceea8e45203dad915b';
@@ -379,7 +385,7 @@ function showAdModal() {
 
     modal.style.display = 'flex';
     const close = () => modal.style.display = 'none';
-    closeBtn?.addEventListener('click', close);
+    document.getElementById('adCloseBtn')?.addEventListener('click', close);
     setTimeout(close, 5000);
 }
 
@@ -407,6 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
     els.homeBtn?.addEventListener('click', () => switchSection('home'));
     els.profileBtn?.addEventListener('click', () => switchSection('profile'));
     els.walletBtn?.addEventListener('click', () => location.href = 'wallet.html');
+    
     els.miningBtn?.addEventListener('click', () => {
         if (els.miningBtn.classList.contains('claim')) {
             claimMiningReward();
@@ -414,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startMining();
         }
     });
+    
     els.claimReferralBtn?.addEventListener('click', claimReferralRewards);
     els.submitReferralBtn?.addEventListener('click', submitReferralCode);
     els.copyCode?.addEventListener('click', copyReferralCode);
