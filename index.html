@@ -237,12 +237,8 @@
       transition: all 0.3s ease;
     }
 
-    .ad-container.loaded {
+    .ad-container.show {
       display: flex;
-    }
-
-    .ad-container.hidden {
-      display: none !important;
     }
 
     .ad-label {
@@ -265,9 +261,6 @@
         margin: 1rem 0;
         min-height: 50px;
         padding: 8px;
-      }
-      .ad-container.loaded {
-        display: flex;
       }
       .menu-dropdown {
         min-width: 180px;
@@ -320,8 +313,8 @@
     </div>
   </header>
 
-  <!-- Banner Ad 1 (Mobile Inline) -->
-  <div id="bannerAdContainer1" class="ad-container max-w-lg mx-auto my-4 relative hidden">
+  <!-- Banner Ad 1 (Home) -->
+  <div id="bannerAdContainer1" class="ad-container max-w-lg mx-auto my-4 relative">
     <span class="ad-label">Advertisement</span>
     <div id="mobileAdContent1" style="min-height: 50px;">
       <!-- Mobile Banner Ad loads here -->
@@ -371,6 +364,7 @@
   </section>
 
   <section id="profileSection" class="section p-3 sm:p-4 space-y-4 sm:space-y-6 max-w-lg mx-auto w-full pb-20">
+    <!-- Profile content same as before -->
     <div class="bg-white shadow rounded-xl p-4 sm:p-6 space-y-3 sm:space-y-4">
       <div class="flex justify-between border-b pb-2 sm:pb-3">
         <p class="text-gray-600 text-base sm:text-lg">Balance</p>
@@ -423,8 +417,8 @@
     <button id="authBtn" class="w-full bg-red-500 text-white py-2.5 sm:py-3 rounded-lg shadow text-base sm:text-lg hover:bg-red-600 transition-colors">Logout</button>
   </section>
 
-  <!-- Banner Ad 2 (Mobile Inline - Profile Section) -->
-  <div id="bannerAdContainer2" class="ad-container max-w-lg mx-auto my-4 relative hidden">
+  <!-- Banner Ad 2 (Profile) -->
+  <div id="bannerAdContainer2" class="ad-container max-w-lg mx-auto my-4 relative">
     <span class="ad-label">Advertisement</span>
     <div id="mobileAdContent2" style="min-height: 50px;">
       <!-- Mobile Banner Ad loads here -->
@@ -452,11 +446,11 @@
     </div>
   </footer>
 
-  <!-- Close Ad Modal Function -->
+  <!-- Close Ad Modal -->
   <script>
-    function closeAdModal() {
+    document.getElementById('adCloseBtn').addEventListener('click', () => {
       document.getElementById('adModal').style.display = 'none';
-    }
+    });
   </script>
 
   <!-- Main App Script -->
@@ -469,17 +463,14 @@
     let currentVisibleAd = null;
 
     function showOnlyOneAd(adContainerId) {
-      const allAdContainers = ['bannerAdContainer1', 'bannerAdContainer2'];
-      allAdContainers.forEach(id => {
+      ['bannerAdContainer1', 'bannerAdContainer2'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
           if (id === adContainerId) {
-            el.classList.remove('hidden');
-            el.classList.add('loaded');
+            el.classList.add('show');
             currentVisibleAd = id;
           } else {
-            el.classList.add('hidden');
-            el.classList.remove('loaded');
+            el.classList.remove('show');
           }
         }
       });
