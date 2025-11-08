@@ -2,9 +2,7 @@
 import { database } from './config.js';
 import { ref, get, update, serverTimestamp, runTransaction, push, set } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
-export let miningInterval = null;
 export let countdownInterval = null;
-export let lastDisplayedEarned = -1;
 
 // ========================================
 // MINING CALCULATIONS
@@ -20,23 +18,46 @@ export function calculateCurrentEarned(userData, appSettings, getServerTime) {
 }
 
 // ========================================
-// COUNTDOWN TIMER
+// COUNTDOWN + EARNED DISPLAY (একসাথে)
 // ========================================
-export function startCountdown(endTime, getServerTime, appSettings, stopMining, showNotification) {
+export function startCountdownAndEarned(
+    endTime, 
+    getServerTime, 
+    appSettings, 
+    userData, 
+    stopMining, 
+    showNotification
+) {
     clearInterval(countdownInterval);
-    const timer = document.querySelector('#miningBtn .timer-display');
     
+    const timerEl = document.querySelector('#miningBtn .timer-display');
+    const earnedEl = document.getElementById('currentEarned');
+    const displayEl = document.getElementById('earnedDisplay');
+
     countdownInterval = setInterval(() => {
-        const left = Math.max(0, Math.floor((endTime - getServerTime()) / 1000));
-        if (timer) timer.textContent = formatTime(left);
-        
-        if (left <= 0) {
+        const now = getServerTime();
+        const leftSec = Math.max(0, Math.floor((endTime - now) / 1000));
+        const earned = calculateCurrentEarned(userData, appSettings, getServerTime);
+        const roundedEarned = Number(earned.toFixed(6));
+
+        // Update Timer
+        if (timerEl) {
+            timerEl.textContent = leftSec > 0 ? formatTime(leftSec) : 'Claim';
+        }
+
+        // Update Earned (দুটো জায়গায়)
+        const earnedText = `${roundedEarned.toFixed(6)} FZ`;
+        if (earnedEl) earnedEl.textContent = earnedText;
+        if (displayEl) displayEl.textContent = earnedText;
+
+        // Mining শেষ?
+        if (leftSec <= 0) {
             clearInterval(countdownInterval);
             countdownInterval = null;
             stopMining();
             showNotification(`Mining complete! Claim ${appSettings.mining.totalReward} FZ.`);
         }
-    }, 1000);
+    }, 1000); // প্রতি সেকেন্ডে আপডেট
 }
 
 function formatTime(seconds) {
@@ -49,7 +70,7 @@ function formatTime(seconds) {
 // ========================================
 // START MINING
 // ========================================
-export async function startMining(currentUser, userData, appSettings, getServerTime, showNotification) {
+export async function startMining(currentUser, userData, appSettings, getServerTime, showNotification, startCountdownAndEarned) {
     if (!currentUser) return showNotification('Login required.', 'error');
     if (userData.miningStartTime && getServerTime() < userData.miningEndTime) {
         return showNotification('Mining already active.', 'error');
@@ -59,57 +80,49 @@ export async function startMining(currentUser, userData, appSettings, getServerT
     try {
         const startTime = serverTimestamp();
         const durationMs = appSettings.mining.miningDuration * 3600 * 1000;
+
+        // Step 1: Set start time
         await update(userRef, { miningStartTime: startTime });
-        
+
+        // Step 2: Get actual server start time
         const snap = await get(userRef);
-        const start = snap.val().miningStartTime;
-        await update(userRef, { miningEndTime: start + durationMs });
-        
+        const actualStart = snap.val().miningStartTime;
+        const endTime = actualStart + durationMs;
+
+        // Step 3: Set end time
+        await update(userRef, { miningEndTime: endTime });
+
+        // Step 4: Start countdown + earned display
+        startCountdownAndEarned(
+            endTime,
+            getServerTime,
+            appSettings,
+            { ...userData, miningStartTime: actualStart, miningEndTime: endTime },
+            stopMining,
+            showNotification
+        );
+
         showNotification(`Mining started for ${appSettings.mining.miningDuration} hours!`);
     } catch (err) {
-        console.error(err);
+        console.error("Start mining error:", err);
         showNotification('Failed to start mining.', 'error');
     }
 }
 
 // ========================================
-// UPDATE MINING DISPLAY
-// ========================================
-export function updateMiningDisplay(userData, appSettings, getServerTime, calculateEarned, stopMining) {
-    if (!userData?.miningStartTime) return;
-    
-    const earned = calculateEarned(userData, appSettings, getServerTime);
-    const rounded = Math.floor(earned * 1e6) / 1e6;
-    
-    if (rounded === lastDisplayedEarned) {
-        requestAnimationFrame(() => updateMiningDisplay(userData, appSettings, getServerTime, calculateEarned, stopMining));
-        return;
-    }
-    lastDisplayedEarned = rounded;
-
-    const text = `${rounded.toFixed(6)} FZ`;
-    document.getElementById('currentEarned')?.setAttribute('textContent', text);
-    document.getElementById('earnedDisplay')?.setAttribute('textContent', text);
-
-    if (getServerTime() >= userData.miningEndTime) {
-        stopMining();
-    } else {
-        requestAnimationFrame(() => updateMiningDisplay(userData, appSettings, getServerTime, calculateEarned, stopMining));
-    }
-}
-
-// ========================================
-// STOP MINING
+// STOP MINING (UI Ready to Claim) — ফিক্সড: Invalid left-hand side
 // ========================================
 export function stopMining() {
-    miningInterval = null;
     const btn = document.getElementById('miningBtn');
     const status = document.getElementById('miningStatus');
-    
+    const timerEl = btn?.querySelector('.timer-display');
+
     if (btn) {
         btn.classList.add('claim');
         btn.disabled = false;
-        btn.querySelector('.timer-display')?.setAttribute('textContent', 'Claim');
+    }
+    if (timerEl) {
+        timerEl.textContent = 'Claim'; // ফিক্সড: setAttribute → textContent
     }
     if (status) {
         status.textContent = 'Ready to Claim';
@@ -118,16 +131,32 @@ export function stopMining() {
 }
 
 // ========================================
-// CLAIM MINING REWARD
+// CLAIM MINING REWARD (ফিক্সড: Unexpected token '|' এরর)
 // ========================================
-export async function claimMiningReward(currentUser, userData, appSettings, getServerTime, showNotification, showAdModal, checkReferralMilestones) {
+export async function claimMiningReward(
+    currentUser, 
+    userData, 
+    appSettings, 
+    getServerTime, 
+    showNotification, 
+    showAdModal, 
+    checkReferralMilestones
+) {
     const userRef = ref(database, `users/${currentUser.uid}`);
     const now = getServerTime();
     const reward = appSettings.mining.totalReward;
 
     try {
         const result = await runTransaction(userRef, (data) => {
-            if (!data || !data.miningStartTime || now < data.miningEndTime) return;
+            // ফিক্সড: সঠিক বন্ধনী, কোনো ভুল || নেই
+            if (
+                !data || 
+                !data.miningStartTime || 
+                now < data.miningEndTime || 
+                data.miningEndTime === null
+            ) {
+                return; // Abort transaction
+            }
             return {
                 ...data,
                 balance: (data.balance || 0) + reward,
@@ -143,10 +172,10 @@ export async function claimMiningReward(currentUser, userData, appSettings, getS
             showAdModal();
             if (userData.referredBy) await checkReferralMilestones(currentUser.uid);
         } else {
-            showNotification('Not ready.', 'error');
+            showNotification('Not ready to claim yet.', 'error');
         }
     } catch (err) {
-        console.error(err);
+        console.error("Claim error:", err);
         showNotification('Claim failed.', 'error');
     }
 }
@@ -166,7 +195,8 @@ async function recordMiningTransaction(uid, amount) {
 // CLEANUP
 // ========================================
 export function cleanupMining() {
-    clearInterval(miningInterval);
-    clearInterval(countdownInterval);
-    miningInterval = countdownInterval = null;
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
 }
