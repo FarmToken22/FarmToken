@@ -1,220 +1,305 @@
 // ad.js - Advertisement Management System
 // ==========================================
-// ADMIN PANEL ADVERTISEMENT INTEGRATION
+// DIRECT AD INTEGRATION (No Admin Panel)
 // ==========================================
 
 /**
- * Load all advertisements from localStorage (Admin Panel configured ads)
+ * Advertisement Configuration
+ * Define all ad codes directly here
  */
-export function loadAdvertisements() {
-    console.log('🎯 Loading advertisements from Admin Panel...');
+const AD_CONFIG = {
+    // Ad Slot 1 - Top Banner (Desktop: 728x90)
+    slot1: {
+        key: '63718988f07bc6d276f3c6a441757cae',
+        format: 'iframe',
+        height: 90,
+        width: 728,
+        name: 'Top Banner'
+    },
     
-    // Load Top Banner Ad (Ad Slot 1)
-    const topAd = localStorage.getItem('farmzone_ad_1');
-    if (topAd) {
-        displayAd('bannerAdContainer1', 'mobileAdContent1', topAd);
-        console.log('✅ Top banner ad loaded');
-    } else {
-        console.log('ℹ️ No top banner ad configured');
+    // Ad Slot 2 - Bottom Banner (Desktop: 728x90)
+    slot2: {
+        key: '53c6462d2fd5ad5b91686ca9561f79a2',
+        format: 'iframe',
+        height: 90,
+        width: 728,
+        name: 'Bottom Banner'
+    },
+    
+    // Ad Slot 3 - Modal/Popup (Mobile: 320x50)
+    slot3: {
+        key: '78ade24182729fceea8e45203dad915b',
+        format: 'iframe',
+        height: 50,
+        width: 320,
+        name: 'Modal Ad'
     }
-    
-    // Load Bottom Banner Ad (Ad Slot 2)
-    const bottomAd = localStorage.getItem('farmzone_ad_2');
-    if (bottomAd) {
-        displayAd('bannerAdContainer2', 'mobileAdContent2', bottomAd);
-        console.log('✅ Bottom banner ad loaded');
-    } else {
-        console.log('ℹ️ No bottom banner ad configured');
-    }
-    
-    console.log('🎯 Advertisement loading complete');
+};
+
+/**
+ * Ad rotation settings
+ */
+const ROTATION_SETTINGS = {
+    interval: 15000, // 15 seconds (15-20 সেকেন্ড range এ 15 নিলাম)
+    ads: ['slot1', 'slot2', 'slot3'],
+    currentIndex: 0
+};
+
+/**
+ * App loading state tracker
+ */
+let appLoaded = false;
+let rotationTimer = null;
+let currentlyDisplayedAd = null;
+
+/**
+ * Mark app as loaded
+ * Call this function when your app/game finishes loading
+ */
+export function setAppLoaded() {
+    appLoaded = true;
+    console.log('✅ App loaded - Starting ad rotation');
+    startAdRotation();
 }
 
 /**
- * Display ad in a specific container
- * @param {string} containerId - Container element ID
- * @param {string} contentId - Content element ID where ad will be inserted
- * @param {string} adCode - HTML/JavaScript ad code
+ * Check if app is loaded
  */
-function displayAd(containerId, contentId, adCode) {
-    const container = document.getElementById(containerId);
-    const content = document.getElementById(contentId);
+export function isAppLoaded() {
+    return appLoaded;
+}
+
+/**
+ * Start ad rotation system
+ * Shows one ad at a time, rotates every 15-20 seconds
+ */
+function startAdRotation() {
+    if (!appLoaded) {
+        console.log('⏳ App not loaded yet - Ad rotation will start after app loads');
+        return;
+    }
+    
+    console.log('🔄 Starting ad rotation system...');
+    
+    // Show first ad immediately
+    showNextAd();
+    
+    // Setup rotation timer
+    if (rotationTimer) {
+        clearInterval(rotationTimer);
+    }
+    
+    rotationTimer = setInterval(() => {
+        showNextAd();
+    }, ROTATION_SETTINGS.interval);
+}
+
+/**
+ * Show next ad in rotation
+ */
+function showNextAd() {
+    // Hide current ad if any
+    if (currentlyDisplayedAd) {
+        hideAd(currentlyDisplayedAd);
+    }
+    
+    // Get next ad from rotation
+    const adSlot = ROTATION_SETTINGS.ads[ROTATION_SETTINGS.currentIndex];
+    const adConfig = AD_CONFIG[adSlot];
+    
+    // Display the ad
+    displayRotatingAd(adSlot, adConfig);
+    
+    // Update index for next rotation
+    ROTATION_SETTINGS.currentIndex = (ROTATION_SETTINGS.currentIndex + 1) % ROTATION_SETTINGS.ads.length;
+    
+    console.log(`🎯 Now showing: ${adConfig.name} (Next rotation in ${ROTATION_SETTINGS.interval / 1000}s)`);
+}
+
+/**
+ * Display rotating ad in main ad container
+ * @param {string} adSlot - Ad slot identifier
+ * @param {Object} adConfig - Ad configuration object
+ */
+function displayRotatingAd(adSlot, adConfig) {
+    const container = document.getElementById('mainAdContainer');
+    const content = document.getElementById('mainAdContent');
     
     if (!container || !content) {
-        console.error(`❌ Ad container not found: ${containerId}`);
+        console.error(`❌ Main ad container not found`);
         return;
     }
     
     try {
+        // Mark current ad
+        currentlyDisplayedAd = adSlot;
+        
         // Show the container
         container.classList.remove('hidden');
+        
+        // Clear previous content
+        content.innerHTML = '';
+        
+        // Create ad code
+        const adCode = createAdCode(adConfig);
         
         // Insert ad code
         content.innerHTML = adCode;
         
-        // Execute any scripts in the ad code
-        const scripts = content.getElementsByTagName('script');
-        Array.from(scripts).forEach(script => {
-            const newScript = document.createElement('script');
-            
-            // Copy all attributes from original script
-            Array.from(script.attributes).forEach(attr => {
-                newScript.setAttribute(attr.name, attr.value);
-            });
-            
-            if (script.src) {
-                // External script
-                newScript.src = script.src;
-                newScript.async = true;
-            } else {
-                // Inline script
-                newScript.textContent = script.textContent;
-            }
-            
-            // Append to body to execute
-            document.body.appendChild(newScript);
-            
-            // Clean up old script after execution
-            setTimeout(() => {
-                if (newScript.parentNode) {
-                    newScript.parentNode.removeChild(newScript);
-                }
-            }, 100);
-        });
+        // Execute scripts
+        executeAdScripts(content);
         
         // Add loaded animation class
         setTimeout(() => {
             container.classList.add('loaded');
         }, 150);
         
-        console.log(`✅ Ad displayed successfully in ${containerId}`);
+        console.log(`✅ ${adConfig.name} displayed successfully`);
     } catch (error) {
-        console.error(`❌ Error displaying ad in ${containerId}:`, error);
+        console.error(`❌ Error displaying ${adConfig.name}:`, error);
     }
 }
 
 /**
+ * Hide specific ad
+ * @param {string} adSlot - Ad slot to hide
+ */
+function hideAd(adSlot) {
+    const container = document.getElementById('mainAdContainer');
+    const content = document.getElementById('mainAdContent');
+    
+    if (container && content) {
+        container.classList.add('hidden');
+        // Clear content after animation
+        setTimeout(() => {
+            content.innerHTML = '';
+        }, 300);
+    }
+}
+
+/**
+ * Stop ad rotation
+ */
+export function stopAdRotation() {
+    if (rotationTimer) {
+        clearInterval(rotationTimer);
+        rotationTimer = null;
+        console.log('⏹️ Ad rotation stopped');
+    }
+    
+    if (currentlyDisplayedAd) {
+        hideAd(currentlyDisplayedAd);
+        currentlyDisplayedAd = null;
+    }
+}
+
+/**
+ * Create ad code HTML from configuration
+ * @param {Object} config - Ad configuration
+ * @returns {string} HTML ad code
+ */
+function createAdCode(config) {
+    return `
+        <script type="text/javascript">
+            atOptions = {
+                'key': '${config.key}',
+                'format': '${config.format}',
+                'height': ${config.height},
+                'width': ${config.width},
+                'params': {}
+            };
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/${config.key}/invoke.js"></script>
+    `;
+}
+
+/**
+ * Execute scripts in ad content
+ * @param {HTMLElement} content - Content element containing scripts
+ */
+function executeAdScripts(content) {
+    const scripts = content.getElementsByTagName('script');
+    Array.from(scripts).forEach(script => {
+        const newScript = document.createElement('script');
+        
+        // Copy all attributes from original script
+        Array.from(script.attributes).forEach(attr => {
+            newScript.setAttribute(attr.name, attr.value);
+        });
+        
+        if (script.src) {
+            // External script
+            newScript.src = script.src;
+            newScript.async = true;
+        } else {
+            // Inline script
+            newScript.textContent = script.textContent;
+        }
+        
+        // Append to body to execute
+        document.body.appendChild(newScript);
+        
+        // Clean up old script after execution
+        setTimeout(() => {
+            if (newScript.parentNode) {
+                newScript.parentNode.removeChild(newScript);
+            }
+        }, 100);
+    });
+}
+
+/**
  * Load modal/popup ad when user claims rewards
+ * Uses slot3 configuration
  */
 export function loadModalAd() {
-    const modalAd = localStorage.getItem('farmzone_ad_modal');
     const claimAdDiv = document.getElementById('claimAd');
     
     if (!claimAdDiv) {
         console.error('❌ Modal ad container not found');
-        return;
+        return false;
     }
     
-    if (modalAd) {
-        try {
-            // Clear previous content
-            claimAdDiv.innerHTML = '';
-            
-            // Create a wrapper div
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = modalAd;
-            claimAdDiv.appendChild(wrapper);
-            
-            // Execute scripts in modal ad
-            const scripts = wrapper.getElementsByTagName('script');
-            Array.from(scripts).forEach(script => {
-                const newScript = document.createElement('script');
-                
-                // Copy all attributes
-                Array.from(script.attributes).forEach(attr => {
-                    newScript.setAttribute(attr.name, attr.value);
-                });
-                
-                if (script.src) {
-                    newScript.src = script.src;
-                    newScript.async = true;
-                } else {
-                    newScript.textContent = script.textContent;
-                }
-                
-                document.body.appendChild(newScript);
-                
-                // Clean up
-                setTimeout(() => {
-                    if (newScript.parentNode) {
-                        newScript.parentNode.removeChild(newScript);
-                    }
-                }, 100);
-            });
-            
-            console.log('✅ Modal ad loaded from Admin Panel');
-            return true; // Ad loaded successfully
-        } catch (error) {
-            console.error('❌ Error loading modal ad:', error);
-            claimAdDiv.innerHTML = '<p class="text-gray-600 text-sm text-center">Thank you for using FarmZone! 🎉</p>';
-            return false;
-        }
-    } else {
-        // No admin ad configured, show fallback message
+    try {
+        // Clear previous content
+        claimAdDiv.innerHTML = '';
+        
+        // Create ad code using slot3
+        const adCode = createAdCode(AD_CONFIG.slot3);
+        
+        // Insert ad code
+        claimAdDiv.innerHTML = adCode;
+        
+        // Execute scripts
+        executeAdScripts(claimAdDiv);
+        
+        console.log('✅ Modal ad loaded');
+        return true;
+    } catch (error) {
+        console.error('❌ Error loading modal ad:', error);
         claimAdDiv.innerHTML = '<p class="text-gray-600 text-sm text-center">Thank you for using FarmZone! 🎉</p>';
-        console.log('ℹ️ No modal ad configured, showing fallback message');
         return false;
     }
 }
 
 /**
- * Show ad modal with smart fallback system
- * First tries Admin Panel ad, then falls back to default ad
- * @param {string} fallbackAdKey - Optional fallback ad key for PropellerAds
+ * Show ad modal
  */
-export function showAdModal(fallbackAdKey = '78ade24182729fceea8e45203dad915b') {
+export function showAdModal() {
     const modal = document.getElementById('adModal');
     if (!modal) {
         console.warn("❌ Ad modal not found");
         return;
     }
 
-    // First, try to load ad from Admin Panel
-    const adminModalAd = localStorage.getItem('farmzone_ad_modal');
-    
-    if (adminModalAd) {
-        // Use admin-configured ad
-        console.log('📢 Loading ad from Admin Panel');
-        loadModalAd();
-    } else {
-        // Fallback to default ad
-        console.log('📢 Loading default fallback ad');
-        loadFallbackAd(fallbackAdKey);
-    }
+    console.log('📢 Loading modal ad');
+    loadModalAd();
 
     // Show modal
     modal.style.display = 'flex';
     
     // Setup close handlers
     setupModalCloseHandlers(modal);
-}
-
-/**
- * Load fallback ad (PropellerAds or similar)
- * @param {string} adKey - Ad network key
- */
-function loadFallbackAd(adKey) {
-    const adContainer = document.getElementById('claimAd');
-    
-    if (!adContainer) {
-        console.warn("❌ Ad container not found");
-        return;
-    }
-
-    // Clear previous ad
-    adContainer.innerHTML = '';
-    
-    // Create ad script container
-    const container = document.createElement('div');
-    container.innerHTML = `
-        <script type="text/javascript">
-            atOptions = {'key':'${adKey}','format':'iframe','height':250,'width':300,'params':{}};
-        </script>
-        <script type="text/javascript" src="//www.highperformanceformat.com/${adKey}/invoke.js"></script>
-    `;
-    adContainer.appendChild(container);
-    
-    console.log('✅ Fallback ad loaded');
 }
 
 /**
@@ -239,75 +324,74 @@ function setupModalCloseHandlers(modal) {
 }
 
 /**
- * Initialize Admin Panel access shortcut
- * Triple tap on logo to open admin panel
+ * Initialize advertisement system
+ * Call this when DOM is ready
+ */
+export function initAdSystem() {
+    console.log('🎬 Advertisement system initialized');
+    console.log('⏳ Waiting for app to load...');
+    console.log(`⚙️ Rotation interval: ${ROTATION_SETTINGS.interval / 1000} seconds`);
+    console.log('📢 Ads will rotate: Slot 1 → Slot 2 → Slot 3 → Repeat');
+    
+    // Note: Call setAppLoaded() when your app finishes loading
+}
+
+/**
+ * Initialize Admin Panel access shortcut (DEPRECATED - Kept for compatibility)
+ * This function is no longer needed as admin panel has been removed
  */
 export function initAdminAccess() {
-    let logoTapCount = 0;
-    let logoTapTimer;
+    console.log('⚠️ Admin panel has been removed. Ad configuration is now managed directly in ad.js');
+}
 
-    const logo = document.querySelector('header img');
-    if (!logo) {
-        console.warn('⚠️ Logo not found for admin access shortcut');
-        return;
+/**
+ * Change rotation interval (in seconds)
+ * @param {number} seconds - Rotation interval in seconds
+ */
+export function setRotationInterval(seconds) {
+    ROTATION_SETTINGS.interval = seconds * 1000;
+    console.log(`⚙️ Rotation interval updated to ${seconds} seconds`);
+    
+    // Restart rotation if already running
+    if (appLoaded && rotationTimer) {
+        stopAdRotation();
+        startAdRotation();
     }
-    
-    logo.addEventListener('click', () => {
-        logoTapCount++;
-        
-        clearTimeout(logoTapTimer);
-        
-        if (logoTapCount === 3) {
-            const confirmed = confirm(
-                '🔐 Access Admin Panel?\n\n' +
-                'This will open the advertisement management panel where you can:\n' +
-                '• Configure top banner ads\n' +
-                '• Configure bottom banner ads\n' +
-                '• Configure modal popup ads'
-            );
-            
-            if (confirmed) {
-                window.location.href = 'admin.html';
-            }
-            logoTapCount = 0;
-        }
-        
-        logoTapTimer = setTimeout(() => {
-            logoTapCount = 0;
-        }, 1000); // Reset after 1 second
-    });
-    
-    console.log('✅ Admin access shortcut initialized (Triple tap logo)');
 }
 
 /**
- * Check if any ads are configured
- * @returns {Object} Status of all ad slots
+ * Get current ad configuration (for debugging)
  */
-export function getAdStatus() {
+export function getAdConfig() {
     return {
-        topBanner: !!localStorage.getItem('farmzone_ad_1'),
-        bottomBanner: !!localStorage.getItem('farmzone_ad_2'),
-        modalAd: !!localStorage.getItem('farmzone_ad_modal')
+        adSlots: AD_CONFIG,
+        rotation: {
+            ...ROTATION_SETTINGS,
+            intervalSeconds: ROTATION_SETTINGS.interval / 1000,
+            currentAd: currentlyDisplayedAd
+        },
+        appLoaded: appLoaded,
+        isRotating: rotationTimer !== null
     };
-}
-
-/**
- * Clear all configured ads (for debugging)
- */
-export function clearAllAds() {
-    localStorage.removeItem('farmzone_ad_1');
-    localStorage.removeItem('farmzone_ad_2');
-    localStorage.removeItem('farmzone_ad_modal');
-    console.log('🗑️ All ads cleared from localStorage');
 }
 
 // Export for debugging in console
 if (typeof window !== 'undefined') {
     window.adDebug = {
-        getAdStatus,
-        clearAllAds,
-        loadAdvertisements,
-        loadModalAd
+        getAdConfig,
+        setAppLoaded,
+        isAppLoaded,
+        startAdRotation,
+        stopAdRotation,
+        showNextAd,
+        setRotationInterval,
+        loadModalAd,
+        showAdModal
     };
+    
+    console.log('💡 Debug commands available: window.adDebug');
+    console.log('   - getAdConfig() - View current configuration');
+    console.log('   - setRotationInterval(seconds) - Change rotation speed');
+    console.log('   - stopAdRotation() - Stop rotation');
+    console.log('   - startAdRotation() - Resume rotation');
 }
