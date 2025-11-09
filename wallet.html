@@ -3,355 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>FarmZone Wallet - Swap & Withdraw</title>
+  <title>FarmZone Wallet</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-      overflow-x: hidden;
-      min-height: 100vh;
-    }
-
-    .swap-container {
-      position: relative;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    .currency-box {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 12px;
-    }
-
-    .swap-icon-btn {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      border: 4px solid #f3f4f6;
-      border-radius: 50%;
-      width: 48px;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      z-index: 10;
-    }
-
-    .swap-icon-btn:hover {
-      transform: translate(-50%, -50%) rotate(180deg) scale(1.1);
-      border-color: #667eea;
-    }
-
-    .swap-icon-btn svg {
-      width: 24px;
-      height: 24px;
-      color: #667eea;
-    }
-
-    .currency-input {
-      width: 100%;
-      font-size: 24px;
-      font-weight: 600;
-      border: none;
-      outline: none;
-      background: transparent;
-      color: #1f2937;
-    }
-
-    .currency-input::placeholder {
-      color: #9ca3af;
-    }
-
-    .currency-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #f3f4f6;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-weight: 600;
-      color: #374151;
-    }
-
-    .currency-icon {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #28a745, #20c997);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    .usdt-icon {
-      background: linear-gradient(135deg, #26a17b, #26a17b);
-    }
-
-    .swap-btn {
-      width: 100%;
-      background: linear-gradient(135deg, #28a745, #20c997);
-      color: white;
-      font-size: 18px;
-      font-weight: 700;
-      padding: 16px;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
-    }
-
-    .swap-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5);
-    }
-
-    .swap-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-      background: linear-gradient(135deg, #9ca3af, #6b7280);
-      box-shadow: none;
-    }
-
-    .swap-btn:disabled:hover {
-      transform: none;
-      box-shadow: none;
-    }
-
-    .withdraw-section {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    }
-
-    .network-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .input-field {
-      width: 100%;
-      padding: 14px;
-      border: 2px solid #e5e7eb;
-      border-radius: 10px;
-      font-size: 15px;
-      outline: none;
-      transition: all 0.3s ease;
-    }
-
-    .input-field:focus {
-      border-color: #28a745;
-      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
-    }
-
-    .withdraw-btn {
-      width: 100%;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
-      font-size: 18px;
-      font-weight: 700;
-      padding: 16px;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-    }
-
-    .withdraw-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
-    }
-
-    .withdraw-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-      background: linear-gradient(135deg, #9ca3af, #6b7280);
-      box-shadow: none;
-    }
-
-    .withdraw-btn:disabled:hover {
-      transform: none;
-      box-shadow: none;
-    }
-
-    .balance-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 16px;
-      padding: 24px;
-      color: white;
-      box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
-    }
-
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      padding: 16px 24px;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      z-index: 1000;
-      opacity: 0;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, sans-serif; overflow-x: hidden; min-height: 100vh; }
+    .swap-container { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
+    .currency-box { background: rgba(255,255,255,0.95); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .swap-icon-btn { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: white; border: 4px solid #f3f4f6; border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; z-index: 10; }
+    .swap-icon-btn:hover { transform: translate(-50%, -50%) rotate(180deg) scale(1.1); border-color: #667eea; }
+    .currency-input { width: 100%; font-size: 24px; font-weight: 600; border: none; outline: none; background: transparent; color: #1f2937; }
+    .currency-label { display: flex; align-items: center; gap: 8px; background: #f3f4f6; padding: 8px 16px; border-radius: 20px; font-weight: 600; color: #374151; }
+    .currency-icon { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #28a745, #20c997); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: 700; }
+    .usdt-icon { background: linear-gradient(135deg, #26a17b, #26a17b); }
+    .btn-primary { width: 100%; background: linear-gradient(135deg, #28a745, #20c997); color: white; font-size: 18px; font-weight: 700; padding: 16px; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(40,167,69,0.4); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(40,167,69,0.5); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; background: linear-gradient(135deg, #9ca3af, #6b7280); box-shadow: none; }
+    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 15px rgba(239,68,68,0.4); }
+    .btn-danger:hover { box-shadow: 0 6px 20px rgba(239,68,68,0.5); }
+    .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .balance-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 8px 30px rgba(102,126,234,0.3); }
+    .input-field { width: 100%; padding: 14px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; outline: none; transition: all 0.3s; }
+    .input-field:focus { border-color: #28a745; box-shadow: 0 0 0 3px rgba(40,167,69,0.1); }
+    .network-badge { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .info-box { background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 12px 16px; border-radius: 8px; margin-top: 12px; }
+    .notification { position: fixed; top: 20px; right: 20px; padding: 16px 24px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 1000; opacity: 0; transition: opacity 0.3s; font-weight: 600; }
+    .notification.show { opacity: 1; }
+    .notification.success { background: #28a745; color: white; }
+    .notification.error { background: #ef4444; color: white; }
+    .loading { position: fixed; inset: 0; background: rgba(255,255,255,0.95); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+    .spinner { width: 60px; height: 60px; border: 5px solid #f3f3f3; border-top: 5px solid #28a745; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-in { animation: slideIn 0.4s ease; }
+    
+    /* Ad Container Styles */
+    .ad-container { 
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+      border-radius: 12px; 
+      padding: 12px; 
+      margin: 16px 0; 
+      min-height: 100px; 
+      display: none; 
+      align-items: center; 
+      justify-content: center; 
+      border: 1px solid rgba(0,0,0,0.05); 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08); 
+      position: relative; 
       transition: opacity 0.3s ease;
-      font-weight: 600;
     }
-
-    .notification.show {
-      opacity: 1;
-    }
-
-    .notification.success {
-      background: #28a745;
-      color: white;
-    }
-
-    .notification.error {
-      background: #ef4444;
-      color: white;
-    }
-
-    .info-box {
-      background: #f0f9ff;
-      border-left: 4px solid #3b82f6;
-      padding: 12px 16px;
-      border-radius: 8px;
-      margin-top: 12px;
-    }
-
-    .loading {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.95);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .spinner {
-      width: 60px;
-      height: 60px;
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid #28a745;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .animate-in {
-      animation: slideIn 0.4s ease;
-    }
-
-    .ad-container {
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      border-radius: 12px;
-      padding: 12px;
-      margin: 16px 0;
-      min-height: 100px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(0,0,0,0.05);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      position: relative;
-      transition: all 0.3s ease;
-    }
-
-    .ad-container.loaded {
-      display: flex;
-    }
-
-    .ad-container.hidden {
-      display: none !important;
-    }
-
-    .ad-label {
-      position: absolute;
-      top: 4px;
-      right: 8px;
-      font-size: 10px;
-      color: rgba(0,0,0,0.4);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
+    .ad-container.loaded { display: flex; opacity: 1; }
+    .ad-container.hidden { display: none !important; }
+    .ad-label { position: absolute; top: 4px; right: 8px; font-size: 10px; color: rgba(0,0,0,0.4); text-transform: uppercase; letter-spacing: 0.5px; }
+    
     @media (max-width: 640px) {
-      .currency-input {
-        font-size: 20px;
-      }
-      
-      .swap-container, .withdraw-section, .balance-card {
-        padding: 16px;
-      }
-
-      .ad-container { 
-        text-align: center; 
-        margin: 1rem 0;
-        min-height: 50px;
-        padding: 8px;
-      }
-      .ad-container.loaded {
-        display: flex;
-      }
+      .currency-input { font-size: 20px; }
+      .swap-container, .card, .balance-card { padding: 16px; }
+      .ad-container { min-height: 60px; padding: 8px; }
     }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-  <div id="loading" class="loading">
-    <div class="spinner"></div>
-  </div>
-
+  <div id="loading" class="loading"><div class="spinner"></div></div>
   <div id="notification" class="notification"></div>
 
+  <!-- Header -->
   <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-50">
     <div class="flex items-center gap-3">
       <button onclick="window.location.href='index.html'" class="p-2 hover:bg-gray-100 rounded-full transition">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg class="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
       </button>
@@ -360,15 +80,13 @@
   </header>
 
   <div class="max-w-2xl mx-auto p-4 space-y-6 pb-8">
-    <!-- Banner Ad 1 (Top) -->
-    <div id="bannerAdContainer1" class="ad-container animate-in relative">
+    <!-- Main Ad Container (Rotating) -->
+    <div id="mainAdContainer" class="ad-container animate-in hidden">
       <span class="ad-label">Advertisement</span>
-      <div id="mobileAdContent1" style="min-height: 50px;">
-        <!-- Mobile Banner Ad loads here -->
-      </div>
+      <div id="mainAdContent"></div>
     </div>
 
-    <!-- Balance Overview -->
+    <!-- Balance Card -->
     <div class="balance-card animate-in">
       <h2 class="text-lg opacity-90 mb-3">Available Balance</h2>
       <div class="space-y-3">
@@ -392,9 +110,7 @@
     <!-- Swap Section -->
     <div class="swap-container animate-in">
       <h3 class="text-white text-xl font-bold mb-4">Swap Tokens</h3>
-      
       <div class="relative">
-        <!-- From Currency -->
         <div class="currency-box">
           <div class="flex justify-between items-center mb-3">
             <span class="text-gray-600 text-sm font-medium">From</span>
@@ -409,14 +125,12 @@
           </div>
         </div>
 
-        <!-- Swap Icon -->
         <div class="swap-icon-btn" id="swapDirectionBtn">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:24px;height:24px;color:#667eea">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
           </svg>
         </div>
 
-        <!-- To Currency -->
         <div class="currency-box">
           <div class="flex justify-between items-center mb-3">
             <span class="text-gray-600 text-sm font-medium">To</span>
@@ -433,31 +147,19 @@
       </div>
 
       <div class="info-box text-sm text-blue-700 mt-4">
-        <strong>Exchange Rate:</strong> <span id="exchangeRateDisplay">1000 FZ = 1 USDT</span><br>
-        <strong>Minimum Swap:</strong> <span id="minSwapDisplay">100 FZ</span>
+        <strong>Rate:</strong> <span id="exchangeRateDisplay">1000 FZ = 1 USDT</span><br>
+        <strong>Min:</strong> <span id="minSwapDisplay">100 FZ</span>
       </div>
 
-      <button id="swapBtn" class="swap-btn mt-6">
-        Swap Now
-      </button>
-    </div>
-
-    <!-- Banner Ad 2 (Middle) -->
-    <div id="bannerAdContainer2" class="ad-container animate-in relative">
-      <span class="ad-label">Advertisement</span>
-      <div id="mobileAdContent2" style="min-height: 50px;">
-        <!-- Mobile Banner Ad loads here -->
-      </div>
+      <button id="swapBtn" class="btn-primary mt-6">Swap Now</button>
     </div>
 
     <!-- Withdraw Section -->
-    <div class="withdraw-section animate-in">
+    <div class="card animate-in">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-xl font-bold text-gray-800">Withdraw USDT</h3>
         <span class="network-badge">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10"/>
-          </svg>
+          <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
           TRC20
         </span>
       </div>
@@ -469,26 +171,24 @@
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">Withdrawal Amount (USDT)</label>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Amount (USDT)</label>
           <input type="number" id="withdrawAmount" class="input-field" placeholder="Enter amount" min="0" step="0.01">
           <p class="text-xs text-gray-500 mt-1">Available: <span id="availableUsdt">0.00</span> USDT</p>
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">TRC20 Wallet Address</label>
-          <input type="text" id="walletAddress" class="input-field" placeholder="Enter your TRC20 address (e.g., TXxxx...)">
-          <p class="text-xs text-gray-500 mt-1">Warning: Please ensure the address is correct. Transactions cannot be reversed.</p>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">TRC20 Address</label>
+          <input type="text" id="walletAddress" class="input-field" placeholder="TXxxx...">
+          <p class="text-xs text-gray-500 mt-1">⚠️ Ensure address is correct. Irreversible.</p>
         </div>
 
         <div class="info-box text-sm text-blue-700">
-          <p><strong>Minimum Withdrawal:</strong> <span id="minWithdrawDisplay">1 USDT</span></p>
-          <p><strong>Network Fee:</strong> <span id="networkFeeDisplay">1 TRX (approx.)</span></p>
-          <p><strong>Processing Time:</strong> <span id="processingTimeDisplay">5-30 minutes</span></p>
+          <p><strong>Min:</strong> <span id="minWithdrawDisplay">1 USDT</span></p>
+          <p><strong>Fee:</strong> <span id="networkFeeDisplay">1 TRX</span></p>
+          <p><strong>Time:</strong> <span id="processingTimeDisplay">5-30 min</span></p>
         </div>
 
-        <button id="withdrawBtn" class="withdraw-btn">
-          Request Withdrawal
-        </button>
+        <button id="withdrawBtn" class="btn-primary btn-danger">Request Withdrawal</button>
       </div>
     </div>
   </div>
@@ -497,72 +197,49 @@
     import { auth, database } from './config.js';
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
     import { ref, get, update, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+    import { initAdSystem, setAppLoaded } from './ad.js';
 
     let currentUser = null;
-    let userData = {
-      balance: 0,
-      usdtBalance: 0,
-      swapDirection: 'FZ_TO_USDT'
+    let userData = { balance: 0, usdtBalance: 0, swapDirection: 'FZ_TO_USDT' };
+    let adminSettings = { exchangeRate: 1000, minSwapAmount: 100, minWithdrawal: 1, processingTime: '5-30 minutes', networkFee: '1 TRX (approx.)', swapEnabled: true, withdrawEnabled: true };
+
+    const $ = (id) => document.getElementById(id);
+    const showLoading = (show) => $('loading').style.display = show ? 'flex' : 'none';
+    const showNotification = (msg, type) => {
+      const n = $('notification');
+      n.textContent = msg;
+      n.className = `notification ${type} show`;
+      setTimeout(() => n.classList.remove('show'), 3000);
     };
 
-    let adminSettings = {
-      exchangeRate: 1000,
-      minSwapAmount: 100,
-      minWithdrawal: 1,
-      processingTime: '5-30 minutes',
-      networkFee: '1 TRX (approx.)',
-      swapEnabled: true,
-      withdrawEnabled: true
-    };
-
-    // Show/Hide Loading
-    function showLoading(show) {
-      document.getElementById('loading').style.display = show ? 'flex' : 'none';
-    }
-
-    // Show Notification
-    function showNotification(message, type) {
-      const notification = document.getElementById('notification');
-      notification.textContent = message;
-      notification.className = `notification ${type} show`;
-      
-      setTimeout(() => {
-        notification.classList.remove('show');
-      }, 3000);
-    }
-
-    // Load Admin Settings
     async function loadAdminSettings() {
       try {
-        const settingsRef = ref(database, 'adminSettings');
-        const snapshot = await get(settingsRef);
-        
-        if (snapshot.exists()) {
-          adminSettings = { ...adminSettings, ...snapshot.val() };
+        const snap = await get(ref(database, 'adminSettings'));
+        if (snap.exists()) {
+          adminSettings = { ...adminSettings, ...snap.val() };
           updateSettingsDisplay();
         }
-      } catch (error) {
-        console.error('Error loading admin settings:', error);
+      } catch (err) {
+        console.error('Settings load error:', err);
       }
     }
 
-    // Update Settings Display
     function updateSettingsDisplay() {
-      document.getElementById('exchangeRateDisplay').textContent = `${adminSettings.exchangeRate} FZ = 1 USDT`;
-      document.getElementById('minSwapDisplay').textContent = `${adminSettings.minSwapAmount} FZ`;
-      document.getElementById('minWithdrawDisplay').textContent = `${adminSettings.minWithdrawal} USDT`;
-      document.getElementById('networkFeeDisplay').textContent = adminSettings.networkFee;
-      document.getElementById('processingTimeDisplay').textContent = adminSettings.processingTime;
+      $('exchangeRateDisplay').textContent = `${adminSettings.exchangeRate} FZ = 1 USDT`;
+      $('minSwapDisplay').textContent = `${adminSettings.minSwapAmount} FZ`;
+      $('minWithdrawDisplay').textContent = `${adminSettings.minWithdrawal} USDT`;
+      $('networkFeeDisplay').textContent = adminSettings.networkFee;
+      $('processingTimeDisplay').textContent = adminSettings.processingTime;
 
-      const swapBtn = document.getElementById('swapBtn');
-      const withdrawBtn = document.getElementById('withdrawBtn');
+      const swapBtn = $('swapBtn');
+      const withdrawBtn = $('withdrawBtn');
 
       if (adminSettings.swapEnabled) {
         swapBtn.disabled = false;
         swapBtn.textContent = 'Swap Now';
       } else {
         swapBtn.disabled = true;
-        swapBtn.textContent = 'Swap Currently Unavailable';
+        swapBtn.textContent = 'Swap Unavailable';
       }
 
       if (adminSettings.withdrawEnabled) {
@@ -570,143 +247,123 @@
         withdrawBtn.textContent = 'Request Withdrawal';
       } else {
         withdrawBtn.disabled = true;
-        withdrawBtn.textContent = 'Withdrawal Currently Unavailable';
+        withdrawBtn.textContent = 'Withdrawal Unavailable';
       }
     }
 
-    // Load User Data from Firebase
     async function loadUserData(userId) {
       try {
-        const userRef = ref(database, `users/${userId}`);
-        const snapshot = await get(userRef);
-        
-        if (snapshot.exists()) {
-          const data = snapshot.val();
+        const snap = await get(ref(database, `users/${userId}`));
+        if (snap.exists()) {
+          const data = snap.val();
           userData.balance = data.balance || 0;
           userData.usdtBalance = data.usdtBalance || 0;
           updateBalances();
         }
-      } catch (error) {
-        console.error('Error loading user data:', error);
-        showNotification('Failed to load wallet data', 'error');
+      } catch (err) {
+        console.error('User data error:', err);
+        showNotification('Failed to load wallet', 'error');
       }
     }
 
-    // Update Balances Display
     function updateBalances() {
-      document.getElementById('fzBalance').textContent = userData.balance.toFixed(2) + ' FZ';
-      document.getElementById('usdtBalance').textContent = userData.usdtBalance.toFixed(2) + ' USDT';
+      $('fzBalance').textContent = userData.balance.toFixed(2) + ' FZ';
+      $('usdtBalance').textContent = userData.usdtBalance.toFixed(2) + ' USDT';
       
       if (userData.swapDirection === 'FZ_TO_USDT') {
-        document.getElementById('fromBalance').textContent = userData.balance.toFixed(2);
-        document.getElementById('toBalance').textContent = userData.usdtBalance.toFixed(2);
+        $('fromBalance').textContent = userData.balance.toFixed(2);
+        $('toBalance').textContent = userData.usdtBalance.toFixed(2);
       } else {
-        document.getElementById('fromBalance').textContent = userData.usdtBalance.toFixed(2);
-        document.getElementById('toBalance').textContent = userData.balance.toFixed(2);
+        $('fromBalance').textContent = userData.usdtBalance.toFixed(2);
+        $('toBalance').textContent = userData.balance.toFixed(2);
       }
       
-      document.getElementById('availableUsdt').textContent = userData.usdtBalance.toFixed(2);
+      $('availableUsdt').textContent = userData.usdtBalance.toFixed(2);
     }
 
-    // Calculate Swap Amount
     function calculateSwap() {
-      const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
-      let toAmount = 0;
-
-      if (userData.swapDirection === 'FZ_TO_USDT') {
-        toAmount = fromAmount / adminSettings.exchangeRate;
-      } else {
-        toAmount = fromAmount * adminSettings.exchangeRate;
-      }
-
-      document.getElementById('toAmount').value = toAmount.toFixed(6);
+      const from = parseFloat($('fromAmount').value) || 0;
+      const to = userData.swapDirection === 'FZ_TO_USDT' ? from / adminSettings.exchangeRate : from * adminSettings.exchangeRate;
+      $('toAmount').value = to.toFixed(6);
     }
 
-    // Handle Swap Direction Toggle
     function handleSwapDirection() {
       if (userData.swapDirection === 'FZ_TO_USDT') {
         userData.swapDirection = 'USDT_TO_FZ';
-        document.getElementById('fromCurrency').textContent = 'USDT';
-        document.getElementById('toCurrency').textContent = 'FZ';
-        document.getElementById('fromIcon').textContent = 'T';
-        document.getElementById('fromIcon').classList.add('usdt-icon');
-        document.getElementById('toIcon').textContent = 'FZ';
-        document.getElementById('toIcon').classList.remove('usdt-icon');
+        $('fromCurrency').textContent = 'USDT';
+        $('toCurrency').textContent = 'FZ';
+        $('fromIcon').textContent = 'T';
+        $('fromIcon').classList.add('usdt-icon');
+        $('toIcon').textContent = 'FZ';
+        $('toIcon').classList.remove('usdt-icon');
       } else {
         userData.swapDirection = 'FZ_TO_USDT';
-        document.getElementById('fromCurrency').textContent = 'FZ';
-        document.getElementById('toCurrency').textContent = 'USDT';
-        document.getElementById('fromIcon').textContent = 'FZ';
-        document.getElementById('fromIcon').classList.remove('usdt-icon');
-        document.getElementById('toIcon').textContent = 'T';
-        document.getElementById('toIcon').classList.add('usdt-icon');
+        $('fromCurrency').textContent = 'FZ';
+        $('toCurrency').textContent = 'USDT';
+        $('fromIcon').textContent = 'FZ';
+        $('fromIcon').classList.remove('usdt-icon');
+        $('toIcon').textContent = 'T';
+        $('toIcon').classList.add('usdt-icon');
       }
-      
-      document.getElementById('fromAmount').value = '';
-      document.getElementById('toAmount').value = '';
+      $('fromAmount').value = '';
+      $('toAmount').value = '';
       updateBalances();
-      showNotification('Swap direction changed', 'success');
+      showNotification('Direction changed', 'success');
     }
 
-    // Handle Swap
     async function handleSwap() {
       if (!adminSettings.swapEnabled) {
-        showNotification('Swap feature is currently unavailable', 'error');
+        showNotification('Swap unavailable', 'error');
         return;
       }
 
-      const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
-      const toAmount = parseFloat(document.getElementById('toAmount').value) || 0;
+      const from = parseFloat($('fromAmount').value) || 0;
+      const to = parseFloat($('toAmount').value) || 0;
 
-      if (fromAmount <= 0) {
-        showNotification('Please enter a valid amount', 'error');
+      if (from <= 0) {
+        showNotification('Enter valid amount', 'error');
         return;
       }
 
       if (userData.swapDirection === 'FZ_TO_USDT') {
-        if (fromAmount < adminSettings.minSwapAmount) {
-          showNotification(`Minimum swap amount is ${adminSettings.minSwapAmount} FZ`, 'error');
+        if (from < adminSettings.minSwapAmount) {
+          showNotification(`Min ${adminSettings.minSwapAmount} FZ`, 'error');
           return;
         }
-
-        if (fromAmount > userData.balance) {
-          showNotification('Insufficient FZ balance', 'error');
+        if (from > userData.balance) {
+          showNotification('Insufficient FZ', 'error');
           return;
         }
       } else {
-        if (fromAmount > userData.usdtBalance) {
-          showNotification('Insufficient USDT balance', 'error');
+        if (from > userData.usdtBalance) {
+          showNotification('Insufficient USDT', 'error');
           return;
         }
       }
 
-      if (!confirm(`Confirm swap ${fromAmount.toFixed(2)} ${userData.swapDirection === 'FZ_TO_USDT' ? 'FZ' : 'USDT'} to ${toAmount.toFixed(6)} ${userData.swapDirection === 'FZ_TO_USDT' ? 'USDT' : 'FZ'}?`)) {
-        return;
-      }
+      if (!confirm(`Swap ${from.toFixed(2)} ${userData.swapDirection === 'FZ_TO_USDT' ? 'FZ' : 'USDT'} to ${to.toFixed(6)} ${userData.swapDirection === 'FZ_TO_USDT' ? 'USDT' : 'FZ'}?`)) return;
 
       showLoading(true);
 
       try {
         const userRef = ref(database, `users/${currentUser.uid}`);
-        
         let updates = {};
+        
         if (userData.swapDirection === 'FZ_TO_USDT') {
-          updates.balance = userData.balance - fromAmount;
-          updates.usdtBalance = userData.usdtBalance + toAmount;
+          updates.balance = userData.balance - from;
+          updates.usdtBalance = userData.usdtBalance + to;
         } else {
-          updates.usdtBalance = userData.usdtBalance - fromAmount;
-          updates.balance = userData.balance + toAmount;
+          updates.usdtBalance = userData.usdtBalance - from;
+          updates.balance = userData.balance + to;
         }
 
         await update(userRef, updates);
-
-        const transactionRef = ref(database, `users/${currentUser.uid}/transactions`);
-        await push(transactionRef, {
+        await push(ref(database, `users/${currentUser.uid}/transactions`), {
           type: 'swap',
           fromCurrency: userData.swapDirection === 'FZ_TO_USDT' ? 'FZ' : 'USDT',
           toCurrency: userData.swapDirection === 'FZ_TO_USDT' ? 'USDT' : 'FZ',
-          fromAmount: fromAmount,
-          toAmount: toAmount,
+          fromAmount: from,
+          toAmount: to,
           exchangeRate: adminSettings.exchangeRate,
           timestamp: Date.now(),
           status: 'completed'
@@ -716,61 +373,54 @@
         userData.usdtBalance = updates.usdtBalance ?? userData.usdtBalance;
         
         updateBalances();
-        document.getElementById('fromAmount').value = '';
-        document.getElementById('toAmount').value = '';
-        
+        $('fromAmount').value = '';
+        $('toAmount').value = '';
         showNotification('Swap successful!', 'success');
-      } catch (error) {
-        console.error('Error processing swap:', error);
-        showNotification('Swap failed. Please try again.', 'error');
+      } catch (err) {
+        console.error('Swap error:', err);
+        showNotification('Swap failed', 'error');
       } finally {
         showLoading(false);
       }
     }
 
-    // Handle Withdraw
     async function handleWithdraw() {
       if (!adminSettings.withdrawEnabled) {
-        showNotification('Withdrawal feature is currently unavailable', 'error');
+        showNotification('Withdrawal unavailable', 'error');
         return;
       }
 
-      const amount = parseFloat(document.getElementById('withdrawAmount').value) || 0;
-      const address = document.getElementById('walletAddress').value.trim();
+      const amount = parseFloat($('withdrawAmount').value) || 0;
+      const address = $('walletAddress').value.trim();
 
       if (amount < adminSettings.minWithdrawal) {
-        showNotification(`Minimum withdrawal amount is ${adminSettings.minWithdrawal} USDT`, 'error');
+        showNotification(`Min ${adminSettings.minWithdrawal} USDT`, 'error');
         return;
       }
 
       if (amount > userData.usdtBalance) {
-        showNotification('Insufficient USDT balance', 'error');
+        showNotification('Insufficient USDT', 'error');
         return;
       }
 
       if (!address || !address.startsWith('T')) {
-        showNotification('Please enter a valid TRC20 address', 'error');
+        showNotification('Invalid TRC20 address', 'error');
         return;
       }
 
-      if (!confirm(`Confirm withdrawal of ${amount.toFixed(2)} USDT to ${address}?`)) {
-        return;
-      }
+      if (!confirm(`Withdraw ${amount.toFixed(2)} USDT to ${address}?`)) return;
 
       showLoading(true);
 
       try {
-        const userRef = ref(database, `users/${currentUser.uid}`);
-        
-        await update(userRef, {
+        await update(ref(database, `users/${currentUser.uid}`), {
           usdtBalance: userData.usdtBalance - amount
         });
 
-        const transactionRef = ref(database, `users/${currentUser.uid}/transactions`);
-        await push(transactionRef, {
+        await push(ref(database, `users/${currentUser.uid}/transactions`), {
           type: 'withdrawal',
-          amount: amount,
-          address: address,
+          amount,
+          address,
           timestamp: Date.now(),
           status: 'pending',
           network: 'TRC20'
@@ -778,42 +428,34 @@
 
         userData.usdtBalance -= amount;
         updateBalances();
-        
-        document.getElementById('withdrawAmount').value = '';
-        document.getElementById('walletAddress').value = '';
-        
-        showNotification('Withdrawal request submitted successfully!', 'success');
-      } catch (error) {
-        console.error('Error processing withdrawal:', error);
-        showNotification('Withdrawal failed. Please try again.', 'error');
+        $('withdrawAmount').value = '';
+        $('walletAddress').value = '';
+        showNotification('Withdrawal submitted!', 'success');
+      } catch (err) {
+        console.error('Withdrawal error:', err);
+        showNotification('Withdrawal failed', 'error');
       } finally {
         showLoading(false);
       }
     }
 
     // Event Listeners
-    document.getElementById('fromAmount').addEventListener('input', calculateSwap);
-    document.getElementById('swapDirectionBtn').addEventListener('click', handleSwapDirection);
-    document.getElementById('swapBtn').addEventListener('click', handleSwap);
-    document.getElementById('withdrawBtn').addEventListener('click', handleWithdraw);
+    $('fromAmount').addEventListener('input', calculateSwap);
+    $('swapDirectionBtn').addEventListener('click', handleSwapDirection);
+    $('swapBtn').addEventListener('click', handleSwap);
+    $('withdrawBtn').addEventListener('click', handleWithdraw);
 
-    // Simulate Ad Loading
-    setTimeout(() => {
-      document.getElementById('bannerAdContainer1').classList.add('loaded');
-      document.getElementById('bannerAdContainer2').classList.add('loaded');
-    }, 1000);
+    // Initialize Ads
+    initAdSystem();
 
-    // Hide Loading Screen
-    setTimeout(() => {
-      showLoading(false);
-    }, 1500);
-
-    // Auth State Listener
+    // Auth Listener
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser = user;
         await loadAdminSettings();
         await loadUserData(user.uid);
+        showLoading(false);
+        setAppLoaded(); // Start ad rotation
       } else {
         window.location.href = 'login.html';
       }
