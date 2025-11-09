@@ -2,7 +2,6 @@
 import { auth, database } from './config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { ref, get, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
-import { sidebarIcons } from './icon.js';
 
 // Import NEW mining functions
 import { 
@@ -225,13 +224,13 @@ function updateUI() {
             els.miningBtn.disabled = false;
             els.timerDisplay.textContent = 'Claim';
             els.miningStatus.textContent = 'Ready to Claim';
-            els.miningStatus.className = 'mining-status';
+            els.miningStatus.className = 'mining-status text-yellow-600';
         } else {
             els.miningBtn.classList.remove('claim');
             els.miningBtn.disabled = false;
             els.timerDisplay.textContent = 'Start Mining';
             els.miningStatus.textContent = 'Inactive';
-            els.miningStatus.className = 'mining-status';
+            els.miningStatus.className = 'mining-status text-gray-600';
         }
     }
 }
@@ -240,49 +239,83 @@ function updateUI() {
 // WRAPPER FUNCTIONS FOR MINING
 // ========================================
 async function startMining() {
-    await startMiningFunc(
-        currentUser, 
-        userData, 
-        appSettings, 
-        getServerTime, 
-        showNotification,
-        startCountdownAndEarned  // Pass new function
-    );
+    try {
+        await startMiningFunc(
+            currentUser, 
+            userData, 
+            appSettings, 
+            getServerTime, 
+            showNotification,
+            startCountdownAndEarned
+        );
+    } catch (error) {
+        console.error("Mining start error:", error);
+        showNotification("Failed to start mining", "error");
+    }
 }
 
 function stopMining() {
-    stopMiningFunc();
+    try {
+        stopMiningFunc();
+    } catch (error) {
+        console.error("Mining stop error:", error);
+    }
 }
 
 function claimMiningReward() {
-    claimMiningRewardFunc(
-        currentUser, 
-        userData, 
-        appSettings, 
-        getServerTime, 
-        showNotification, 
-        showAdModal, 
-        checkReferralMilestones
-    );
+    try {
+        claimMiningRewardFunc(
+            currentUser, 
+            userData, 
+            appSettings, 
+            getServerTime, 
+            showNotification, 
+            showAdModal, 
+            checkReferralMilestones
+        );
+    } catch (error) {
+        console.error("Claim error:", error);
+        showNotification("Failed to claim reward", "error");
+    }
 }
 
 // ========================================
 // WRAPPER FUNCTIONS FOR REFERRAL
 // ========================================
 function submitReferralCode() {
-    submitReferralCodeFunc(currentUser, userData, appSettings, showStatus);
+    try {
+        submitReferralCodeFunc(currentUser, userData, appSettings, showStatus);
+    } catch (error) {
+        console.error("Referral submit error:", error);
+        showNotification("Failed to submit referral code", "error");
+    }
 }
 
 function claimReferralRewards() {
-    claimReferralRewardsFunc(currentUser, userData, showNotification, showAdModal);
+    try {
+        claimReferralRewardsFunc(currentUser, userData, showNotification, showAdModal);
+    } catch (error) {
+        console.error("Referral claim error:", error);
+        showNotification("Failed to claim referral rewards", "error");
+    }
 }
 
 function copyReferralCode() {
-    copyReferralCodeFunc(showNotification);
+    try {
+        copyReferralCodeFunc(userData, showNotification);
+    } catch (error) {
+        console.error("Copy error:", error);
+        showNotification("Failed to copy code", "error");
+    }
 }
 
 function shareReferralCode(platform) {
-    shareReferralCodeFunc(platform, appSettings, showNotification);
+    try {
+        shareReferralCodeFunc(userData, platform, appSettings, showNotification);
+    } catch (error) {
+        console.error("Share error:", error);
+        showNotification("Failed to share", "error");
+    }
 }
 
 // ========================================
@@ -298,23 +331,32 @@ async function initializeUserData(user) {
             userData = snap.val();
             updateUI();
         }
+    }, (error) => {
+        console.error("User data load failed:", error);
+        showNotification("Failed to load user data", "error");
     });
 }
 
 async function createNewUser(user) {
-    const userRef = ref(database, `users/${user.uid}`);
-    await set(userRef, {
-        balance: 0, 
-        totalMined: 0, 
-        usdtBalance: 0,
-        referralCode: generateReferralCode(),
-        joinDate: new Date().toISOString().split('T')[0],
-        referrals: {}, 
-        referralRewards: 0, 
-        referralMilestones: {}, 
-        transactions: {}, 
-        createdAt: Date.now()
-    });
+    try {
+        const userRef = ref(database, `users/${user.uid}`);
+        await set(userRef, {
+            balance: 0, 
+            totalMined: 0, 
+            usdtBalance: 0,
+            referralCode: generateReferralCode(),
+            joinDate: new Date().toISOString().split('T')[0],
+            referrals: {}, 
+            referralRewards: 0, 
+            referralMilestones: {}, 
+            transactions: {}, 
+            createdAt: Date.now()
+        });
+        console.log("New user created successfully");
+    } catch (error) {
+        console.error("User creation failed:", error);
+        showNotification("Failed to create user account", "error");
+    }
 }
 
 // ========================================
@@ -322,45 +364,11 @@ async function createNewUser(user) {
 // ========================================
 function logout() {
     cleanup();
-    signOut(auth).then(() => location.href = 'login.html');
-}
-
-// ========================================
-// MENU DROPDOWN
-// ========================================
-function populateMenu() {
-    const container = document.getElementById('menuDropdown');
-    if (!container) return;
-    container.innerHTML = sidebarIcons.map(i => `
-        <a href="${i.href}">
-            ${i.svg}
-            <span>${i.name}</span>
-        </a>
-    `).join('');
-}
-
-function setupMenu() {
-    const menuBtn = document.getElementById('menuToggleBtn');
-    const menuDropdown = document.getElementById('menuDropdown');
-    const menuOverlay = document.getElementById('menuOverlay');
-    
-    const toggleMenu = () => {
-        menuDropdown?.classList.toggle('show');
-        menuOverlay?.classList.toggle('show');
-    };
-    
-    const closeMenu = () => {
-        menuDropdown?.classList.remove('show');
-        menuOverlay?.classList.remove('show');
-    };
-    
-    menuBtn?.addEventListener('click', toggleMenu);
-    menuOverlay?.addEventListener('click', closeMenu);
-    
-    menuDropdown?.addEventListener('click', (e) => {
-        if (e.target.tagName === 'A' || e.target.closest('a')) {
-            closeMenu();
-        }
+    signOut(auth).then(() => {
+        location.href = 'login.html';
+    }).catch(error => {
+        console.error("Logout error:", error);
+        showNotification("Logout failed", "error");
     });
 }
 
@@ -369,9 +377,23 @@ function setupMenu() {
 // ========================================
 function showAdModal() {
     const modal = document.getElementById('adModal');
-    if (!modal) return;
+    if (!modal) {
+        console.warn("Ad modal not found");
+        return;
+    }
 
     const key = '78ade24182729fceea8e45203dad915b';
+    const adContainer = document.getElementById('claimAd');
+    
+    if (!adContainer) {
+        console.warn("Ad container not found");
+        return;
+    }
+
+    // Clear previous ad
+    adContainer.innerHTML = '';
+    
+    // Create ad script container
     const container = document.createElement('div');
     container.innerHTML = `
         <script type="text/javascript">
@@ -379,13 +401,23 @@ function showAdModal() {
         </script>
         <script type="text/javascript" src="//www.highperformanceformat.com/${key}/invoke.js"></script>
     `;
-    const adContainer = document.getElementById('claimAd');
-    adContainer.innerHTML = '';
     adContainer.appendChild(container);
 
+    // Show modal
     modal.style.display = 'flex';
-    const close = () => modal.style.display = 'none';
-    document.getElementById('adCloseBtn')?.addEventListener('click', close);
+    
+    // Close handlers
+    const close = () => {
+        modal.style.display = 'none';
+    };
+    
+    const closeBtn = document.getElementById('adCloseBtn');
+    if (closeBtn) {
+        closeBtn.removeEventListener('click', close); // Remove old listeners
+        closeBtn.addEventListener('click', close);
+    }
+    
+    // Auto-close after 5 seconds
     setTimeout(close, 5000);
 }
 
@@ -393,10 +425,13 @@ function showAdModal() {
 // DOM READY
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('loading')?.style.setProperty('display', 'none');
-    populateMenu();
-    setupMenu();
+    // Hide loading screen
+    const loading = document.getElementById('loading');
+    if (loading) loading.style.display = 'none';
+    
+    console.log("✅ App initialized");
 
+    // Get all elements
     const els = {
         homeBtn: document.getElementById('homeBtn'),
         profileBtn: document.getElementById('profileBtn'),
@@ -410,10 +445,12 @@ document.addEventListener('DOMContentLoaded', () => {
         authBtn: document.getElementById('authBtn')
     };
 
+    // Navigation
     els.homeBtn?.addEventListener('click', () => switchSection('home'));
     els.profileBtn?.addEventListener('click', () => switchSection('profile'));
     els.walletBtn?.addEventListener('click', () => location.href = 'wallet.html');
     
+    // Mining
     els.miningBtn?.addEventListener('click', () => {
         if (els.miningBtn.classList.contains('claim')) {
             claimMiningReward();
@@ -422,11 +459,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
+    // Referral
     els.claimReferralBtn?.addEventListener('click', claimReferralRewards);
     els.submitReferralBtn?.addEventListener('click', submitReferralCode);
     els.copyCode?.addEventListener('click', copyReferralCode);
     els.shareWA?.addEventListener('click', () => shareReferralCode('whatsapp'));
     els.shareTG?.addEventListener('click', () => shareReferralCode('telegram'));
+    
+    // Auth
     els.authBtn?.addEventListener('click', logout);
 });
 
@@ -436,9 +476,11 @@ document.addEventListener('DOMContentLoaded', () => {
 authUnsubscribe = onAuthStateChanged(auth, user => {
     if (user) {
         currentUser = user;
+        console.log("User logged in:", user.uid);
         listenForSettings();
         initializeUserData(user);
     } else {
+        console.log("No user logged in");
         cleanup();
         location.href = 'login.html';
     }
