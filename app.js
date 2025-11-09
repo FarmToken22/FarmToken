@@ -3,7 +3,7 @@ import { auth, database } from './config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { ref, get, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
-// Import NEW mining functions
+// Import mining functions
 import { 
     calculateCurrentEarned, 
     startCountdownAndEarned,
@@ -21,6 +21,13 @@ import {
     copyReferralCode as copyReferralCodeFunc,
     shareReferralCode as shareReferralCodeFunc
 } from './referral.js';
+
+// Import advertisement system
+import { 
+    loadAdvertisements, 
+    showAdModal, 
+    initAdminAccess 
+} from './ad.js';
 
 // ========================================
 // GLOBALS & CONSTANTS
@@ -373,55 +380,6 @@ function logout() {
 }
 
 // ========================================
-// AD MODAL
-// ========================================
-function showAdModal() {
-    const modal = document.getElementById('adModal');
-    if (!modal) {
-        console.warn("Ad modal not found");
-        return;
-    }
-
-    const key = '78ade24182729fceea8e45203dad915b';
-    const adContainer = document.getElementById('claimAd');
-    
-    if (!adContainer) {
-        console.warn("Ad container not found");
-        return;
-    }
-
-    // Clear previous ad
-    adContainer.innerHTML = '';
-    
-    // Create ad script container
-    const container = document.createElement('div');
-    container.innerHTML = `
-        <script type="text/javascript">
-            atOptions = {'key':'${key}','format':'iframe','height':250,'width':300,'params':{}};
-        </script>
-        <script type="text/javascript" src="//www.highperformanceformat.com/${key}/invoke.js"></script>
-    `;
-    adContainer.appendChild(container);
-
-    // Show modal
-    modal.style.display = 'flex';
-    
-    // Close handlers
-    const close = () => {
-        modal.style.display = 'none';
-    };
-    
-    const closeBtn = document.getElementById('adCloseBtn');
-    if (closeBtn) {
-        closeBtn.removeEventListener('click', close); // Remove old listeners
-        closeBtn.addEventListener('click', close);
-    }
-    
-    // Auto-close after 5 seconds
-    setTimeout(close, 5000);
-}
-
-// ========================================
 // DOM READY
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -430,6 +388,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loading) loading.style.display = 'none';
     
     console.log("✅ App initialized");
+
+    // Initialize advertisement system
+    loadAdvertisements();
+    
+    // Initialize admin access shortcut (triple tap logo)
+    initAdminAccess();
 
     // Get all elements
     const els = {
