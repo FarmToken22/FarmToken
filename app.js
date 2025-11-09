@@ -22,11 +22,11 @@ import {
     shareReferralCode as shareReferralCodeFunc
 } from './referral.js';
 
-// Import advertisement system
+// Import advertisement system (NEW - updated for ad rotation)
 import { 
-    loadAdvertisements, 
-    showAdModal, 
-    initAdminAccess 
+    initAdSystem,
+    setAppLoaded,
+    showAdModal
 } from './ad.js';
 
 // ========================================
@@ -38,6 +38,7 @@ let serverTimeOffset = 0;
 let unsubscribeUser = null;
 let unsubscribeSettings = null;
 let authUnsubscribe = null;
+let isAppFullyLoaded = false;
 
 // App Settings
 let appSettings = {
@@ -240,6 +241,21 @@ function updateUI() {
             els.miningStatus.className = 'mining-status text-gray-600';
         }
     }
+
+    // Check if app is fully loaded and start ads
+    checkAndStartAds();
+}
+
+// ========================================
+// AD SYSTEM INTEGRATION
+// ========================================
+function checkAndStartAds() {
+    // Start ads only once when all conditions are met
+    if (!isAppFullyLoaded && userData && currentUser) {
+        isAppFullyLoaded = true;
+        console.log('✅ App fully loaded - Starting ad rotation');
+        setAppLoaded();
+    }
 }
 
 // ========================================
@@ -389,11 +405,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     console.log("✅ App initialized");
 
-    // Initialize advertisement system
-    loadAdvertisements();
-    
-    // Initialize admin access shortcut (triple tap logo)
-    initAdminAccess();
+    // Initialize advertisement system (NEW)
+    initAdSystem();
+    console.log("📢 Ad system initialized - waiting for user data to load");
 
     // Get all elements
     const els = {
