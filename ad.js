@@ -1,358 +1,313 @@
-/**
- * FarmZone Ad Management System
- * Handles loading of mobile banner and rewarded ads
- */
-
-// Ad Configuration
-const AD_CONFIG = {
-  mobileBanner: {
-    key: '78ade24182729fceea8e45203dad915b',
-    format: 'iframe',
-    height: 50,
-    width: 320,
-    invokeUrl: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js'
-  },
-  rewarded: {
-    key: '53c6462d2fd5ad5b91686ca9561f79a2',
-    format: 'iframe',
-    height: 90,
-    width: 728,
-    invokeUrl: '//www.highperformanceformat.com/53c6462d2fd5ad5b91686ca9561f79a2/invoke.js'
-  }
-};
-
-// Track loaded ads to prevent duplicates
-const loadedAds = new Set();
+// ad.js - Advertisement Management System
+// ==========================================
+// ADMIN PANEL ADVERTISEMENT INTEGRATION
+// ==========================================
 
 /**
- * Hide ad container if no ad content
- * @param {HTMLElement} container - The container element
+ * Load all advertisements from localStorage (Admin Panel configured ads)
  */
-function hideAdContainer(container) {
-  if (container) {
-    container.classList.remove('loaded');
+export function loadAdvertisements() {
+    console.log('🎯 Loading advertisements from Admin Panel...');
     
-    // Hide parent container
-    const parentContainer = container.closest('.ad-container');
-    if (parentContainer) {
-      parentContainer.classList.remove('loaded');
-      parentContainer.classList.add('hidden');
-    }
-    
-    console.log('ℹ️ Ad container hidden (no ad content)');
-  }
-}
-
-/**
- * Show ad container with loaded class
- * @param {HTMLElement} container - The container element
- */
-function showAdContainer(container) {
-  if (container) {
-    container.classList.add('loaded');
-    
-    // Show parent container if it's hidden
-    const parentContainer = container.closest('.ad-container');
-    if (parentContainer) {
-      parentContainer.classList.remove('hidden');
-      parentContainer.classList.add('loaded');
-    }
-    
-    console.log('✅ Ad container shown with loaded class');
-  }
-}
-
-/**
- * Check if ad actually loaded content
- * @param {HTMLElement} container - The container element
- * @returns {boolean} - True if ad has content
- */
-function hasAdContent(container) {
-  if (!container) return false;
-  
-  // Check for iframe or script tags (ad loaded)
-  const hasIframe = container.querySelector('iframe') !== null;
-  const hasContent = container.children.length > 0;
-  const hasText = container.textContent.trim().length > 0;
-  
-  return hasIframe || (hasContent && hasText);
-}
-
-/**
- * Monitor ad loading and hide container if no content
- * @param {HTMLElement} container - The container element
- * @param {number} timeout - Timeout in milliseconds
- */
-function monitorAdLoading(container, timeout = 5000) {
-  setTimeout(() => {
-    if (!hasAdContent(container)) {
-      console.warn('⚠️ No ad content detected, hiding container');
-      hideAdContainer(container);
+    // Load Top Banner Ad (Ad Slot 1)
+    const topAd = localStorage.getItem('farmzone_ad_1');
+    if (topAd) {
+        displayAd('bannerAdContainer1', 'mobileAdContent1', topAd);
+        console.log('✅ Top banner ad loaded');
     } else {
-      showAdContainer(container);
+        console.log('ℹ️ No top banner ad configured');
     }
-  }, timeout);
+    
+    // Load Bottom Banner Ad (Ad Slot 2)
+    const bottomAd = localStorage.getItem('farmzone_ad_2');
+    if (bottomAd) {
+        displayAd('bannerAdContainer2', 'mobileAdContent2', bottomAd);
+        console.log('✅ Bottom banner ad loaded');
+    } else {
+        console.log('ℹ️ No bottom banner ad configured');
+    }
+    
+    console.log('🎯 Advertisement loading complete');
 }
 
 /**
- * Load Mobile Banner Ad (320x50)
- * @param {string} containerId - ID of the container element
+ * Display ad in a specific container
+ * @param {string} containerId - Container element ID
+ * @param {string} contentId - Content element ID where ad will be inserted
+ * @param {string} adCode - HTML/JavaScript ad code
  */
-export function loadMobileBannerAd(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    console.warn(`⚠️ Container ${containerId} not found for mobile banner ad`);
-    return;
-  }
-
-  // Prevent duplicate loading
-  const adKey = `mobile-${containerId}`;
-  if (loadedAds.has(adKey)) {
-    console.log('ℹ️ Mobile banner ad already loaded in this container');
-    return;
-  }
-
-  try {
-    // Clear container
-    container.innerHTML = '';
+function displayAd(containerId, contentId, adCode) {
+    const container = document.getElementById(containerId);
+    const content = document.getElementById(contentId);
     
-    // Initially hide the parent container
-    const parentContainer = container.closest('.ad-container');
-    if (parentContainer) {
-      parentContainer.classList.add('hidden');
-      parentContainer.classList.remove('loaded');
+    if (!container || !content) {
+        console.error(`❌ Ad container not found: ${containerId}`);
+        return;
     }
-
-    // Set global atOptions for this ad
-    window.atOptions = {
-      key: AD_CONFIG.mobileBanner.key,
-      format: AD_CONFIG.mobileBanner.format,
-      height: AD_CONFIG.mobileBanner.height,
-      width: AD_CONFIG.mobileBanner.width,
-      params: {}
-    };
-
-    // Create script element
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = AD_CONFIG.mobileBanner.invokeUrl;
-    script.async = true;
     
-    script.onload = () => {
-      // Check if ad loaded after a delay
-      setTimeout(() => {
-        if (hasAdContent(container)) {
-          showAdContainer(container);
-          loadedAds.add(adKey);
-          console.log(`✅ Mobile banner ad loaded successfully in ${containerId}`);
-        } else {
-          hideAdContainer(container);
-          console.warn(`⚠️ No ad content in ${containerId}, container hidden`);
+    try {
+        // Show the container
+        container.classList.remove('hidden');
+        
+        // Insert ad code
+        content.innerHTML = adCode;
+        
+        // Execute any scripts in the ad code
+        const scripts = content.getElementsByTagName('script');
+        Array.from(scripts).forEach(script => {
+            const newScript = document.createElement('script');
+            
+            // Copy all attributes from original script
+            Array.from(script.attributes).forEach(attr => {
+                newScript.setAttribute(attr.name, attr.value);
+            });
+            
+            if (script.src) {
+                // External script
+                newScript.src = script.src;
+                newScript.async = true;
+            } else {
+                // Inline script
+                newScript.textContent = script.textContent;
+            }
+            
+            // Append to body to execute
+            document.body.appendChild(newScript);
+            
+            // Clean up old script after execution
+            setTimeout(() => {
+                if (newScript.parentNode) {
+                    newScript.parentNode.removeChild(newScript);
+                }
+            }, 100);
+        });
+        
+        // Add loaded animation class
+        setTimeout(() => {
+            container.classList.add('loaded');
+        }, 150);
+        
+        console.log(`✅ Ad displayed successfully in ${containerId}`);
+    } catch (error) {
+        console.error(`❌ Error displaying ad in ${containerId}:`, error);
+    }
+}
+
+/**
+ * Load modal/popup ad when user claims rewards
+ */
+export function loadModalAd() {
+    const modalAd = localStorage.getItem('farmzone_ad_modal');
+    const claimAdDiv = document.getElementById('claimAd');
+    
+    if (!claimAdDiv) {
+        console.error('❌ Modal ad container not found');
+        return;
+    }
+    
+    if (modalAd) {
+        try {
+            // Clear previous content
+            claimAdDiv.innerHTML = '';
+            
+            // Create a wrapper div
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = modalAd;
+            claimAdDiv.appendChild(wrapper);
+            
+            // Execute scripts in modal ad
+            const scripts = wrapper.getElementsByTagName('script');
+            Array.from(scripts).forEach(script => {
+                const newScript = document.createElement('script');
+                
+                // Copy all attributes
+                Array.from(script.attributes).forEach(attr => {
+                    newScript.setAttribute(attr.name, attr.value);
+                });
+                
+                if (script.src) {
+                    newScript.src = script.src;
+                    newScript.async = true;
+                } else {
+                    newScript.textContent = script.textContent;
+                }
+                
+                document.body.appendChild(newScript);
+                
+                // Clean up
+                setTimeout(() => {
+                    if (newScript.parentNode) {
+                        newScript.parentNode.removeChild(newScript);
+                    }
+                }, 100);
+            });
+            
+            console.log('✅ Modal ad loaded from Admin Panel');
+            return true; // Ad loaded successfully
+        } catch (error) {
+            console.error('❌ Error loading modal ad:', error);
+            claimAdDiv.innerHTML = '<p class="text-gray-600 text-sm text-center">Thank you for using FarmZone! 🎉</p>';
+            return false;
         }
-      }, 1000);
-    };
-    
-    script.onerror = () => {
-      console.error(`❌ Failed to load mobile banner ad in ${containerId}`);
-      hideAdContainer(container);
-    };
-
-    // Append to container
-    container.appendChild(script);
-    
-    // Safety check: hide container if no ad after timeout
-    monitorAdLoading(container, 6000);
-
-  } catch (error) {
-    console.error('❌ Error loading mobile banner ad:', error);
-    hideAdContainer(container);
-  }
+    } else {
+        // No admin ad configured, show fallback message
+        claimAdDiv.innerHTML = '<p class="text-gray-600 text-sm text-center">Thank you for using FarmZone! 🎉</p>';
+        console.log('ℹ️ No modal ad configured, showing fallback message');
+        return false;
+    }
 }
 
 /**
- * Load Rewarded Ad (728x90 - shown during reward claiming)
- * @param {string} containerId - ID of the container element
+ * Show ad modal with smart fallback system
+ * First tries Admin Panel ad, then falls back to default ad
+ * @param {string} fallbackAdKey - Optional fallback ad key for PropellerAds
  */
-export function loadRewardedAd(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    console.warn(`⚠️ Container ${containerId} not found for rewarded ad`);
-    return;
-  }
-
-  try {
-    // Clear container (rewarded ads can be loaded multiple times)
-    container.innerHTML = '';
-    container.classList.remove('loaded');
-    
-    // Initially hide
-    const parentContainer = container.closest('.ad-container');
-    if (parentContainer) {
-      parentContainer.classList.add('hidden');
-      parentContainer.classList.remove('loaded');
+export function showAdModal(fallbackAdKey = '78ade24182729fceea8e45203dad915b') {
+    const modal = document.getElementById('adModal');
+    if (!modal) {
+        console.warn("❌ Ad modal not found");
+        return;
     }
 
-    // Set global atOptions for this ad
-    window.atOptions = {
-      key: AD_CONFIG.rewarded.key,
-      format: AD_CONFIG.rewarded.format,
-      height: AD_CONFIG.rewarded.height,
-      width: AD_CONFIG.rewarded.width,
-      params: {}
-    };
-
-    // Create script element
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = AD_CONFIG.rewarded.invokeUrl;
-    script.async = true;
+    // First, try to load ad from Admin Panel
+    const adminModalAd = localStorage.getItem('farmzone_ad_modal');
     
-    script.onload = () => {
-      // Check if ad loaded after a delay
-      setTimeout(() => {
-        if (hasAdContent(container)) {
-          showAdContainer(container);
-          console.log('✅ Rewarded ad loaded successfully');
-        } else {
-          hideAdContainer(container);
-          console.warn('⚠️ No rewarded ad content, container hidden');
+    if (adminModalAd) {
+        // Use admin-configured ad
+        console.log('📢 Loading ad from Admin Panel');
+        loadModalAd();
+    } else {
+        // Fallback to default ad
+        console.log('📢 Loading default fallback ad');
+        loadFallbackAd(fallbackAdKey);
+    }
+
+    // Show modal
+    modal.style.display = 'flex';
+    
+    // Setup close handlers
+    setupModalCloseHandlers(modal);
+}
+
+/**
+ * Load fallback ad (PropellerAds or similar)
+ * @param {string} adKey - Ad network key
+ */
+function loadFallbackAd(adKey) {
+    const adContainer = document.getElementById('claimAd');
+    
+    if (!adContainer) {
+        console.warn("❌ Ad container not found");
+        return;
+    }
+
+    // Clear previous ad
+    adContainer.innerHTML = '';
+    
+    // Create ad script container
+    const container = document.createElement('div');
+    container.innerHTML = `
+        <script type="text/javascript">
+            atOptions = {'key':'${adKey}','format':'iframe','height':250,'width':300,'params':{}};
+        </script>
+        <script type="text/javascript" src="//www.highperformanceformat.com/${adKey}/invoke.js"></script>
+    `;
+    adContainer.appendChild(container);
+    
+    console.log('✅ Fallback ad loaded');
+}
+
+/**
+ * Setup modal close handlers
+ * @param {HTMLElement} modal - Modal element
+ */
+function setupModalCloseHandlers(modal) {
+    const close = () => {
+        modal.style.display = 'none';
+    };
+    
+    // Close button handler
+    const closeBtn = document.getElementById('adCloseBtn');
+    if (closeBtn) {
+        // Remove old listeners to prevent duplicates
+        closeBtn.removeEventListener('click', close);
+        closeBtn.addEventListener('click', close);
+    }
+    
+    // Auto-close after 5 seconds
+    setTimeout(close, 5000);
+}
+
+/**
+ * Initialize Admin Panel access shortcut
+ * Triple tap on logo to open admin panel
+ */
+export function initAdminAccess() {
+    let logoTapCount = 0;
+    let logoTapTimer;
+
+    const logo = document.querySelector('header img');
+    if (!logo) {
+        console.warn('⚠️ Logo not found for admin access shortcut');
+        return;
+    }
+    
+    logo.addEventListener('click', () => {
+        logoTapCount++;
+        
+        clearTimeout(logoTapTimer);
+        
+        if (logoTapCount === 3) {
+            const confirmed = confirm(
+                '🔐 Access Admin Panel?\n\n' +
+                'This will open the advertisement management panel where you can:\n' +
+                '• Configure top banner ads\n' +
+                '• Configure bottom banner ads\n' +
+                '• Configure modal popup ads'
+            );
+            
+            if (confirmed) {
+                window.location.href = 'admin.html';
+            }
+            logoTapCount = 0;
         }
-      }, 1000);
-    };
-    
-    script.onerror = () => {
-      console.error('❌ Failed to load rewarded ad');
-      hideAdContainer(container);
-    };
-
-    // Append to container
-    container.appendChild(script);
-    
-    // Safety check
-    monitorAdLoading(container, 6000);
-
-  } catch (error) {
-    console.error('❌ Error loading rewarded ad:', error);
-    hideAdContainer(container);
-  }
-}
-
-/**
- * Preload ads for better performance
- * Call this function early in your app lifecycle
- */
-export function preloadAds() {
-  console.log('🔄 Preloading ad scripts...');
-  
-  // Preload scripts by creating link elements
-  const scripts = [
-    AD_CONFIG.mobileBanner.invokeUrl,
-    AD_CONFIG.rewarded.invokeUrl
-  ];
-
-  scripts.forEach(src => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'script';
-    link.href = src;
-    document.head.appendChild(link);
-  });
-  
-  console.log('✅ Ad scripts preloaded');
-}
-
-/**
- * Clear ad from container
- * @param {string} containerId - ID of the container element
- */
-export function clearAd(containerId) {
-  const container = document.getElementById(containerId);
-  if (container) {
-    container.innerHTML = '';
-    container.classList.remove('loaded');
-    
-    // Hide parent container
-    const parentContainer = container.closest('.ad-container');
-    if (parentContainer) {
-      parentContainer.classList.remove('loaded');
-      parentContainer.classList.add('hidden');
-    }
-    
-    // Remove from loaded ads set
-    loadedAds.forEach(key => {
-      if (key.includes(containerId)) {
-        loadedAds.delete(key);
-      }
+        
+        logoTapTimer = setTimeout(() => {
+            logoTapCount = 0;
+        }, 1000); // Reset after 1 second
     });
     
-    console.log(`🗑️ Ad cleared from ${containerId}`);
-  }
+    console.log('✅ Admin access shortcut initialized (Triple tap logo)');
 }
 
 /**
- * Refresh ad in container
- * @param {string} containerId - ID of the container element
- * @param {string} adType - Type of ad: 'mobile' or 'rewarded'
+ * Check if any ads are configured
+ * @returns {Object} Status of all ad slots
  */
-export function refreshAd(containerId, adType) {
-  console.log(`🔄 Refreshing ${adType} ad in ${containerId}`);
-  clearAd(containerId);
-  
-  setTimeout(() => {
-    switch(adType) {
-      case 'mobile':
-        loadMobileBannerAd(containerId);
-        break;
-      case 'rewarded':
-        loadRewardedAd(containerId);
-        break;
-      default:
-        console.warn(`⚠️ Unknown ad type: ${adType}`);
-    }
-  }, 100);
+export function getAdStatus() {
+    return {
+        topBanner: !!localStorage.getItem('farmzone_ad_1'),
+        bottomBanner: !!localStorage.getItem('farmzone_ad_2'),
+        modalAd: !!localStorage.getItem('farmzone_ad_modal')
+    };
 }
 
 /**
- * Check if an ad is loaded in a container
- * @param {string} containerId - ID of the container element
- * @returns {boolean} - True if ad is loaded
+ * Clear all configured ads (for debugging)
  */
-export function isAdLoaded(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return false;
-  
-  const adKey = `mobile-${containerId}`;
-  return loadedAds.has(adKey) && hasAdContent(container);
+export function clearAllAds() {
+    localStorage.removeItem('farmzone_ad_1');
+    localStorage.removeItem('farmzone_ad_2');
+    localStorage.removeItem('farmzone_ad_modal');
+    console.log('🗑️ All ads cleared from localStorage');
 }
 
-/**
- * Get ad statistics
- * @returns {object} - Statistics about loaded ads
- */
-export function getAdStats() {
-  return {
-    totalLoaded: loadedAds.size,
-    loadedAds: Array.from(loadedAds),
-    config: {
-      mobileBanner: AD_CONFIG.mobileBanner.key,
-      rewarded: AD_CONFIG.rewarded.key
-    }
-  };
+// Export for debugging in console
+if (typeof window !== 'undefined') {
+    window.adDebug = {
+        getAdStatus,
+        clearAllAds,
+        loadAdvertisements,
+        loadModalAd
+    };
 }
-
-// Auto-initialize on module load
-console.log('🎯 FarmZone Ad System initialized (Mobile + Rewarded only)');
-console.log('📱 Mobile Banner Ad Key:', AD_CONFIG.mobileBanner.key);
-console.log('🎁 Rewarded Ad Key:', AD_CONFIG.rewarded.key);
-
-// Export all functions
-export default {
-  loadMobileBannerAd,
-  loadRewardedAd,
-  preloadAds,
-  clearAd,
-  refreshAd,
-  isAdLoaded,
-  getAdStats,
-  AD_CONFIG
-};
