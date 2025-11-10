@@ -1,33 +1,59 @@
-// app.js - Main application file
+// app.js - Main application file (Updated for dynamic HTML architecture)
 import { auth, database } from './config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-import { ref, get, set, onValue, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+import { ref, get, set, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
-// Import mining functions
+// Import home module
 import { 
     calculateCurrentEarned, 
     startCountdownAndEarned,
-    startMining as startMiningFunc, 
-    stopMining as stopMiningFunc,
-    claimMiningReward as claimMiningRewardFunc,
-    cleanupMining
-} from './mining.js';
+    cleanupMining,
+    initHomeSection,
+    renderHomeSection // NEW: Dynamic rendering
+} from './home.js';
 
-// Import referral functions
+// Import profile module
 import { 
-    submitReferralCode as submitReferralCodeFunc,
-    claimReferralRewards as claimReferralRewardsFunc,
+    copyReferralCode,
+    shareReferralCode,
+    submitReferralCode,
+    claimReferralRewards,
     checkReferralMilestones,
-    copyReferralCode as copyReferralCodeFunc,
-    shareReferralCode as shareReferralCodeFunc
-} from './referral.js';
+    initProfileSection,
+    renderProfileSection // NEW: Dynamic rendering
+} from './profile.js';
 
-// Import advertisement system (NEW - updated for ad rotation)
+// Import wallet module
+import { 
+    updateWalletDisplay,
+    handleWithdraw,
+    initWalletSection,
+    renderWalletSection // NEW: Dynamic rendering
+} from './wallet.js';
+
+// Import bonus module
+import { 
+    isBonusAvailable,
+    updateBonusTimer,
+    claimBonus,
+    cleanupBonus,
+    initBonusSection,
+    renderBonusSection // NEW: Dynamic rendering
+} from './bonus.js';
+
+// Import ad system
 import { 
     initAdSystem,
     setAppLoaded,
     showAdModal
 } from './ad.js';
+
+// Import mining functions
+import { 
+    startMining as startMiningFunc, 
+    stopMining as stopMiningFunc,
+    claimMiningReward as claimMiningRewardFunc
+} from './mining.js';
 
 // ========================================
 // GLOBALS & CONSTANTS
@@ -39,6 +65,12 @@ let unsubscribeUser = null;
 let unsubscribeSettings = null;
 let authUnsubscribe = null;
 let isAppFullyLoaded = false;
+let sectionsRendered = {
+    home: false,
+    profile: false,
+    wallet: false,
+    bonus: false
+};
 
 // App Settings
 let appSettings = {
@@ -81,6 +113,7 @@ function cleanup() {
     if (unsubscribeSettings) unsubscribeSettings();
     if (authUnsubscribe) authUnsubscribe();
     cleanupMining();
+    cleanupBonus();
 }
 window.addEventListener('beforeunload', cleanup);
 
@@ -107,17 +140,78 @@ function generateReferralCode() {
     return `FZ-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 }
 
+// ========================================
+// DYNAMIC SECTION RENDERING
+// ========================================
+function ensureSectionRendered(section) {
+    if (sectionsRendered[section]) return;
+    
+    console.log(`🔧 Rendering ${section} section dynamically...`);
+    
+    switch(section) {
+        case 'home':
+            renderHomeSection();
+            sectionsRendered.home = true;
+            break;
+        case 'profile':
+            renderProfileSection();
+            sectionsRendered.profile = true;
+            break;
+        case 'wallet':
+            renderWalletSection();
+            sectionsRendered.wallet = true;
+            break;
+        case 'bonus':
+            renderBonusSection();
+            sectionsRendered.bonus = true;
+            break;
+    }
+}
+
+// ========================================
+// SECTION SWITCHING
+// ========================================
 function switchSection(section) {
+    // Ensure section is rendered before switching
+    ensureSectionRendered(section);
+    
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('text-green-600', 'active'));
     
-    if (section === 'home') {
-        document.getElementById('homeSection')?.classList.add('active');
-        document.getElementById('homeBtn')?.classList.add('text-green-600', 'active');
+    const sectionMap = {
+        'home': 'homeSection',
+        'profile': 'profileSection',
+        'wallet': 'walletSection',
+        'bonus': 'bonusSection'
+    };
+    
+    const btnMap = {
+        'home': 'homeBtn',
+        'profile': 'profileBtn',
+        'wallet': 'walletBtn',
+        'bonus': 'bonusBtn'
+    };
+    
+    const sectionEl = document.getElementById(sectionMap[section]);
+    const btnEl = document.getElementById(btnMap[section]);
+    
+    if (sectionEl) sectionEl.classList.add('active');
+    if (btnEl) btnEl.classList.add('text-green-600', 'active');
+    
+    // Initialize section-specific functionality after rendering
+    if (section === 'wallet') {
+        initWalletSection(userData);
+        updateWalletDisplay(userData);
+    } else if (section === 'bonus') {
+        initBonusSection(userData, getServerTime);
+    } else if (section === 'home') {
+        initHomeSection();
     } else if (section === 'profile') {
-        document.getElementById('profileSection')?.classList.add('active');
-        document.getElementById('profileBtn')?.classList.add('text-green-600', 'active');
+        initProfileSection();
     }
+    
+    // Update UI for the new section
+    updateUI();
 }
 
 // ========================================
@@ -144,7 +238,7 @@ function getCurrentLevelProgress(totalMined) {
 }
 
 // ========================================
-// UI UPDATE
+// UI UPDATE (Updated for dynamic elements)
 // ========================================
 function updateUI() {
     if (!userData) return;
@@ -158,67 +252,61 @@ function updateUI() {
     const balance = (userData.balance || 0).toFixed(2);
     const referralRewards = (userData.referralRewards || 0).toFixed(2);
 
-    // Select elements once
-    const els = {
-        totalBalance: document.getElementById('totalBalance'),
-        profileBalance: document.getElementById('profileBalance'),
-        miningRate: document.getElementById('miningRate'),
-        referralCount: document.getElementById('referralCount'),
-        totalMined: document.getElementById('totalMined'),
-        currentEarned: document.getElementById('currentEarned'),
-        earnedDisplay: document.getElementById('earnedDisplay'),
-        referralRewards: document.getElementById('referralRewards'),
-        refCode: document.getElementById('refCode'),
-        joinDate: document.getElementById('joinDate'),
-        progressBar: document.getElementById('progressBar'),
-        levelText: document.getElementById('levelText'),
-        claimReferralBtn: document.getElementById('claimReferralBtn'),
-        referralSubmitBox: document.getElementById('referralSubmitBox'),
-        referralSubmittedBox: document.getElementById('referralSubmittedBox'),
-        miningBtn: document.getElementById('miningBtn'),
-        miningStatus: document.getElementById('miningStatus'),
-        timerDisplay: document.querySelector('#miningBtn .timer-display')
+    // Safe element updates - only update if element exists
+    const updateElement = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
     };
 
-    // Update text
-    els.totalBalance && (els.totalBalance.textContent = `${balance} FZ`);
-    els.profileBalance && (els.profileBalance.textContent = `${balance} FZ`);
-    els.miningRate && (els.miningRate.textContent = `${miningRate}/hr`);
-    els.referralCount && (els.referralCount.textContent = referralCount);
-    els.totalMined && (els.totalMined.textContent = `${totalMined.toFixed(2)} FZ`);
-    els.currentEarned && (els.currentEarned.textContent = `${currentEarned.toFixed(6)} FZ`);
-    els.earnedDisplay && (els.earnedDisplay.textContent = `${currentEarned.toFixed(6)} FZ`);
-    els.referralRewards && (els.referralRewards.textContent = `${referralRewards} FZ`);
-    els.refCode && (els.refCode.textContent = userData.referralCode || '---');
-    els.joinDate && (els.joinDate.textContent = userData.joinDate || '---');
+    // Update elements
+    updateElement('totalBalance', `${balance} FZ`);
+    updateElement('profileBalance', `${balance} FZ`);
+    updateElement('walletBalance', `${balance} FZ`);
+    updateElement('miningRate', `${miningRate}/hr`);
+    updateElement('referralCount', referralCount);
+    updateElement('totalMined', `${totalMined.toFixed(2)} FZ`);
+    updateElement('currentEarned', `${currentEarned.toFixed(6)} FZ`);
+    updateElement('earnedDisplay', `${currentEarned.toFixed(6)} FZ`);
+    updateElement('referralRewards', `${referralRewards} FZ`);
+    updateElement('refCode', userData.referralCode || '---');
+    updateElement('joinDate', userData.joinDate || '---');
 
     // Level
-    if (els.progressBar) els.progressBar.style.width = `${levelInfo.progress}%`;
-    if (els.levelText) {
-        els.levelText.textContent = `Level ${levelInfo.level} / ${MAX_LEVEL} (${levelInfo.current}/${levelInfo.required} FZ)`;
+    const progressBar = document.getElementById('progressBar');
+    if (progressBar) progressBar.style.width = `${levelInfo.progress}%`;
+    
+    const levelText = document.getElementById('levelText');
+    if (levelText) {
+        levelText.textContent = `Level ${levelInfo.level} / ${MAX_LEVEL} (${levelInfo.current}/${levelInfo.required} FZ)`;
     }
 
     // Referral Claim
-    if (els.claimReferralBtn) {
-        els.claimReferralBtn.style.display = userData.referralRewards > 0 ? 'block' : 'none';
+    const claimReferralBtn = document.getElementById('claimReferralBtn');
+    if (claimReferralBtn) {
+        claimReferralBtn.style.display = userData.referralRewards > 0 ? 'block' : 'none';
     }
 
     // Referral Input
-    if (els.referralSubmitBox && els.referralSubmittedBox) {
+    const referralSubmitBox = document.getElementById('referralSubmitBox');
+    const referralSubmittedBox = document.getElementById('referralSubmittedBox');
+    if (referralSubmitBox && referralSubmittedBox) {
         const isReferred = !!userData.referredBy;
-        els.referralSubmitBox.style.display = isReferred ? 'none' : 'block';
-        els.referralSubmittedBox.style.display = isReferred ? 'block' : 'none';
+        referralSubmitBox.style.display = isReferred ? 'none' : 'block';
+        referralSubmittedBox.style.display = isReferred ? 'block' : 'none';
     }
 
     // Mining Button State
-    if (els.miningBtn && els.miningStatus && els.timerDisplay) {
+    const miningBtn = document.getElementById('miningBtn');
+    const miningStatus = document.getElementById('miningStatus');
+    const timerDisplay = document.querySelector('#miningBtn .timer-display');
+    
+    if (miningBtn && miningStatus && timerDisplay) {
         const now = getServerTime();
         if (userData.miningStartTime && now < userData.miningEndTime) {
-            els.miningBtn.disabled = true;
-            els.miningBtn.classList.remove('claim');
-            els.miningStatus.textContent = 'Active';
-            els.miningStatus.className = 'mining-status text-green-600';
-            // Start countdown + earned update
+            miningBtn.disabled = true;
+            miningBtn.classList.remove('claim');
+            miningStatus.textContent = 'Active';
+            miningStatus.className = 'mining-status text-green-600';
             startCountdownAndEarned(
                 userData.miningEndTime,
                 getServerTime,
@@ -228,21 +316,26 @@ function updateUI() {
                 showNotification
             );
         } else if (userData.miningStartTime && now >= userData.miningEndTime) {
-            els.miningBtn.classList.add('claim');
-            els.miningBtn.disabled = false;
-            els.timerDisplay.textContent = 'Claim';
-            els.miningStatus.textContent = 'Ready to Claim';
-            els.miningStatus.className = 'mining-status text-yellow-600';
+            miningBtn.classList.add('claim');
+            miningBtn.disabled = false;
+            timerDisplay.textContent = 'Claim';
+            miningStatus.textContent = 'Ready to Claim';
+            miningStatus.className = 'mining-status text-yellow-600';
         } else {
-            els.miningBtn.classList.remove('claim');
-            els.miningBtn.disabled = false;
-            els.timerDisplay.textContent = 'Start Mining';
-            els.miningStatus.textContent = 'Inactive';
-            els.miningStatus.className = 'mining-status text-gray-600';
+            miningBtn.classList.remove('claim');
+            miningBtn.disabled = false;
+            timerDisplay.textContent = 'Start Mining';
+            miningStatus.textContent = 'Inactive';
+            miningStatus.className = 'mining-status text-gray-600';
         }
     }
 
-    // Check if app is fully loaded and start ads
+    // Update bonus timer if on bonus section
+    const bonusSection = document.getElementById('bonusSection');
+    if (bonusSection && bonusSection.classList.contains('active')) {
+        updateBonusTimer(userData, getServerTime);
+    }
+
     checkAndStartAds();
 }
 
@@ -250,7 +343,6 @@ function updateUI() {
 // AD SYSTEM INTEGRATION
 // ========================================
 function checkAndStartAds() {
-    // Start ads only once when all conditions are met
     if (!isAppFullyLoaded && userData && currentUser) {
         isAppFullyLoaded = true;
         console.log('✅ App fully loaded - Starting ad rotation');
@@ -259,7 +351,7 @@ function checkAndStartAds() {
 }
 
 // ========================================
-// WRAPPER FUNCTIONS FOR MINING
+// MINING WRAPPERS
 // ========================================
 async function startMining() {
     try {
@@ -303,45 +395,6 @@ function claimMiningReward() {
 }
 
 // ========================================
-// WRAPPER FUNCTIONS FOR REFERRAL
-// ========================================
-function submitReferralCode() {
-    try {
-        submitReferralCodeFunc(currentUser, userData, appSettings, showStatus);
-    } catch (error) {
-        console.error("Referral submit error:", error);
-        showNotification("Failed to submit referral code", "error");
-    }
-}
-
-function claimReferralRewards() {
-    try {
-        claimReferralRewardsFunc(currentUser, userData, showNotification, showAdModal);
-    } catch (error) {
-        console.error("Referral claim error:", error);
-        showNotification("Failed to claim referral rewards", "error");
-    }
-}
-
-function copyReferralCode() {
-    try {
-        copyReferralCodeFunc(userData, showNotification);
-    } catch (error) {
-        console.error("Copy error:", error);
-        showNotification("Failed to copy code", "error");
-    }
-}
-
-function shareReferralCode(platform) {
-    try {
-        shareReferralCodeFunc(userData, platform, appSettings, showNotification);
-    } catch (error) {
-        console.error("Share error:", error);
-        showNotification("Failed to share", "error");
-    }
-}
-
-// ========================================
 // USER INIT
 // ========================================
 async function initializeUserData(user) {
@@ -352,6 +405,12 @@ async function initializeUserData(user) {
             await createNewUser(user);
         } else {
             userData = snap.val();
+            
+            // Render home section immediately when user data is loaded
+            if (!sectionsRendered.home) {
+                ensureSectionRendered('home');
+            }
+            
             updateUI();
         }
     }, (error) => {
@@ -396,56 +455,82 @@ function logout() {
 }
 
 // ========================================
+// EVENT DELEGATION FOR DYNAMIC ELEMENTS
+// ========================================
+function setupEventDelegation() {
+    // Use event delegation on body for dynamically created elements
+    document.body.addEventListener('click', (e) => {
+        const target = e.target;
+        
+        // Mining button
+        if (target.id === 'miningBtn' || target.closest('#miningBtn')) {
+            const btn = document.getElementById('miningBtn');
+            if (btn.classList.contains('claim')) {
+                claimMiningReward();
+            } else {
+                startMining();
+            }
+        }
+        
+        // Referral buttons
+        if (target.id === 'claimReferralBtn') {
+            claimReferralRewards(currentUser, userData, showNotification, showAdModal);
+        }
+        if (target.id === 'submitReferralBtn') {
+            submitReferralCode(currentUser, userData, appSettings, showStatus);
+        }
+        if (target.id === 'copyCode') {
+            copyReferralCode(userData, showNotification);
+        }
+        if (target.id === 'shareWA') {
+            shareReferralCode(userData, 'whatsapp', appSettings, showNotification);
+        }
+        if (target.id === 'shareTG') {
+            shareReferralCode(userData, 'telegram', appSettings, showNotification);
+        }
+        
+        // Bonus button
+        if (target.id === 'claimBonusBtn') {
+            claimBonus(currentUser, userData, getServerTime, showNotification, showAdModal);
+        }
+        
+        // Wallet button
+        if (target.id === 'withdrawBtn') {
+            handleWithdraw(currentUser, userData, showStatus);
+        }
+        
+        // Auth button
+        if (target.id === 'authBtn') {
+            logout();
+        }
+    });
+}
+
+// ========================================
 // DOM READY
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Hide loading screen
     const loading = document.getElementById('loading');
     if (loading) loading.style.display = 'none';
     
-    console.log("✅ App initialized");
+    console.log("✅ App initialized - Dynamic architecture ready");
 
-    // Initialize advertisement system (NEW)
+    // Initialize systems
     initAdSystem();
-    console.log("📢 Ad system initialized - waiting for user data to load");
+    
+    // Setup event delegation for dynamic elements
+    setupEventDelegation();
 
-    // Get all elements
-    const els = {
-        homeBtn: document.getElementById('homeBtn'),
-        profileBtn: document.getElementById('profileBtn'),
-        walletBtn: document.getElementById('walletBtn'),
-        miningBtn: document.getElementById('miningBtn'),
-        claimReferralBtn: document.getElementById('claimReferralBtn'),
-        submitReferralBtn: document.getElementById('submitReferralBtn'),
-        copyCode: document.getElementById('copyCode'),
-        shareWA: document.getElementById('shareWA'),
-        shareTG: document.getElementById('shareTG'),
-        authBtn: document.getElementById('authBtn')
-    };
+    // Navigation buttons (these are static, so regular event listeners work)
+    const homeBtn = document.getElementById('homeBtn');
+    const profileBtn = document.getElementById('profileBtn');
+    const walletBtn = document.getElementById('walletBtn');
+    const bonusBtn = document.getElementById('bonusBtn');
 
-    // Navigation
-    els.homeBtn?.addEventListener('click', () => switchSection('home'));
-    els.profileBtn?.addEventListener('click', () => switchSection('profile'));
-    els.walletBtn?.addEventListener('click', () => location.href = 'wallet.html');
-    
-    // Mining
-    els.miningBtn?.addEventListener('click', () => {
-        if (els.miningBtn.classList.contains('claim')) {
-            claimMiningReward();
-        } else {
-            startMining();
-        }
-    });
-    
-    // Referral
-    els.claimReferralBtn?.addEventListener('click', claimReferralRewards);
-    els.submitReferralBtn?.addEventListener('click', submitReferralCode);
-    els.copyCode?.addEventListener('click', copyReferralCode);
-    els.shareWA?.addEventListener('click', () => shareReferralCode('whatsapp'));
-    els.shareTG?.addEventListener('click', () => shareReferralCode('telegram'));
-    
-    // Auth
-    els.authBtn?.addEventListener('click', logout);
+    homeBtn?.addEventListener('click', () => switchSection('home'));
+    profileBtn?.addEventListener('click', () => switchSection('profile'));
+    walletBtn?.addEventListener('click', () => switchSection('wallet'));
+    bonusBtn?.addEventListener('click', () => switchSection('bonus'));
 });
 
 // ========================================
@@ -463,3 +548,15 @@ authUnsubscribe = onAuthStateChanged(auth, user => {
         location.href = 'login.html';
     }
 });
+
+// Export for other modules to use
+export { 
+    currentUser, 
+    userData, 
+    appSettings, 
+    getServerTime, 
+    showNotification, 
+    showStatus,
+    updateUI,
+    switchSection
+};
