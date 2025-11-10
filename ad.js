@@ -1,29 +1,35 @@
-// ad.js - Advertisement Management System
-// ==========================================
+// ad.js - Advertisement Management System (Updated for Dynamic Architecture)
+// =============================================================================
 // DIRECT AD INTEGRATION (No Admin Panel)
-// ==========================================
+// =============================================================================
 
 /**
  * Advertisement Configuration
  * Define all ad codes directly here
  */
 const AD_CONFIG = {
-    // Ad Slot 1 - Top Banner (Desktop: 728x90)
+    // Ad Slot 1 - Top Banner (Desktop: 728x90, Mobile: 320x50)
     slot1: {
         key: '63718988f07bc6d276f3c6a441757cae',
         format: 'iframe',
         height: 90,
         width: 728,
-        name: 'Top Banner'
+        mobileHeight: 50,
+        mobileWidth: 320,
+        name: 'Top Banner',
+        priority: 1
     },
     
-    // Ad Slot 2 - Bottom Banner (Desktop: 728x90)
+    // Ad Slot 2 - Bottom Banner (Desktop: 728x90, Mobile: 320x50)
     slot2: {
         key: '53c6462d2fd5ad5b91686ca9561f79a2',
         format: 'iframe',
         height: 90,
         width: 728,
-        name: 'Bottom Banner'
+        mobileHeight: 50,
+        mobileWidth: 320,
+        name: 'Bottom Banner',
+        priority: 2
     },
     
     // Ad Slot 3 - Modal/Popup (Mobile: 320x50)
@@ -32,7 +38,8 @@ const AD_CONFIG = {
         format: 'iframe',
         height: 50,
         width: 320,
-        name: 'Modal Ad'
+        name: 'Modal Ad',
+        priority: 3
     }
 };
 
@@ -40,9 +47,11 @@ const AD_CONFIG = {
  * Ad rotation settings
  */
 const ROTATION_SETTINGS = {
-    interval: 15000, // 15 seconds (15-20 সেকেন্ড range এ 15 নিলাম)
+    interval: 15000, // 15 seconds
     ads: ['slot1', 'slot2', 'slot3'],
-    currentIndex: 0
+    currentIndex: 0,
+    autoRotate: true,
+    pauseOnClaim: false // Don't pause rotation when modal opens
 };
 
 /**
@@ -51,14 +60,44 @@ const ROTATION_SETTINGS = {
 let appLoaded = false;
 let rotationTimer = null;
 let currentlyDisplayedAd = null;
+let adContainer = null;
+let adContent = null;
+let modalElement = null;
+let userInteractionCount = 0; // Track user interactions
+let lastAdChangeTime = Date.now();
+
+/**
+ * Initialize DOM elements (called after DOM is ready)
+ */
+function initializeDOMElements() {
+    adContainer = document.getElementById('mainAdContainer');
+    adContent = document.getElementById('mainAdContent');
+    modalElement = document.getElementById('adModal');
+    
+    if (!adContainer || !adContent) {
+        console.warn('⚠️ Ad container elements not found. Ads will be disabled.');
+        return false;
+    }
+    
+    console.log('✅ Ad DOM elements initialized');
+    return true;
+}
 
 /**
  * Mark app as loaded
  * Call this function when your app/game finishes loading
  */
 export function setAppLoaded() {
+    if (!initializeDOMElements()) {
+        console.error('❌ Failed to initialize ad system - DOM elements missing');
+        return;
+    }
+    
     appLoaded = true;
     console.log('✅ App loaded - Starting ad rotation');
+    console.log(`⚙️ Rotation: ${ROTATION_SETTINGS.interval / 1000}s interval`);
+    console.log(`📢 Ad sequence: ${ROTATION_SETTINGS.ads.map(slot => AD_CONFIG[slot].name).join(' → ')}`);
+    
     startAdRotation();
 }
 
@@ -70,12 +109,24 @@ export function isAppLoaded() {
 }
 
 /**
+ * Detect if device is mobile
+ */
+function isMobileDevice() {
+    return window.innerWidth <= 640;
+}
+
+/**
  * Start ad rotation system
  * Shows one ad at a time, rotates every 15-20 seconds
  */
 function startAdRotation() {
     if (!appLoaded) {
         console.log('⏳ App not loaded yet - Ad rotation will start after app loads');
+        return;
+    }
+    
+    if (!ROTATION_SETTINGS.autoRotate) {
+        console.log('⏸️ Auto-rotation is disabled');
         return;
     }
     
@@ -98,6 +149,11 @@ function startAdRotation() {
  * Show next ad in rotation
  */
 function showNextAd() {
+    if (!adContainer || !adContent) {
+        console.warn('⚠️ Ad elements not available');
+        return;
+    }
+    
     // Hide current ad if any
     if (currentlyDisplayedAd) {
         hideAd(currentlyDisplayedAd);
@@ -113,7 +169,10 @@ function showNextAd() {
     // Update index for next rotation
     ROTATION_SETTINGS.currentIndex = (ROTATION_SETTINGS.currentIndex + 1) % ROTATION_SETTINGS.ads.length;
     
-    console.log(`🎯 Now showing: ${adConfig.name} (Next rotation in ${ROTATION_SETTINGS.interval / 1000}s)`);
+    // Track timing
+    lastAdChangeTime = Date.now();
+    
+    console.log(`🎯 Now showing: ${adConfig.name} (Next in ${ROTATION_SETTINGS.interval / 1000}s)`);
 }
 
 /**
@@ -122,11 +181,8 @@ function showNextAd() {
  * @param {Object} adConfig - Ad configuration object
  */
 function displayRotatingAd(adSlot, adConfig) {
-    const container = document.getElementById('mainAdContainer');
-    const content = document.getElementById('mainAdContent');
-    
-    if (!container || !content) {
-        console.error(`❌ Main ad container not found`);
+    if (!adContainer || !adContent) {
+        console.error(`❌ Ad container not available`);
         return;
     }
     
@@ -135,29 +191,43 @@ function displayRotatingAd(adSlot, adConfig) {
         currentlyDisplayedAd = adSlot;
         
         // Show the container
-        container.classList.remove('hidden');
+        adContainer.classList.remove('hidden');
         
         // Clear previous content
-        content.innerHTML = '';
+        adContent.innerHTML = '';
         
-        // Create ad code
+        // Create ad code (mobile-responsive)
         const adCode = createAdCode(adConfig);
         
         // Insert ad code
-        content.innerHTML = adCode;
+        adContent.innerHTML = adCode;
         
         // Execute scripts
-        executeAdScripts(content);
+        executeAdScripts(adContent);
         
         // Add loaded animation class
         setTimeout(() => {
-            container.classList.add('loaded');
+            adContainer.classList.add('loaded');
         }, 150);
         
         console.log(`✅ ${adConfig.name} displayed successfully`);
     } catch (error) {
         console.error(`❌ Error displaying ${adConfig.name}:`, error);
+        handleAdLoadError(adSlot);
     }
+}
+
+/**
+ * Handle ad load errors
+ * @param {string} adSlot - Failed ad slot
+ */
+function handleAdLoadError(adSlot) {
+    console.warn(`⚠️ Skipping failed ad: ${adSlot}`);
+    
+    // Try next ad after 2 seconds
+    setTimeout(() => {
+        showNextAd();
+    }, 2000);
 }
 
 /**
@@ -165,16 +235,17 @@ function displayRotatingAd(adSlot, adConfig) {
  * @param {string} adSlot - Ad slot to hide
  */
 function hideAd(adSlot) {
-    const container = document.getElementById('mainAdContainer');
-    const content = document.getElementById('mainAdContent');
+    if (!adContainer || !adContent) return;
     
-    if (container && content) {
-        container.classList.add('hidden');
-        // Clear content after animation
-        setTimeout(() => {
-            content.innerHTML = '';
-        }, 300);
-    }
+    adContainer.classList.remove('loaded');
+    adContainer.classList.add('hidden');
+    
+    // Clear content after animation
+    setTimeout(() => {
+        if (adContent) {
+            adContent.innerHTML = '';
+        }
+    }, 300);
 }
 
 /**
@@ -194,18 +265,51 @@ export function stopAdRotation() {
 }
 
 /**
- * Create ad code HTML from configuration
+ * Pause ad rotation temporarily
+ * @param {number} duration - Pause duration in milliseconds (optional)
+ */
+export function pauseAdRotation(duration = 0) {
+    if (rotationTimer) {
+        clearInterval(rotationTimer);
+        rotationTimer = null;
+        console.log(`⏸️ Ad rotation paused${duration ? ` for ${duration / 1000}s` : ''}`);
+        
+        if (duration > 0) {
+            setTimeout(() => {
+                console.log('▶️ Resuming ad rotation');
+                startAdRotation();
+            }, duration);
+        }
+    }
+}
+
+/**
+ * Resume ad rotation
+ */
+export function resumeAdRotation() {
+    if (!rotationTimer && appLoaded) {
+        console.log('▶️ Resuming ad rotation');
+        startAdRotation();
+    }
+}
+
+/**
+ * Create ad code HTML from configuration (mobile-responsive)
  * @param {Object} config - Ad configuration
  * @returns {string} HTML ad code
  */
 function createAdCode(config) {
+    const isMobile = isMobileDevice();
+    const height = isMobile && config.mobileHeight ? config.mobileHeight : config.height;
+    const width = isMobile && config.mobileWidth ? config.mobileWidth : config.width;
+    
     return `
         <script type="text/javascript">
             atOptions = {
                 'key': '${config.key}',
                 'format': '${config.format}',
-                'height': ${config.height},
-                'width': ${config.width},
+                'height': ${height},
+                'width': ${width},
                 'params': {}
             };
         </script>
@@ -218,6 +322,8 @@ function createAdCode(config) {
  * @param {HTMLElement} content - Content element containing scripts
  */
 function executeAdScripts(content) {
+    if (!content) return;
+    
     const scripts = content.getElementsByTagName('script');
     Array.from(scripts).forEach(script => {
         const newScript = document.createElement('script');
@@ -261,6 +367,9 @@ export function loadModalAd() {
     }
     
     try {
+        // Track user interaction
+        userInteractionCount++;
+        
         // Clear previous content
         claimAdDiv.innerHTML = '';
         
@@ -273,7 +382,7 @@ export function loadModalAd() {
         // Execute scripts
         executeAdScripts(claimAdDiv);
         
-        console.log('✅ Modal ad loaded');
+        console.log(`✅ Modal ad loaded (Interaction #${userInteractionCount})`);
         return true;
     } catch (error) {
         console.error('❌ Error loading modal ad:', error);
@@ -300,6 +409,11 @@ export function showAdModal() {
     
     // Setup close handlers
     setupModalCloseHandlers(modal);
+    
+    // Optionally pause rotation while modal is open
+    if (ROTATION_SETTINGS.pauseOnClaim) {
+        pauseAdRotation(5000); // Pause for 5 seconds
+    }
 }
 
 /**
@@ -309,14 +423,20 @@ export function showAdModal() {
 function setupModalCloseHandlers(modal) {
     const close = () => {
         modal.style.display = 'none';
+        
+        // Resume rotation if it was paused
+        if (ROTATION_SETTINGS.pauseOnClaim) {
+            resumeAdRotation();
+        }
     };
     
     // Close button handler
     const closeBtn = document.getElementById('adCloseBtn');
     if (closeBtn) {
         // Remove old listeners to prevent duplicates
-        closeBtn.removeEventListener('click', close);
-        closeBtn.addEventListener('click', close);
+        closeBtn.replaceWith(closeBtn.cloneNode(true));
+        const newCloseBtn = document.getElementById('adCloseBtn');
+        newCloseBtn.addEventListener('click', close);
     }
     
     // Auto-close after 5 seconds
@@ -328,20 +448,24 @@ function setupModalCloseHandlers(modal) {
  * Call this when DOM is ready
  */
 export function initAdSystem() {
-    console.log('🎬 Advertisement system initialized');
+    console.log('🎬 Advertisement System v2.0');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`⏱️  Rotation Interval: ${ROTATION_SETTINGS.interval / 1000}s`);
+    console.log(`🔄 Auto-Rotate: ${ROTATION_SETTINGS.autoRotate ? 'Enabled' : 'Disabled'}`);
+    console.log(`📱 Mobile Detection: ${isMobileDevice() ? 'Mobile' : 'Desktop'}`);
+    console.log(`📢 Ad Slots: ${Object.keys(AD_CONFIG).length}`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('⏳ Waiting for app to load...');
-    console.log(`⚙️ Rotation interval: ${ROTATION_SETTINGS.interval / 1000} seconds`);
-    console.log('📢 Ads will rotate: Slot 1 → Slot 2 → Slot 3 → Repeat');
+    console.log('💡 Use window.adDebug for debugging');
     
-    // Note: Call setAppLoaded() when your app finishes loading
-}
-
-/**
- * Initialize Admin Panel access shortcut (DEPRECATED - Kept for compatibility)
- * This function is no longer needed as admin panel has been removed
- */
-export function initAdminAccess() {
-    console.log('⚠️ Admin panel has been removed. Ad configuration is now managed directly in ad.js');
+    // Initialize DOM elements check
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeDOMElements();
+        });
+    } else {
+        initializeDOMElements();
+    }
 }
 
 /**
@@ -349,6 +473,11 @@ export function initAdminAccess() {
  * @param {number} seconds - Rotation interval in seconds
  */
 export function setRotationInterval(seconds) {
+    if (seconds < 5) {
+        console.warn('⚠️ Minimum rotation interval is 5 seconds');
+        seconds = 5;
+    }
+    
     ROTATION_SETTINGS.interval = seconds * 1000;
     console.log(`⚙️ Rotation interval updated to ${seconds} seconds`);
     
@@ -356,6 +485,21 @@ export function setRotationInterval(seconds) {
     if (appLoaded && rotationTimer) {
         stopAdRotation();
         startAdRotation();
+    }
+}
+
+/**
+ * Toggle auto-rotation
+ * @param {boolean} enable - Enable or disable auto-rotation
+ */
+export function toggleAutoRotation(enable) {
+    ROTATION_SETTINGS.autoRotate = enable;
+    console.log(`🔄 Auto-rotation ${enable ? 'enabled' : 'disabled'}`);
+    
+    if (enable && appLoaded) {
+        startAdRotation();
+    } else {
+        stopAdRotation();
     }
 }
 
@@ -368,30 +512,97 @@ export function getAdConfig() {
         rotation: {
             ...ROTATION_SETTINGS,
             intervalSeconds: ROTATION_SETTINGS.interval / 1000,
-            currentAd: currentlyDisplayedAd
+            currentAd: currentlyDisplayedAd,
+            timeSinceLastChange: Math.floor((Date.now() - lastAdChangeTime) / 1000)
         },
         appLoaded: appLoaded,
-        isRotating: rotationTimer !== null
+        isRotating: rotationTimer !== null,
+        userInteractions: userInteractionCount,
+        deviceType: isMobileDevice() ? 'Mobile' : 'Desktop'
     };
 }
+
+/**
+ * Get ad statistics
+ */
+export function getAdStats() {
+    return {
+        totalInteractions: userInteractionCount,
+        currentAd: currentlyDisplayedAd ? AD_CONFIG[currentlyDisplayedAd].name : 'None',
+        rotationActive: rotationTimer !== null,
+        appLoadTime: appLoaded ? 'Loaded' : 'Not Loaded',
+        uptime: appLoaded ? Math.floor((Date.now() - lastAdChangeTime) / 1000) + 's' : 'N/A'
+    };
+}
+
+// =========================================
+// DEBUG & UTILITY EXPORTS
+// =========================================
 
 // Export for debugging in console
 if (typeof window !== 'undefined') {
     window.adDebug = {
+        // Configuration
         getAdConfig,
+        getAdStats,
+        
+        // Control
         setAppLoaded,
         isAppLoaded,
         startAdRotation,
         stopAdRotation,
+        pauseAdRotation,
+        resumeAdRotation,
         showNextAd,
+        
+        // Settings
         setRotationInterval,
+        toggleAutoRotation,
+        
+        // Modals
         loadModalAd,
-        showAdModal
+        showAdModal,
+        
+        // Info
+        version: '2.0',
+        updated: '2025-01-11'
     };
     
-    console.log('💡 Debug commands available: window.adDebug');
-    console.log('   - getAdConfig() - View current configuration');
-    console.log('   - setRotationInterval(seconds) - Change rotation speed');
-    console.log('   - stopAdRotation() - Stop rotation');
-    console.log('   - startAdRotation() - Resume rotation');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('💡 Debug Commands Available:');
+    console.log('   window.adDebug.getAdConfig()');
+    console.log('   window.adDebug.getAdStats()');
+    console.log('   window.adDebug.setRotationInterval(seconds)');
+    console.log('   window.adDebug.toggleAutoRotation(true/false)');
+    console.log('   window.adDebug.stopAdRotation()');
+    console.log('   window.adDebug.startAdRotation()');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 }
+
+/**
+ * Cleanup function (call on app unmount)
+ */
+export function cleanupAdSystem() {
+    stopAdRotation();
+    userInteractionCount = 0;
+    appLoaded = false;
+    console.log('🧹 Ad system cleaned up');
+}
+
+// Export all functions for external use
+export default {
+    initAdSystem,
+    setAppLoaded,
+    isAppLoaded,
+    showAdModal,
+    loadModalAd,
+    startAdRotation,
+    stopAdRotation,
+    pauseAdRotation,
+    resumeAdRotation,
+    setRotationInterval,
+    toggleAutoRotation,
+    getAdConfig,
+    getAdStats,
+    cleanupAdSystem
+};
