@@ -58,7 +58,6 @@ menuOverlay.classList.remove('show');
 menuDropdown.classList.add('show');
 menuOverlay.classList.add('show');
 }
-console.log('Menu toggled:',!isShown);
 });
 
 // Close button handler
@@ -69,7 +68,6 @@ e.preventDefault();
 e.stopPropagation();
 menuDropdown.classList.remove('show');
 menuOverlay.classList.remove('show');
-console.log('Menu closed via X button');
 });
 }
 
@@ -78,7 +76,6 @@ menuOverlay.addEventListener('click',function(e){
 e.stopPropagation();
 menuDropdown.classList.remove('show');
 menuOverlay.classList.remove('show');
-console.log('Menu closed via overlay');
 });
 
 console.log('✅ Menu initialized successfully');
@@ -92,17 +89,27 @@ initMenu();
 }
 })();
 </script>
+
+<!-- Loading Indicator -->
 <div id="loading" class="loading"><div class="spinner"></div></div>
+
+<!-- Notification System -->
 <div id="notification" class="notification"></div>
+
+<!-- Ad Modal -->
 <div id="adModal"><div class="ad-modal-content"><p class="mb-3 text-gray-700 font-semibold">🎉 Thank you for your activity!</p><div id="claimAd" style="min-height:90px;display:flex;align-items:center;justify-content:center"></div><button id="adCloseBtn" class="mt-4 bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors">Close</button></div></div>
+
+<!-- Menu Overlay -->
 <div id="menuOverlay" class="menu-overlay"></div>
+
+<!-- Header (Static) -->
 <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-10">
 <div class="flex items-center gap-2">
 <img src="Logo.png" alt="FarmZone Logo" class="h-10 w-10 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
 <h1 class="text-xl sm:text-2xl font-bold text-red-600">FarmZone</h1>
 </div>
 <div class="flex items-center gap-2 sm:gap-3 relative">
-<button id="bonusBtn" onclick="window.location.href='Bonus.html'" class="p-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 transform hover:scale-110 shadow-lg">
+<button id="bonusBtn" class="p-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 transform hover:scale-110 shadow-lg">
 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
 </button>
 <button id="menuToggleBtn" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all duration-300 transform hover:scale-110 shadow">
@@ -111,97 +118,20 @@ initMenu();
 <div id="menuDropdown" class="menu-dropdown"></div>
 </div>
 </header>
+
+<!-- Ad Container -->
 <div id="mainAdContainer" class="ad-container hidden">
 <span class="ad-label">Advertisement</span>
 <div id="mainAdContent"></div>
 </div>
-<section id="homeSection" class="section active p-3 sm:p-4 max-w-lg mx-auto w-full">
-<div class="stats-bar flex justify-around p-4 bg-white rounded-xl shadow mb-4">
-<div class="text-center">
-<h4 class="text-xs uppercase text-gray-600 font-semibold">Balance</h4>
-<p id="totalBalance" class="text-lg font-bold text-green-600">0.00 FZ</p>
-</div>
-<div class="text-center">
-<h4 class="text-xs uppercase text-gray-600 font-semibold">Mining Rate</h4>
-<p id="miningRate" class="text-lg font-bold text-green-600">0.00/hr</p>
-</div>
-<div class="text-center">
-<h4 class="text-xs uppercase text-gray-600 font-semibold">Referrals</h4>
-<p id="referralCount" class="text-lg font-bold text-green-600">0</p>
-</div>
-</div>
-<div class="mining text-center flex flex-col items-center">
-<div class="mining-container">
-<img src="Full.png" alt="Mining Animation" class="w-full rounded-xl shadow-lg" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22><rect width=%22400%22 height=%22400%22 fill=%22%23e0e0e0%22 rx=%2212%22/><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 fill=%22%23666%22 font-size=%2220%22>Mining Area</text></svg>'">
-<button class="mining-btn" id="miningBtn" disabled>
-<span class="timer-display">Start Mining</span>
-<span class="earned-display" id="earnedDisplay">0.000000 FZ</span>
-</button>
-</div>
-<div class="mining-info bg-white p-4 rounded-xl shadow w-full max-w-[400px]">
-<div class="flex justify-between py-2 border-b">
-<span class="text-gray-600">Mining Status</span>
-<span class="mining-status" id="miningStatus">Inactive</span>
-</div>
-<div class="flex justify-between py-2 border-b">
-<span class="text-gray-600">Current Earned</span>
-<span class="text-green-600 font-semibold" id="currentEarned">0.000000 FZ</span>
-</div>
-<div class="flex justify-between py-2">
-<span class="text-gray-600">Total Mined</span>
-<span class="text-green-600 font-semibold" id="totalMined">0.00 FZ</span>
-</div>
-</div>
-</div>
-</section>
-<section id="profileSection" class="section p-3 sm:p-4 space-y-4 sm:space-y-6 max-w-lg mx-auto w-full pb-20">
-<div class="bg-white shadow rounded-xl p-4 sm:p-6 space-y-3 sm:space-y-4">
-<div class="flex justify-between border-b pb-2 sm:pb-3">
-<p class="text-gray-600 text-base sm:text-lg">Balance</p>
-<p id="profileBalance" class="text-green-600 font-bold text-base sm:text-lg">0.00 FZ</p>
-</div>
-<div class="flex justify-between border-b pb-2 sm:pb-3 items-center gap-2">
-<div class="flex-1 min-w-0">
-<p class="text-gray-600 text-base sm:text-lg">Referral Code</p>
-<p id="refCode" class="text-gray-500 text-sm sm:text-base truncate">---</p>
-</div>
-<button id="copyCode" class="text-xs sm:text-sm bg-gray-200 px-2 sm:px-3 py-1.5 rounded-lg hover:bg-gray-300 whitespace-nowrap">Copy</button>
-</div>
-<div class="flex justify-between border-b pb-2 sm:pb-3">
-<p class="text-gray-600 text-base sm:text-lg">Referral Rewards</p>
-<div class="flex items-center gap-2">
-<p id="referralRewards" class="text-green-600 font-bold text-base sm:text-lg">0.00 FZ</p>
-<button id="claimReferralBtn" class="text-xs sm:text-sm bg-yellow-500 text-white px-2 sm:px-3 py-1.5 rounded-lg hover:bg-yellow-600 transition-all" style="display:none">Claim</button>
-</div>
-</div>
-<div>
-<p class="text-gray-600 text-base sm:text-lg mb-2">Mining Progress</p>
-<div class="w-full bg-gray-200 rounded-full h-3 sm:h-4">
-<div id="progressBar" class="bg-green-500 h-3 sm:h-4 rounded-full transition-all" style="width:0%"></div>
-</div>
-<p class="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2" id="levelText">Level 1 / 4 (0/500 FZ)</p>
-</div>
-<div class="flex justify-between">
-<p class="text-gray-600 text-base sm:text-lg">Joined</p>
-<p id="joinDate" class="text-gray-500 text-sm sm:text-base">---</p>
-</div>
-</div>
-<div id="referralSubmitBox" class="bg-white shadow rounded-xl p-4 sm:p-6">
-<p class="font-semibold text-base sm:text-lg mb-2">Have a Referral Code?</p>
-<p class="text-xs sm:text-sm text-gray-500 mb-3 sm:mb-4">Enter your friend's referral code to connect with them!</p>
-<div class="flex flex-col sm:flex-row gap-2">
-<input id="referralCodeInput" type="text" placeholder="Enter code (e.g., FZ-XXXXX)" class="flex-1 border rounded-lg sm:rounded-l-lg sm:rounded-r-none p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-green-500">
-<button id="submitReferralBtn" class="bg-green-500 text-white px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-l-none sm:rounded-r-lg text-sm sm:text-base hover:bg-green-600 transition-colors">Submit</button>
-</div>
-<p id="referralStatus" class="status mt-2"></p>
-<div class="flex gap-2 sm:gap-3 mt-3 sm:mt-4">
-<button id="shareWA" class="flex-1 text-xs sm:text-sm bg-green-500 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg hover:bg-green-600 transition-colors">Share WhatsApp</button>
-<button id="shareTG" class="flex-1 text-xs sm:text-sm bg-blue-500 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg hover:bg-blue-600 transition-colors">Share Telegram</button>
-</div>
-</div>
-<div id="referralSubmittedBox" class="bg-green-100 border-2 border-green-200 rounded-xl p-4 text-green-700 text-center text-sm sm:text-base font-semibold" style="display:none">✅ Referral code already submitted!</div>
-<button id="authBtn" class="w-full bg-red-500 text-white py-2.5 sm:py-3 rounded-lg shadow text-base sm:text-lg hover:bg-red-600 transition-colors">Logout</button>
-</section>
+
+<!-- Dynamic Section Containers (JS will populate these) -->
+<div id="homeSection" class="section active"></div>
+<div id="profileSection" class="section"></div>
+<div id="walletSection" class="section"></div>
+<div id="bonusSection" class="section"></div>
+
+<!-- Footer Navigation (Static Structure) -->
 <footer class="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 z-20">
 <div class="relative max-w-lg mx-auto">
 <div class="flex justify-around">
@@ -213,13 +143,20 @@ initMenu();
 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
 <span class="nav-text text-xs">Profile</span>
 </button>
-<button id="walletBtn" class="nav-btn text-gray-600 flex-1 relative" onclick="window.location.href='wallet.html'">
+<button id="walletBtn" class="nav-btn text-gray-600 flex-1 relative">
 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
 <span class="nav-text text-xs">Wallet</span>
 </button>
 </div>
 </div>
 </footer>
+
+<!-- JS Module Imports - These will dynamically render all sections -->
 <script type="module" src="app.js"></script>
+<script type="module" src="home.js"></script>
+<script type="module" src="profile.js"></script>
+<script type="module" src="wallet.js"></script>
+<script type="module" src="bonus.js"></script>
+
 </body>
 </html>
