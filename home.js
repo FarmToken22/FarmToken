@@ -1,10 +1,19 @@
-// home.js - Home Section Module (Updated for dynamic rendering)
+// home.js - Home Section Module (Updated with fixes)
 import { auth, database } from './config.js';
-import { ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+import { ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
 // Mining state
 let miningInterval = null;
 let countdownInterval = null;
+
+// Helper function to show notifications (error handling)
+function showNotification(message, type = 'info') {
+    const notificationEl = document.createElement('div');
+    notificationEl.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg ${type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-blue-500'} text-white`;
+    notificationEl.textContent = message;
+    document.body.appendChild(notificationEl);
+    setTimeout(() => notificationEl.remove(), 5000);
+}
 
 // ========================================
 // DYNAMIC SECTION RENDERING
@@ -12,7 +21,7 @@ let countdownInterval = null;
 export function renderHomeSection() {
     const container = document.getElementById('homeSection');
     if (!container) {
-        console.error('Home section container not found');
+        showNotification('Home section container not found', 'error');
         return;
     }
     
@@ -36,16 +45,16 @@ export function renderHomeSection() {
             
             <!-- Mining Section -->
             <div class="mining text-center flex flex-col items-center">
-                <div class="mining-container">
-                    <img src="Full.png" alt="Mining Animation" class="w-full rounded-xl shadow-lg" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 400%22><rect width=%22400%22 height=%22400%22 fill=%22%23e0e0e0%22 rx=%2212%22/><text x=%2250%%22 y=%2250%%22 text-anchor=%22middle%22 fill=%22%23666%22 font-size=%2220%22>Mining Area</text></svg>'">
-                    <button class="mining-btn" id="miningBtn" disabled>
+                <div class="mining-container w-full">
+                    <img src="Full.png" alt="Mining Animation" class="w-full rounded-xl shadow-lg mx-auto" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2UwZTBlMCIgcng9IjEyIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM2NjYiIGZvbnQtc2l6ZT0iMjAiIGR5PSIuM2VtIj5NaW5pbmcgQXJlYTwvdGV4dD48L3N2Zz4=';">
+                    <button class="mining-btn w-full mt-4 py-3 bg-green-500 text-white rounded-lg font-semibold disabled:bg-gray-400" id="miningBtn" disabled>
                         <span class="timer-display">Start Mining</span>
                         <span class="earned-display" id="earnedDisplay">0.000000 FZ</span>
                     </button>
                 </div>
                 
                 <!-- Mining Info Card -->
-                <div class="mining-info bg-white p-4 rounded-xl shadow w-full max-w-[400px]">
+                <div class="mining-info bg-white p-4 rounded-xl shadow w-full max-w-[400px] mt-4">
                     <div class="flex justify-between py-2 border-b">
                         <span class="text-gray-600">Mining Status</span>
                         <span class="mining-status" id="miningStatus">Inactive</span>
@@ -60,74 +69,8 @@ export function renderHomeSection() {
                     </div>
                 </div>
             </div>
-            
-            <!-- Mining Instructions -->
-            <div class="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 rounded-lg p-4 mt-4">
-                <h4 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    How to Mine
-                </h4>
-                <ul class="text-sm text-gray-600 space-y-1">
-                    <li class="flex items-start gap-2">
-                        <span class="text-green-500 font-bold">•</span>
-                        <span>Click <strong>"Start Mining"</strong> to begin earning FZ tokens</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-green-500 font-bold">•</span>
-                        <span>Mining runs automatically for 8 hours</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-green-500 font-bold">•</span>
-                        <span>Click <strong>"Claim"</strong> when mining is complete</span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-green-500 font-bold">•</span>
-                        <span>Refer friends to boost your mining rate!</span>
-                    </li>
-                </ul>
-            </div>
-            
-            <!-- Quick Stats -->
-            <div class="grid grid-cols-2 gap-3 mt-4">
-                <div class="bg-white rounded-lg shadow p-3 border-l-4 border-blue-500">
-                    <div class="flex items-center gap-2 mb-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span class="text-xs text-gray-600 font-semibold">Session Time</span>
-                    </div>
-                    <p class="text-lg font-bold text-gray-800" id="sessionTime">8 Hours</p>
-                </div>
-                
-                <div class="bg-white rounded-lg shadow p-3 border-l-4 border-purple-500">
-                    <div class="flex items-center gap-2 mb-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span class="text-xs text-gray-600 font-semibold">Max Reward</span>
-                    </div>
-                    <p class="text-lg font-bold text-gray-800" id="maxReward">6.00 FZ</p>
-                </div>
-            </div>
-            
-            <!-- Recent Activities -->
-            <div class="bg-white shadow rounded-xl p-4 mt-4">
-                <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    Recent Mining Sessions
-                </h3>
-                <div id="recentSessions" class="space-y-2 max-h-48 overflow-y-auto">
-                    <p class="text-gray-500 text-sm text-center py-4">No mining sessions yet. Start mining now!</p>
-                </div>
-            </div>
         </div>
     `;
-    
-    console.log('✅ Home section rendered dynamically');
 }
 
 // ========================================
@@ -155,9 +98,9 @@ export function startCountdownAndEarned(endTime, getServerTime, appSettings, use
     
     countdownInterval = setInterval(() => {
         const now = getServerTime();
-        const remaining = Math.max(0, endTime - now);
+        const remainingMs = Math.max(0, endTime - now);
         
-        if (remaining <= 0) {
+        if (remainingMs <= 0) {
             clearInterval(countdownInterval);
             stopMining();
             if (timerDisplay) timerDisplay.textContent = 'Claim';
@@ -165,18 +108,116 @@ export function startCountdownAndEarned(endTime, getServerTime, appSettings, use
             return;
         }
         
-        const hours = Math.floor(remaining / 3600000);
-        const minutes = Math.floor((remaining % 3600000) / 60000);
-        const seconds = Math.floor((remaining % 60000) / 1000);
+        const hours = Math.floor(remainingMs / 3600000);
+        const minutes = Math.floor((remainingMs % 3600000) / 60000);
+        const seconds = Math.floor((remainingMs % 60000) / 1000);
         
         if (timerDisplay) {
-            timerDisplay.textContent = `${hours}h ${minutes}m ${seconds}s`;
+            timerDisplay.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         }
         
         const earned = calculateCurrentEarned(userData, appSettings, getServerTime);
         if (earnedDisplay) earnedDisplay.textContent = `${earned.toFixed(6)} FZ`;
         if (currentEarnedEl) currentEarnedEl.textContent = `${earned.toFixed(6)} FZ`;
     }, 1000);
+}
+
+// ========================================
+// START MINING
+// ========================================
+async function startMining(userRef, appSettings, getServerTime) {
+    try {
+        const now = getServerTime();
+        await update(userRef, {
+            miningStartTime: now,
+            miningEndTime: now + (appSettings.mining.miningDuration * 3600000)
+        });
+        showNotification('Mining started!', 'success');
+    } catch (error) {
+        showNotification('Failed to start mining: ' + error.message, 'error');
+    }
+}
+
+// ========================================
+// STOP MINING
+// ========================================
+function stopMining() {
+    if (miningInterval) clearInterval(miningInterval);
+    document.getElementById('miningStatus').textContent = 'Inactive';
+    document.getElementById('miningBtn').disabled = false; // Enable for claim
+}
+
+// ========================================
+// CLAIM REWARD
+// ========================================
+async function claimReward(userRef, userData, appSettings, getServerTime) {
+    try {
+        const earned = calculateCurrentEarned(userData, appSettings, getServerTime);
+        const newBalance = (userData.balance || 0) + earned;
+        const newTotalMined = (userData.totalMined || 0) + earned;
+        
+        const session = {
+            startTime: userData.miningStartTime,
+            endTime: getServerTime(),
+            reward: earned,
+            claimed: true
+        };
+        
+        const miningSessions = [...(userData.miningSessions || []), session];
+        
+        await update(userRef, {
+            balance: newBalance,
+            totalMined: newTotalMined,
+            miningStartTime: null,
+            miningEndTime: null,
+            miningSessions: miningSessions
+        });
+        
+        document.getElementById('totalBalance').textContent = `${newBalance.toFixed(2)} FZ`;
+        document.getElementById('totalMined').textContent = `${newTotalMined.toFixed(2)} FZ`;
+        document.getElementById('currentEarned').textContent = '0.000000 FZ';
+        document.getElementById('earnedDisplay').textContent = '0.000000 FZ';
+        document.querySelector('#miningBtn .timer-display').textContent = 'Start Mining';
+        showNotification(`Claimed ${earned.toFixed(6)} FZ!`, 'success');
+        
+        updateRecentSessions({ miningSessions });
+    } catch (error) {
+        showNotification('Failed to claim reward: ' + error.message, 'error');
+    }
+}
+
+// ========================================
+// UPDATE UI BASED ON USER DATA
+// ========================================
+export function updateUI(userData, appSettings, getServerTime) {
+    try {
+        document.getElementById('totalBalance').textContent = `${(userData.balance || 0).toFixed(2)} FZ`;
+        document.getElementById('miningRate').textContent = `${(appSettings.mining.totalReward / appSettings.mining.miningDuration).toFixed(2)}/hr`;
+        document.getElementById('referralCount').textContent = userData.referralCount || 0;
+        document.getElementById('totalMined').textContent = `${(userData.totalMined || 0).toFixed(2)} FZ`;
+        
+        const miningBtn = document.getElementById('miningBtn');
+        const timerDisplay = document.querySelector('#miningBtn .timer-display');
+        const statusEl = document.getElementById('miningStatus');
+        
+        if (userData.miningStartTime && userData.miningEndTime > getServerTime()) {
+            statusEl.textContent = 'Active';
+            miningBtn.disabled = true;
+            startCountdownAndEarned(userData.miningEndTime, getServerTime, appSettings, userData, stopMining, showNotification);
+        } else if (userData.miningStartTime) {
+            statusEl.textContent = 'Complete';
+            miningBtn.disabled = false;
+            timerDisplay.textContent = 'Claim';
+        } else {
+            statusEl.textContent = 'Inactive';
+            miningBtn.disabled = false;
+            timerDisplay.textContent = 'Start Mining';
+        }
+        
+        updateRecentSessions(userData);
+    } catch (error) {
+        showNotification('Failed to update UI: ' + error.message, 'error');
+    }
 }
 
 // ========================================
@@ -189,11 +230,7 @@ function updateRecentSessions(userData) {
     const miningSessions = userData.miningSessions || [];
     
     if (miningSessions.length === 0) {
-        sessionsEl.innerHTML = `
-            <p class="text-gray-500 text-sm text-center py-4">
-                No mining sessions yet. Start mining now!
-            </p>
-        `;
+        sessionsEl.innerHTML = '';
         return;
     }
     
@@ -217,7 +254,7 @@ function updateRecentSessions(userData) {
             minute: '2-digit'
         });
         
-        const statusIcon = session.claimed ? '✓' : '⏳';
+        const statusIcon = session.claimed ? 'Checkmark' : 'Hourglass';
         const statusColor = session.claimed ? 'text-green-600' : 'text-yellow-600';
         const bgColor = session.claimed ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200';
         
@@ -241,23 +278,6 @@ function updateRecentSessions(userData) {
 }
 
 // ========================================
-// UPDATE MINING DISPLAY
-// ========================================
-export function updateMiningDisplay(appSettings) {
-    // Update session time and max reward
-    const sessionTimeEl = document.getElementById('sessionTime');
-    const maxRewardEl = document.getElementById('maxReward');
-    
-    if (sessionTimeEl) {
-        sessionTimeEl.textContent = `${appSettings.mining.miningDuration} Hours`;
-    }
-    
-    if (maxRewardEl) {
-        maxRewardEl.textContent = `${appSettings.mining.totalReward.toFixed(2)} FZ`;
-    }
-}
-
-// ========================================
 // CLEANUP
 // ========================================
 export function cleanupMining() {
@@ -274,18 +294,35 @@ export function cleanupMining() {
 // ========================================
 // INITIALIZE
 // ========================================
-export function initHomeSection(userData = null, appSettings = null) {
-    console.log('✅ Home section initialized');
+export function initHomeSection(userData, appSettings, getServerTime) {
+    renderHomeSection();
     
-    // Update recent sessions if userData is available
-    if (userData) {
-        updateRecentSessions(userData);
-    }
+    const userRef = ref(database, 'users/' + auth.currentUser.uid);
     
-    // Update mining display if appSettings is available
-    if (appSettings) {
-        updateMiningDisplay(appSettings);
-    }
+    // Setup mining button listener
+    const miningBtn = document.getElementById('miningBtn');
+    miningBtn.addEventListener('click', async () => {
+        if (miningBtn.disabled) return;
+        
+        if (userData.miningStartTime && !(userData.miningEndTime > getServerTime())) {
+            // Claim mode
+            await claimReward(userRef, userData, appSettings, getServerTime);
+        } else {
+            // Start mining
+            await startMining(userRef, appSettings, getServerTime);
+        }
+    });
+    
+    // Real-time listener for user data
+    onValue(userRef, (snapshot) => {
+        const updatedUserData = snapshot.val();
+        updateUI(updatedUserData, appSettings, getServerTime);
+    }, (error) => {
+        showNotification('Failed to load user data: ' + error.message, 'error');
+    });
+    
+    // Initial update
+    updateUI(userData, appSettings, getServerTime);
 }
 
 // Export for external use
