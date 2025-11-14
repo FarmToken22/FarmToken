@@ -1,4 +1,4 @@
-// wallet.js - Wallet Section Module (Updated for dynamic rendering)
+// wallet.js - Wallet Section Module (Updated: With Mobile-Friendly Ads)
 import { auth, database } from './config.js';
 import { ref, get, update, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
@@ -41,6 +41,11 @@ export function renderWalletSection() {
                     <p id="walletBalance" class="text-4xl font-bold text-green-600 mt-2">0.00 FZ</p>
                     <p class="text-xs text-gray-500 mt-2">Available for withdrawal</p>
                 </div>
+            </div>
+            
+            <!-- Ad Space 1 (Mobile Friendly - 320x50) -->
+            <div class="bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center" style="min-height: 50px;">
+                <div id="ad-container-1"></div>
             </div>
             
             <!-- Withdraw Section -->
@@ -114,68 +119,9 @@ export function renderWalletSection() {
                 </div>
             </div>
             
-            <!-- Withdrawal Info -->
-            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-500 rounded-lg p-4">
-                <h4 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Withdrawal Information
-                </h4>
-                <ul class="text-sm text-gray-600 space-y-1">
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500 font-bold">•</span>
-                        <span>Minimum withdrawal amount: <strong>10 FZ</strong></span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500 font-bold">•</span>
-                        <span>Processing time: <strong>1-3 business days</strong></span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500 font-bold">•</span>
-                        <span>Withdrawal fee: <strong>Free</strong></span>
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <span class="text-yellow-500 font-bold">•</span>
-                        <span>Double-check your wallet address before submitting</span>
-                    </li>
-                </ul>
-            </div>
-            
-            <!-- Transaction History -->
-            <div class="bg-white shadow rounded-xl p-4 sm:p-6">
-                <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    Transaction History
-                </h3>
-                <div id="transactionList" class="space-y-3 max-h-80 overflow-y-auto">
-                    <p class="text-gray-500 text-sm text-center py-4">No transactions yet.</p>
-                </div>
-            </div>
-            
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-white rounded-lg shadow p-3 border-l-4 border-green-500">
-                    <div class="flex items-center gap-2 mb-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span class="text-xs text-gray-600 font-semibold">Completed</span>
-                    </div>
-                    <p class="text-lg font-bold text-gray-800" id="completedCount">0</p>
-                </div>
-                
-                <div class="bg-white rounded-lg shadow p-3 border-l-4 border-yellow-500">
-                    <div class="flex items-center gap-2 mb-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span class="text-xs text-gray-600 font-semibold">Pending</span>
-                    </div>
-                    <p class="text-lg font-bold text-gray-800" id="pendingCount">0</p>
-                </div>
+            <!-- Ad Space 2 (Mobile Friendly - 320x50) -->
+            <div class="bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center" style="min-height: 50px;">
+                <div id="ad-container-2"></div>
             </div>
         </div>
     `;
@@ -183,7 +129,59 @@ export function renderWalletSection() {
     // Setup quick amount buttons after rendering
     setupQuickAmountButtons();
     
-    console.log('✅ Wallet section rendered dynamically');
+    // Load ads after rendering
+    loadAds();
+    
+    console.log('Wallet section rendered dynamically with ads');
+}
+
+// ========================================
+// LOAD ADS
+// ========================================
+function loadAds() {
+    // Ad 1 - Mobile Friendly (320x50)
+    const adContainer1 = document.getElementById('ad-container-1');
+    if (adContainer1) {
+        const script1 = document.createElement('script');
+        script1.type = 'text/javascript';
+        script1.innerHTML = `
+            atOptions = {
+                'key' : '78ade24182729fceea8e45203dad915b',
+                'format' : 'iframe',
+                'height' : 50,
+                'width' : 320,
+                'params' : {}
+            };
+        `;
+        adContainer1.appendChild(script1);
+        
+        const invokeScript1 = document.createElement('script');
+        invokeScript1.type = 'text/javascript';
+        invokeScript1.src = '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js';
+        adContainer1.appendChild(invokeScript1);
+    }
+    
+    // Ad 2 - Mobile Friendly (320x50)
+    const adContainer2 = document.getElementById('ad-container-2');
+    if (adContainer2) {
+        const script2 = document.createElement('script');
+        script2.type = 'text/javascript';
+        script2.innerHTML = `
+            atOptions = {
+                'key' : '78ade24182729fceea8e45203dad915b',
+                'format' : 'iframe',
+                'height' : 50,
+                'width' : 320,
+                'params' : {}
+            };
+        `;
+        adContainer2.appendChild(script2);
+        
+        const invokeScript2 = document.createElement('script');
+        invokeScript2.type = 'text/javascript';
+        invokeScript2.src = '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js';
+        adContainer2.appendChild(invokeScript2);
+    }
 }
 
 // ========================================
@@ -199,7 +197,6 @@ function setupQuickAmountButtons() {
             const amount = btn.dataset.amount;
             
             if (amount === 'max') {
-                // Get current balance from display
                 const balanceText = walletBalance?.textContent || '0.00 FZ';
                 const balance = parseFloat(balanceText.replace(' FZ', ''));
                 if (amountInput) amountInput.value = balance.toFixed(2);
@@ -218,104 +215,6 @@ export function updateWalletDisplay(userData) {
     if (walletBalanceEl) {
         walletBalanceEl.textContent = `${(userData.balance || 0).toFixed(2)} FZ`;
     }
-    
-    updateTransactionHistory(userData);
-    updateTransactionStats(userData);
-}
-
-// Update transaction history
-function updateTransactionHistory(userData) {
-    const transactionList = document.getElementById('transactionList');
-    if (!transactionList) return;
-    
-    const transactions = userData.transactions || {};
-    const txArray = Object.entries(transactions).map(([id, tx]) => ({id, ...tx}));
-    txArray.sort((a, b) => b.timestamp - a.timestamp);
-    
-    if (txArray.length === 0) {
-        transactionList.innerHTML = `
-            <div class="text-center py-8">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-300 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <p class="text-gray-500 text-sm">No transactions yet.</p>
-                <p class="text-gray-400 text-xs mt-1">Your withdrawal history will appear here.</p>
-            </div>
-        `;
-        return;
-    }
-    
-    transactionList.innerHTML = txArray.map(tx => {
-        const date = new Date(tx.timestamp);
-        const formattedDate = date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-        const formattedTime = date.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-        
-        const statusConfig = {
-            completed: { color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', icon: '✓', label: 'Completed' },
-            pending: { color: 'text-yellow-600', bg: 'bg-yellow-50', border: 'border-yellow-200', icon: '⏳', label: 'Pending' },
-            failed: { color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', icon: '✗', label: 'Failed' }
-        };
-        
-        const status = statusConfig[tx.status] || statusConfig.pending;
-        
-        return `
-            <div class="${status.bg} ${status.border} border rounded-lg p-4">
-                <div class="flex justify-between items-start mb-2">
-                    <div class="flex items-center gap-2">
-                        <div class="bg-white rounded-full p-2 border ${status.border}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ${status.color}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-                            </svg>
-                        </div>
-                        <div>
-                            <span class="font-semibold text-gray-800">${tx.type === 'withdraw' ? 'Withdrawal' : 'Deposit'}</span>
-                            <p class="text-xs text-gray-500">${formattedDate} at ${formattedTime}</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="${status.color} font-bold text-lg">${status.icon}</span>
-                        <p class="text-xs ${status.color} font-medium mt-1">${status.label}</p>
-                    </div>
-                </div>
-                <div class="space-y-1">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-600">Amount:</span>
-                        <span class="font-bold text-gray-800">${tx.amount.toFixed(2)} FZ</span>
-                    </div>
-                    ${tx.address ? `
-                        <div class="text-xs text-gray-500 mt-2">
-                            <span class="font-medium">Address:</span>
-                            <p class="bg-white rounded px-2 py-1 mt-1 truncate border border-gray-200 font-mono">${tx.address}</p>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-// Update transaction statistics
-function updateTransactionStats(userData) {
-    const completedEl = document.getElementById('completedCount');
-    const pendingEl = document.getElementById('pendingCount');
-    
-    if (!completedEl || !pendingEl) return;
-    
-    const transactions = userData.transactions || {};
-    const txArray = Object.values(transactions);
-    
-    const completed = txArray.filter(tx => tx.status === 'completed').length;
-    const pending = txArray.filter(tx => tx.status === 'pending').length;
-    
-    completedEl.textContent = completed;
-    pendingEl.textContent = pending;
 }
 
 // ========================================
@@ -372,11 +271,14 @@ export async function handleWithdraw(currentUser, userData, showStatus) {
         
         await update(newTxRef, transaction);
         
-        showStatus(statusEl, '✅ Withdrawal request submitted!', false);
+        showStatus(statusEl, 'Withdrawal request submitted!', false);
         
         // Clear inputs
         if (addressInput) addressInput.value = '';
         if (amountInput) amountInput.value = '';
+        
+        // Update balance display
+        updateWalletDisplay({ balance: newBalance });
         
     } catch (error) {
         console.error('Withdrawal error:', error);
@@ -401,8 +303,5 @@ export function initWalletSection(userData) {
     }
     
     updateWalletDisplay(userData);
-    console.log('✅ Wallet section initialized');
+    console.log('Wallet section initialized with ads');
 }
-
-// Export display functions
-export { updateTransactionHistory, updateTransactionStats };
