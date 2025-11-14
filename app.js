@@ -1,4 +1,4 @@
-// app.js - Main application file (Updated for dynamic HTML architecture)
+// app.js - Main application file (Ad-Free Version)
 import { auth, database } from './config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { ref, get, set, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
@@ -9,7 +9,7 @@ import {
     startCountdownAndEarned,
     cleanupMining,
     initHomeSection,
-    renderHomeSection // NEW: Dynamic rendering
+    renderHomeSection
 } from './home.js';
 
 // Import profile module
@@ -20,7 +20,7 @@ import {
     claimReferralRewards,
     checkReferralMilestones,
     initProfileSection,
-    renderProfileSection // NEW: Dynamic rendering
+    renderProfileSection
 } from './profile.js';
 
 // Import wallet module
@@ -28,7 +28,7 @@ import {
     updateWalletDisplay,
     handleWithdraw,
     initWalletSection,
-    renderWalletSection // NEW: Dynamic rendering
+    renderWalletSection
 } from './wallet.js';
 
 // Import bonus module
@@ -38,15 +38,8 @@ import {
     claimBonus,
     cleanupBonus,
     initBonusSection,
-    renderBonusSection // NEW: Dynamic rendering
+    renderBonusSection
 } from './bonus.js';
-
-// Import ad system
-import { 
-    initAdSystem,
-    setAppLoaded,
-    showAdModal
-} from './ad.js';
 
 // Import mining functions
 import { 
@@ -146,7 +139,7 @@ function generateReferralCode() {
 function ensureSectionRendered(section) {
     if (sectionsRendered[section]) return;
     
-    console.log(`🔧 Rendering ${section} section dynamically...`);
+    console.log(`Rendering ${section} section dynamically...`);
     
     switch(section) {
         case 'home':
@@ -172,7 +165,6 @@ function ensureSectionRendered(section) {
 // SECTION SWITCHING
 // ========================================
 function switchSection(section) {
-    // Ensure section is rendered before switching
     ensureSectionRendered(section);
     
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -198,7 +190,6 @@ function switchSection(section) {
     if (sectionEl) sectionEl.classList.add('active');
     if (btnEl) btnEl.classList.add('text-green-600', 'active');
     
-    // Initialize section-specific functionality after rendering
     if (section === 'wallet') {
         initWalletSection(userData);
         updateWalletDisplay(userData);
@@ -207,10 +198,9 @@ function switchSection(section) {
     } else if (section === 'home') {
         initHomeSection();
     } else if (section === 'profile') {
-        initProfileSection();
+        initProfileSection(currentUser, userData, appSettings, showNotification, null, logout);
     }
     
-    // Update UI for the new section
     updateUI();
 }
 
@@ -238,7 +228,7 @@ function getCurrentLevelProgress(totalMined) {
 }
 
 // ========================================
-// UI UPDATE (Updated for dynamic elements)
+// UI UPDATE
 // ========================================
 function updateUI() {
     if (!userData) return;
@@ -252,13 +242,11 @@ function updateUI() {
     const balance = (userData.balance || 0).toFixed(2);
     const referralRewards = (userData.referralRewards || 0).toFixed(2);
 
-    // Safe element updates - only update if element exists
     const updateElement = (id, value) => {
         const el = document.getElementById(id);
         if (el) el.textContent = value;
     };
 
-    // Update elements
     updateElement('totalBalance', `${balance} FZ`);
     updateElement('profileBalance', `${balance} FZ`);
     updateElement('walletBalance', `${balance} FZ`);
@@ -271,7 +259,6 @@ function updateUI() {
     updateElement('refCode', userData.referralCode || '---');
     updateElement('joinDate', userData.joinDate || '---');
 
-    // Level
     const progressBar = document.getElementById('progressBar');
     if (progressBar) progressBar.style.width = `${levelInfo.progress}%`;
     
@@ -280,13 +267,11 @@ function updateUI() {
         levelText.textContent = `Level ${levelInfo.level} / ${MAX_LEVEL} (${levelInfo.current}/${levelInfo.required} FZ)`;
     }
 
-    // Referral Claim
     const claimReferralBtn = document.getElementById('claimReferralBtn');
     if (claimReferralBtn) {
         claimReferralBtn.style.display = userData.referralRewards > 0 ? 'block' : 'none';
     }
 
-    // Referral Input
     const referralSubmitBox = document.getElementById('referralSubmitBox');
     const referralSubmittedBox = document.getElementById('referralSubmittedBox');
     if (referralSubmitBox && referralSubmittedBox) {
@@ -295,7 +280,6 @@ function updateUI() {
         referralSubmittedBox.style.display = isReferred ? 'block' : 'none';
     }
 
-    // Mining Button State
     const miningBtn = document.getElementById('miningBtn');
     const miningStatus = document.getElementById('miningStatus');
     const timerDisplay = document.querySelector('#miningBtn .timer-display');
@@ -330,28 +314,14 @@ function updateUI() {
         }
     }
 
-    // Update bonus timer if on bonus section
     const bonusSection = document.getElementById('bonusSection');
     if (bonusSection && bonusSection.classList.contains('active')) {
         updateBonusTimer(userData, getServerTime);
     }
-
-    checkAndStartAds();
 }
 
 // ========================================
-// AD SYSTEM INTEGRATION
-// ========================================
-function checkAndStartAds() {
-    if (!isAppFullyLoaded && userData && currentUser) {
-        isAppFullyLoaded = true;
-        console.log('✅ App fully loaded - Starting ad rotation');
-        setAppLoaded();
-    }
-}
-
-// ========================================
-// MINING WRAPPERS
+// MINING WRAPPERS (Ad-Free)
 // ========================================
 async function startMining() {
     try {
@@ -384,8 +354,7 @@ function claimMiningReward() {
             userData, 
             appSettings, 
             getServerTime, 
-            showNotification, 
-            showAdModal, 
+            showNotification,
             checkReferralMilestones
         );
     } catch (error) {
@@ -405,12 +374,9 @@ async function initializeUserData(user) {
             await createNewUser(user);
         } else {
             userData = snap.val();
-            
-            // Render home section immediately when user data is loaded
             if (!sectionsRendered.home) {
                 ensureSectionRendered('home');
             }
-            
             updateUI();
         }
     }, (error) => {
@@ -442,7 +408,7 @@ async function createNewUser(user) {
 }
 
 // ========================================
-// UTILITIES
+// LOGOUT
 // ========================================
 function logout() {
     cleanup();
@@ -455,14 +421,12 @@ function logout() {
 }
 
 // ========================================
-// EVENT DELEGATION FOR DYNAMIC ELEMENTS
+// EVENT DELEGATION (Ad-Free)
 // ========================================
 function setupEventDelegation() {
-    // Use event delegation on body for dynamically created elements
     document.body.addEventListener('click', (e) => {
         const target = e.target;
         
-        // Mining button
         if (target.id === 'miningBtn' || target.closest('#miningBtn')) {
             const btn = document.getElementById('miningBtn');
             if (btn.classList.contains('claim')) {
@@ -472,9 +436,8 @@ function setupEventDelegation() {
             }
         }
         
-        // Referral buttons
         if (target.id === 'claimReferralBtn') {
-            claimReferralRewards(currentUser, userData, showNotification, showAdModal);
+            claimReferralRewards(currentUser, userData, showNotification);
         }
         if (target.id === 'submitReferralBtn') {
             submitReferralCode(currentUser, userData, appSettings, showStatus);
@@ -489,17 +452,14 @@ function setupEventDelegation() {
             shareReferralCode(userData, 'telegram', appSettings, showNotification);
         }
         
-        // Bonus button
         if (target.id === 'claimBonusBtn') {
-            claimBonus(currentUser, userData, getServerTime, showNotification, showAdModal);
+            claimBonus(currentUser, userData, getServerTime, showNotification);
         }
         
-        // Wallet button
         if (target.id === 'withdrawBtn') {
             handleWithdraw(currentUser, userData, showStatus);
         }
         
-        // Auth button
         if (target.id === 'authBtn') {
             logout();
         }
@@ -513,15 +473,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const loading = document.getElementById('loading');
     if (loading) loading.style.display = 'none';
     
-    console.log("✅ App initialized - Dynamic architecture ready");
+    console.log("App initialized - Ad-Free & Dynamic");
 
-    // Initialize systems
-    initAdSystem();
-    
-    // Setup event delegation for dynamic elements
     setupEventDelegation();
 
-    // Navigation buttons (these are static, so regular event listeners work)
     const homeBtn = document.getElementById('homeBtn');
     const profileBtn = document.getElementById('profileBtn');
     const walletBtn = document.getElementById('walletBtn');
@@ -549,7 +504,7 @@ authUnsubscribe = onAuthStateChanged(auth, user => {
     }
 });
 
-// Export for other modules to use
+// Export for other modules
 export { 
     currentUser, 
     userData, 
