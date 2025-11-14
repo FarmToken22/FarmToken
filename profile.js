@@ -1,6 +1,11 @@
-// profile.js - Profile Section Module (Updated for dynamic rendering)
+// profile.js - Profile Section Module (With Mobile-Friendly Ads)
 import { auth, database } from './config.js';
 import { ref, get, set, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+// ========================================
+// LEVEL CONFIGURATION
+// ========================================
+const LEVEL_THRESHOLDS = [0, 500, 1000, 2000]; // Level 1 to 4
 
 // ========================================
 // DYNAMIC SECTION RENDERING
@@ -11,7 +16,7 @@ export function renderProfileSection() {
         console.error('Profile section container not found');
         return;
     }
-    
+
     container.innerHTML = `
         <div class="p-3 sm:p-4 space-y-4 sm:space-y-6 max-w-lg mx-auto w-full pb-20">
             <!-- Profile Header Card -->
@@ -28,7 +33,15 @@ export function renderProfileSection() {
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Ad Space 1 -->
+            <div class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center" style="min-height: 50px;">
+                <script type="text/javascript">
+                atOptions = { 'key' : '78ade24182729fceea8e45203dad915b', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
+                </script>
+                <script type="text/javascript" src="//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js"></script>
+            </div>
+
             <!-- Balance & Stats Card -->
             <div class="bg-white shadow rounded-xl p-4 sm:p-6 space-y-3 sm:space-y-4">
                 <h3 class="text-lg font-semibold text-gray-700 flex items-center gap-2">
@@ -37,12 +50,12 @@ export function renderProfileSection() {
                     </svg>
                     Balance & Rewards
                 </h3>
-                
+
                 <div class="flex justify-between border-b pb-2 sm:pb-3">
                     <p class="text-gray-600 text-base sm:text-lg">Total Balance</p>
                     <p id="profileBalance" class="text-green-600 font-bold text-base sm:text-lg">0.00 FZ</p>
                 </div>
-                
+
                 <div class="flex justify-between border-b pb-2 sm:pb-3">
                     <p class="text-gray-600 text-base sm:text-lg">Referral Rewards</p>
                     <div class="flex items-center gap-2">
@@ -51,7 +64,15 @@ export function renderProfileSection() {
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Ad Space 2 -->
+            <div class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center" style="min-height: 50px;">
+                <script type="text/javascript">
+                atOptions = { 'key' : '78ade24182729fceea8e45203dad915b', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
+                </script>
+                <script type="text/javascript" src="//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js"></script>
+            </div>
+
             <!-- Referral Code Card -->
             <div class="bg-white shadow rounded-xl p-4 sm:p-6">
                 <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -60,7 +81,7 @@ export function renderProfileSection() {
                     </svg>
                     Your Referral Code
                 </h3>
-                
+
                 <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 border-2 border-dashed border-blue-300">
                     <p class="text-sm text-gray-600 mb-2">Share this code with friends:</p>
                     <div class="flex items-center justify-between gap-3">
@@ -73,7 +94,7 @@ export function renderProfileSection() {
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="flex gap-2 sm:gap-3 mt-3 sm:mt-4">
                     <button id="shareWA" class="flex-1 text-xs sm:text-sm bg-green-500 text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
@@ -89,7 +110,15 @@ export function renderProfileSection() {
                     </button>
                 </div>
             </div>
-            
+
+            <!-- Ad Space 3 -->
+            <div class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center" style="min-height: 50px;">
+                <script type="text/javascript">
+                atOptions = { 'key' : '78ade24182729fceea8e45203dad915b', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
+                </script>
+                <script type="text/javascript" src="//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js"></script>
+            </div>
+
             <!-- Mining Progress Card -->
             <div class="bg-white shadow rounded-xl p-4 sm:p-6">
                 <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -98,14 +127,14 @@ export function renderProfileSection() {
                     </svg>
                     Mining Progress
                 </h3>
-                
+
                 <div class="w-full bg-gray-200 rounded-full h-4 sm:h-5 mb-2">
                     <div id="progressBar" class="bg-gradient-to-r from-green-500 to-emerald-600 h-4 sm:h-5 rounded-full transition-all duration-500 flex items-center justify-end pr-2" style="width:0%">
                         <span class="text-white text-xs font-bold" id="progressPercent">0%</span>
                     </div>
                 </div>
                 <p class="text-xs sm:text-sm text-gray-500 mt-2" id="levelText">Level 1 / 4 (0/500 FZ)</p>
-                
+
                 <!-- Level Milestones -->
                 <div class="mt-4 space-y-2">
                     <p class="text-sm font-semibold text-gray-700">Level Milestones:</p>
@@ -125,7 +154,7 @@ export function renderProfileSection() {
                     </div>
                 </div>
             </div>
-            
+
             <!-- Referral Input Card -->
             <div id="referralSubmitBox" class="bg-white shadow rounded-xl p-4 sm:p-6">
                 <h3 class="text-lg font-semibold text-gray-700 mb-2 flex items-center gap-2">
@@ -143,7 +172,7 @@ export function renderProfileSection() {
                 </div>
                 <p id="referralStatus" class="status mt-2"></p>
             </div>
-            
+
             <!-- Referral Submitted Box -->
             <div id="referralSubmittedBox" class="bg-green-100 border-2 border-green-300 rounded-xl p-4 text-green-700 text-center text-sm sm:text-base font-semibold flex items-center justify-center gap-2" style="display:none">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -151,26 +180,34 @@ export function renderProfileSection() {
                 </svg>
                 Referral code already submitted!
             </div>
-            
+
+            <!-- Ad Space 4 -->
+            <div class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center" style="min-height: 50px;">
+                <script type="text/javascript">
+                atOptions = { 'key' : '78ade24182729fceea8e45203dad915b', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
+                </script>
+                <script type="text/javascript" src="//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js"></script>
+            </div>
+
             <!-- Referral Stats Card -->
             <div class="bg-white shadow rounded-xl p-4 sm:p-6">
                 <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20 5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     Your Referrals
                 </h3>
-                
+
                 <div class="text-center p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-200">
                     <p class="text-4xl font-bold text-indigo-600" id="totalReferrals">0</p>
                     <p class="text-sm text-gray-600 mt-1">Total Friends Referred</p>
                 </div>
-                
+
                 <div id="referralsList" class="mt-4 space-y-2 max-h-48 overflow-y-auto">
                     <p class="text-gray-500 text-sm text-center py-4">No referrals yet. Share your code to get started!</p>
                 </div>
             </div>
-            
+
             <!-- Logout Button -->
             <button id="authBtn" class="w-full bg-red-500 text-white py-2.5 sm:py-3 rounded-lg shadow text-base sm:text-lg hover:bg-red-600 transition-colors font-semibold flex items-center justify-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -180,268 +217,262 @@ export function renderProfileSection() {
             </button>
         </div>
     `;
-    
-    console.log('✅ Profile section rendered dynamically');
+
+    console.log('Profile section rendered dynamically with mobile ads');
 }
 
 // ========================================
-// REFERRAL CODE FUNCTIONS
+// LEVEL UPDATE FUNCTION
 // ========================================
+export function updateLevelProgress(userData) {
+    const balance = userData.balance || 0;
+    let currentLevel = 1;
+    let prevThreshold = 0;
+    let nextThreshold = LEVEL_THRESHOLDS[1];
 
-// Copy referral code
+    for (let i = 0; i < LEVEL_THRESHOLDS.length; i++) {
+        if (balance >= LEVEL_THRESHOLDS[i]) {
+            currentLevel = i + 1;
+            prevThreshold = LEVEL_THRESHOLDS[i];
+            nextThreshold = LEVEL_THRESHOLDS[i + 1] || prevThreshold;
+        } else {
+            break;
+        }
+    }
+
+    const isMaxLevel = currentLevel === LEVEL_THRESHOLDS.length;
+    const range = isMaxLevel ? 1 : (nextThreshold - prevThreshold);
+    const progressPercent = isMaxLevel 
+        ? 100 
+        : range > 0 
+            ? ((balance - prevThreshold) / range) * 100 
+            : 0;
+
+    const progressBar = document.getElementById('progressBar');
+    const progressPercentEl = document.getElementById('progressPercent');
+    const levelText = document.getElementById('levelText');
+
+    if (progressBar) {
+        progressBar.style.width = `${Math.min(Math.round(progressPercent), 100)}%`;
+    }
+    if (progressPercentEl) {
+        progressPercentEl.textContent = `${Math.round(progressPercent)}%`;
+    }
+    if (levelText) {
+        const displayNext = isMaxLevel ? 'Max' : nextThreshold;
+        const displayBalance = isMaxLevel && balance > prevThreshold ? `${prevThreshold}+` : balance;
+        levelText.textContent = `Level ${currentLevel} / 4 (${displayBalance}/${displayNext} FZ)`;
+    }
+}
+
+// ========================================
+// REFERRAL UI TOGGLE
+// ========================================
+export function toggleReferralUI(hasReferred) {
+    const submitBox = document.getElementById('referralSubmitBox');
+    const submittedBox = document.getElementById('referralSubmittedBox');
+
+    if (submitBox) submitBox.style.display = hasReferred ? 'none' : 'block';
+    if (submittedBox) submittedBox.style.display = hasReferred ? 'flex' : 'none';
+}
+
+// ========================================
+// HELPER: Show Status Message
+// ========================================
+function showStatus(el, message, isError) {
+    if (!el) return;
+    el.textContent = message;
+    el.className = isError ? 'status text-red-600' : 'status text-green-600';
+    setTimeout(() => { el.textContent = ''; }, 4000);
+}
+
+// ========================================
+// COPY & SHARE FUNCTIONS
+// ========================================
 export function copyReferralCode(userData, showNotification) {
     if (!userData.referralCode) {
         showNotification('No referral code found', 'error');
         return;
     }
-    
     navigator.clipboard.writeText(userData.referralCode)
         .then(() => showNotification('Referral code copied!', 'success'))
         .catch(() => showNotification('Failed to copy code', 'error'));
 }
 
-// Share referral code
 export function shareReferralCode(userData, platform, appSettings, showNotification) {
     if (!userData.referralCode) {
         showNotification('No referral code found', 'error');
         return;
     }
-    
-    const message = `🚀 Join FarmZone and start mining FZ coins! 💰
 
-Use my referral code: ${userData.referralCode}
-Earn ${appSettings.referral.referralBonus} FZ bonus instantly!
-
-Start earning now! 🎉`;
-    
+    const message = `Join FarmZone and start mining FZ coins!\n\nUse my referral code: ${userData.referralCode}\nEarn ${appSettings.referral.referralBonus} FZ bonus instantly!\n\nStart earning now!`;
     const encodedMessage = encodeURIComponent(message);
-    
-    let url;
-    if (platform === 'whatsapp') {
-        url = `https://wa.me/?text=${encodedMessage}`;
-    } else if (platform === 'telegram') {
-        url = `https://t.me/share/url?url=${encodedMessage}`;
-    }
-    
-    if (url) {
-        window.open(url, '_blank');
-    }
+
+    const url = platform === 'whatsapp'
+        ? `https://wa.me/?text=${encodedMessage}`
+        : `https://t.me/share/url?url=${encodedMessage}`;
+
+    window.open(url, '_blank');
 }
 
-// Submit referral code
+// ========================================
+// SUBMIT REFERRAL CODE
+// ========================================
 export async function submitReferralCode(currentUser, userData, appSettings, showStatus) {
     const input = document.getElementById('referralCodeInput');
     const statusEl = document.getElementById('referralStatus');
     const code = input?.value.trim().toUpperCase();
-    
-    if (!code) {
-        showStatus(statusEl, 'Please enter a referral code', true);
-        return;
-    }
-    
-    if (code === userData.referralCode) {
-        showStatus(statusEl, 'Cannot use your own referral code', true);
-        return;
-    }
-    
-    if (userData.referredBy) {
-        showStatus(statusEl, 'You have already used a referral code', true);
-        return;
-    }
-    
+
+    if (!code) return showStatus(statusEl, 'Please enter a referral code', true);
+    if (code === userData.referralCode) return showStatus(statusEl, 'Cannot use your own referral code', true);
+    if (userData.referredBy) return showStatus(statusEl, 'You have already used a referral code', true);
+
     try {
         const usersRef = ref(database, 'users');
         const snapshot = await get(usersRef);
-        
-        if (!snapshot.exists()) {
-            showStatus(statusEl, 'Invalid referral code', true);
-            return;
-        }
-        
+        if (!snapshot.exists()) return showStatus(statusEl, 'Invalid referral code', true);
+
         let referrerUid = null;
         snapshot.forEach(child => {
-            if (child.val().referralCode === code) {
-                referrerUid = child.key;
-            }
+            if (child.val().referralCode === code) referrerUid = child.key;
         });
-        
-        if (!referrerUid) {
-            showStatus(statusEl, 'Invalid referral code', true);
-            return;
-        }
-        
-        if (referrerUid === currentUser.uid) {
-            showStatus(statusEl, 'Cannot use your own referral code', true);
-            return;
-        }
-        
-        // Update user's referredBy
-        await update(ref(database, `users/${currentUser.uid}`), {
-            referredBy: referrerUid
-        });
-        
-        // Add to referrer's referrals list
+        if (!referrerUid || referrerUid === currentUser.uid) return showStatus(statusEl, 'Invalid referral code', true);
+
+        await update(ref(database, `users/${currentUser.uid}`), { referredBy: referrerUid });
+
         const referrerRef = ref(database, `users/${referrerUid}`);
         const referrerSnap = await get(referrerRef);
         const referrerData = referrerSnap.val();
-        
-        const newReferrals = referrerData.referrals || {};
-        newReferrals[currentUser.uid] = {
-            joinedAt: Date.now(),
-            totalContribution: 0
-        };
-        
+        const newReferrals = { ...(referrerData.referrals || {}), [currentUser.uid]: { joinedAt: Date.now(), totalContribution: 0 } };
         const newRewards = (referrerData.referralRewards || 0) + appSettings.referral.referralBonus;
-        
-        await update(referrerRef, {
-            referrals: newReferrals,
-            referralRewards: newRewards
-        });
-        
-        showStatus(statusEl, `✅ Referral code applied! ${appSettings.referral.referralBonus} FZ added to referrer.`, false);
+
+        await update(referrerRef, { referrals: newReferrals, referralRewards: newRewards });
+
+        showStatus(statusEl, `Referral code applied! ${appSettings.referral.referralBonus} FZ added to referrer.`, false);
         if (input) input.value = '';
-        
+        toggleReferralUI(true);
+
     } catch (error) {
         console.error('Referral submission error:', error);
         showStatus(statusEl, 'Failed to submit referral code', true);
     }
 }
 
-// Claim referral rewards
+// ========================================
+// CLAIM REFERRAL REWARDS
+// ========================================
 export async function claimReferralRewards(currentUser, userData, showNotification, showAdModal) {
     if (!userData.referralRewards || userData.referralRewards <= 0) {
         showNotification('No referral rewards to claim', 'error');
         return;
     }
-    
+
     try {
         const userRef = ref(database, `users/${currentUser.uid}`);
         const newBalance = (userData.balance || 0) + userData.referralRewards;
-        
-        await update(userRef, {
-            balance: newBalance,
-            referralRewards: 0
-        });
-        
+        await update(userRef, { balance: newBalance, referralRewards: 0 });
         showNotification(`Claimed ${userData.referralRewards.toFixed(2)} FZ from referrals!`, 'success');
-        
-        // Show ad modal after claiming
         if (showAdModal) showAdModal();
-        
     } catch (error) {
         console.error('Claim referral error:', error);
         showNotification('Failed to claim referral rewards', 'error');
     }
 }
 
-// Check referral milestones
+// ========================================
+// CHECK MILESTONES
+// ========================================
 export async function checkReferralMilestones(currentUser, userData, appSettings) {
     if (!userData.referrals) return;
-    
     const referralCount = Object.keys(userData.referrals).length;
     const milestones = userData.referralMilestones || {};
-    
     const milestone = appSettings.referral.referralMilestone;
     const milestoneLevel = Math.floor(referralCount / milestone);
-    
+
     if (milestoneLevel > 0 && !milestones[milestoneLevel]) {
         const bonus = milestone * appSettings.referral.referralBonus;
-        
-        milestones[milestoneLevel] = {
-            reached: Date.now(),
-            bonus: bonus
-        };
-        
+        milestones[milestoneLevel] = { reached: Date.now(), bonus };
         const newRewards = (userData.referralRewards || 0) + bonus;
-        
-        await update(ref(database, `users/${currentUser.uid}`), {
-            referralMilestones: milestones,
-            referralRewards: newRewards
-        });
-        
+        await update(ref(database, `users/${currentUser.uid}`), { referralMilestones: milestones, referralRewards: newRewards });
         console.log(`Milestone ${milestoneLevel} reached! Bonus: ${bonus} FZ`);
     }
 }
 
 // ========================================
-// DISPLAY FUNCTIONS
+// UPDATE REFERRALS LIST
 // ========================================
-
-// Update referrals list
-function updateReferralsList(userData) {
+export async function updateReferralsList(userData) {
     const listEl = document.getElementById('referralsList');
     const totalEl = document.getElementById('totalReferrals');
-    
     if (!listEl || !totalEl) return;
-    
+
     const referrals = userData.referrals || {};
-    const referralCount = Object.keys(referrals).length;
-    
-    totalEl.textContent = referralCount;
-    
-    if (referralCount === 0) {
-        listEl.innerHTML = `
-            <p class="text-gray-500 text-sm text-center py-4">
-                No referrals yet. Share your code to get started!
-            </p>
-        `;
+    const count = Object.keys(referrals).length;
+    totalEl.textContent = count;
+
+    if (count === 0) {
+        listEl.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">No referrals yet. Share your code to get started!</p>';
         return;
     }
-    
-    const referralArray = Object.entries(referrals).map(([uid, data]) => ({
-        uid,
-        ...data
-    })).sort((a, b) => b.joinedAt - a.joinedAt);
-    
-    listEl.innerHTML = referralArray.map((ref, index) => {
-        const date = new Date(ref.joinedAt);
-        const formattedDate = date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-        
-        return `
-            <div class="flex items-center justify-between p-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                <div class="flex items-center gap-3">
-                    <div class="bg-indigo-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold">
-                        ${index + 1}
-                    </div>
-                    <div>
-                        <p class="font-semibold text-gray-800">Referral #${index + 1}</p>
-                        <p class="text-xs text-gray-500">Joined: ${formattedDate}</p>
-                    </div>
-                </div>
-                <span class="text-green-600 font-bold">✓</span>
+
+    listEl.innerHTML = '';
+    for (const [uid, data] of Object.entries(referrals)) {
+        const joinedDate = new Date(data.joinedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const contribution = (data.totalContribution || 0).toFixed(2);
+
+        const item = document.createElement('div');
+        item.className = 'bg-gray-50 p-3 rounded-lg flex justify-between items-center text-xs sm:text-sm';
+        item.innerHTML = `
+            <div>
+                <p class="font-semibold text-gray-800">User #${uid.slice(-6)}</p>
+                <p class="text-gray-500">Joined: ${joinedDate}</p>
             </div>
+            <p class="text-green-600 font-bold">${contribution} FZ</p>
         `;
-    }).join('');
-}
-
-// Update progress bar percentage display
-function updateProgressDisplay() {
-    const progressBar = document.getElementById('progressBar');
-    const progressPercent = document.getElementById('progressPercent');
-    
-    if (!progressBar || !progressPercent) return;
-    
-    const width = parseFloat(progressBar.style.width) || 0;
-    progressPercent.textContent = `${Math.round(width)}%`;
-}
-
-// ========================================
-// INITIALIZE
-// ========================================
-export function initProfileSection(userData = null) {
-    console.log('✅ Profile section initialized');
-    
-    if (userData) {
-        updateReferralsList(userData);
-        
-        // Update progress display after a short delay to ensure progressBar width is set
-        setTimeout(updateProgressDisplay, 100);
+        listEl.appendChild(item);
     }
 }
 
-// Export display functions
-export { updateReferralsList, updateProgressDisplay };
+// ========================================
+// MAIN INITIALIZER: initProfileSection (NEW EXPORT)
+// ========================================
+export function initProfileSection(currentUser, userData, appSettings, showNotification, showAdModal, logoutCallback) {
+    renderProfileSection(); // Render UI first
+
+    // Update all dynamic data
+    const balanceEl = document.getElementById('profileBalance');
+    const rewardsEl = document.getElementById('referralRewards');
+    if (balanceEl) balanceEl.textContent = `${(userData.balance || 0).toFixed(2)} FZ`;
+    if (rewardsEl) rewardsEl.textContent = `${(userData.referralRewards || 0).toFixed(2)} FZ`;
+
+    const claimBtn = document.getElementById('claimReferralBtn');
+    if (claimBtn) {
+        claimBtn.style.display = (userData.referralRewards > 0) ? 'block' : 'none';
+        claimBtn.onclick = () => claimReferralRewards(currentUser, userData, showNotification, showAdModal);
+    }
+
+    const refCodeEl = document.getElementById('refCode');
+    if (refCodeEl) refCodeEl.textContent = userData.referralCode || '---';
+
+    if (userData.createdAt) {
+        const date = new Date(userData.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        const joinDateEl = document.getElementById('joinDate');
+        if (joinDateEl) joinDateEl.textContent = date;
+    }
+
+    updateLevelProgress(userData);
+    toggleReferralUI(!!userData.referredBy);
+    updateReferralsList(userData);
+
+    // Attach event listeners
+    document.getElementById('copyCode')?.addEventListener('click', () => copyReferralCode(userData, showNotification));
+    document.getElementById('shareWA')?.addEventListener('click', () => shareReferralCode(userData, 'whatsapp', appSettings, showNotification));
+    document.getElementById('shareTG')?.addEventListener('click', () => shareReferralCode(userData, 'telegram', appSettings, showNotification));
+    document.getElementById('submitReferralBtn')?.addEventListener('click', () => submitReferralCode(currentUser, userData, appSettings, showStatus));
+
+    document.getElementById('authBtn')?.addEventListener('click', () => {
+        if (confirm('Are you sure you want to logout?')) {
+            auth.signOut().then(logoutCallback).catch(err => showNotification('Logout failed', 'error'));
+        }
+    });
+}
