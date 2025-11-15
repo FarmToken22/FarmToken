@@ -1,6 +1,13 @@
-// wallet.js - Wallet Section Module (Updated: With Mobile-Friendly Ads)
+// wallet.js - Wallet Section Module (Smart Ad Management)
 import { auth, database } from './config.js';
 import { ref, get, update, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+// ========================================
+// AD CONFIGURATION
+// ========================================
+const AD_KEY = '78ade24182729fceea8e45203dad915b';
+const AD_URL = `//www.highperformanceformat.com/${AD_KEY}/invoke.js`;
+let adLoaded = false; // Global flag to ensure only ONE ad loads
 
 // ========================================
 // DYNAMIC SECTION RENDERING
@@ -43,9 +50,9 @@ export function renderWalletSection() {
                 </div>
             </div>
             
-            <!-- Ad Space 1 (Mobile Friendly - 320x50) -->
-            <div class="bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center" style="min-height: 50px;">
-                <div id="ad-container-1"></div>
+            <!-- Ad Space 1 (Hidden by default) -->
+            <div id="adSpace1" class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center transition-all duration-300" style="min-height: 50px; display: none;">
+                <div id="adContainer1"></div>
             </div>
             
             <!-- Withdraw Section -->
@@ -79,7 +86,7 @@ export function renderWalletSection() {
                     <div>
                         <label for="withdrawAmount" class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1V8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             Amount (FZ)
                         </label>
@@ -108,7 +115,7 @@ export function renderWalletSection() {
                     <!-- Withdraw Button -->
                     <button 
                         id="withdrawBtn" 
-                        class="w-full bg-gradient-to-r from-red-500 to-pink-600 text-white py-3 rounded-lg shadow text-base font-semibold hover:from-red-600 hover:to-pink-700 transition-all flex items-center justify-center gap-2"
+                        class="w-full bg-gradient-to-r from-red-500 to-pink-600 text-white py-3 rounded-lg shadow text-base font-semibold hover928:from-red-600 hover:to-pink-700 transition-all flex items-center justify-center gap-2"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
@@ -119,69 +126,61 @@ export function renderWalletSection() {
                 </div>
             </div>
             
-            <!-- Ad Space 2 (Mobile Friendly - 320x50) -->
-            <div class="bg-gray-50 rounded-lg overflow-hidden flex items-center justify-center" style="min-height: 50px;">
-                <div id="ad-container-2"></div>
+            <!-- Ad Space 2 (Hidden by default) -->
+            <div id="adSpace2" class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center transition-all duration-300" style="min-height: 50px; display: none;">
+                <div id="adContainer2"></div>
             </div>
         </div>
     `;
     
-    // Setup quick amount buttons after rendering
+    // Setup quick amount buttons
     setupQuickAmountButtons();
     
-    // Load ads after rendering
-    loadAds();
+    // Load single ad after rendering
+    loadSingleAd();
     
-    console.log('Wallet section rendered dynamically with ads');
+    console.log('Wallet section rendered with smart ad management');
 }
 
 // ========================================
-// LOAD ADS
+// SMART AD LOADER: Only ONE Ad Loads
 // ========================================
-function loadAds() {
-    // Ad 1 - Mobile Friendly (320x50)
-    const adContainer1 = document.getElementById('ad-container-1');
-    if (adContainer1) {
-        const script1 = document.createElement('script');
-        script1.type = 'text/javascript';
-        script1.innerHTML = `
-            atOptions = {
-                'key' : '78ade24182729fceea8e45203dad915b',
-                'format' : 'iframe',
-                'height' : 50,
-                'width' : 320,
-                'params' : {}
-            };
-        `;
-        adContainer1.appendChild(script1);
-        
-        const invokeScript1 = document.createElement('script');
-        invokeScript1.type = 'text/javascript';
-        invokeScript1.src = '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js';
-        adContainer1.appendChild(invokeScript1);
-    }
-    
-    // Ad 2 - Mobile Friendly (320x50)
-    const adContainer2 = document.getElementById('ad-container-2');
-    if (adContainer2) {
-        const script2 = document.createElement('script');
-        script2.type = 'text/javascript';
-        script2.innerHTML = `
-            atOptions = {
-                'key' : '78ade24182729fceea8e45203dad915b',
-                'format' : 'iframe',
-                'height' : 50,
-                'width' : 320,
-                'params' : {}
-            };
-        `;
-        adContainer2.appendChild(script2);
-        
-        const invokeScript2 = document.createElement('script');
-        invokeScript2.type = 'text/javascript';
-        invokeScript2.src = '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js';
-        adContainer2.appendChild(invokeScript2);
-    }
+function loadSingleAd() {
+    if (adLoaded) return;
+
+    const adSpaces = [
+        { space: document.getElementById('adSpace1'), container: 'adContainer1' },
+        { space: document.getElementById('adSpace2'), container: 'adContainer2' }
+    ].filter(item => item.space);
+
+    if (adSpaces.length === 0) return;
+
+    const randomIndex = Math.floor(Math.random() * adSpaces.length);
+    const selected = adSpaces[randomIndex];
+
+    selected.space.style.display = 'flex';
+
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.onload = () => {
+        adLoaded = true;
+        console.log(`Ad loaded in wallet adSpace${randomIndex + 1}`);
+    };
+    script.onerror = () => {
+        selected.space.style.display = 'none';
+        console.warn(`Ad failed to load in wallet adSpace${randomIndex + 1}, hiding space.`);
+    };
+
+    window.atOptions = {
+        'key': AD_KEY,
+        'format': 'iframe',
+        'height': 50,
+        'width': 320,
+        'params': {}
+    };
+
+    script.src = AD_URL;
+    document.getElementById(selected.container).appendChild(script);
 }
 
 // ========================================
@@ -253,7 +252,6 @@ export async function handleWithdraw(currentUser, userData, showStatus) {
         const userRef = ref(database, `users/${currentUser.uid}`);
         const newBalance = userData.balance - amount;
         
-        // Create transaction record
         const transactionsRef = ref(database, `users/${currentUser.uid}/transactions`);
         const newTxRef = push(transactionsRef);
         
@@ -265,19 +263,14 @@ export async function handleWithdraw(currentUser, userData, showStatus) {
             timestamp: Date.now()
         };
         
-        await update(userRef, {
-            balance: newBalance
-        });
-        
+        await update(userRef, { balance: newBalance });
         await update(newTxRef, transaction);
         
         showStatus(statusEl, 'Withdrawal request submitted!', false);
         
-        // Clear inputs
         if (addressInput) addressInput.value = '';
         if (amountInput) amountInput.value = '';
         
-        // Update balance display
         updateWalletDisplay({ balance: newBalance });
         
     } catch (error) {
@@ -289,19 +282,27 @@ export async function handleWithdraw(currentUser, userData, showStatus) {
 function showStatus(el, message, isError = false) {
     if (!el) return;
     el.textContent = message;
-    el.className = `status ${isError ? 'error' : 'success'} show`;
+    el.className = `status ${isError ? 'text-red-600' : 'text-green-600'} show`;
     setTimeout(() => el.className = 'status', 3000);
 }
 
 // ========================================
 // INITIALIZE
 // ========================================
-export function initWalletSection(userData) {
+export function initWalletSection(currentUser, userData, showStatus) {
     if (!userData) {
         console.warn('Cannot initialize wallet section: userData is null');
         return;
     }
     
+    renderWalletSection();
     updateWalletDisplay(userData);
-    console.log('Wallet section initialized with ads');
+
+    // Setup withdraw button
+    const withdrawBtn = document.getElementById('withdrawBtn');
+    if (withdrawBtn) {
+        withdrawBtn.onclick = () => handleWithdraw(currentUser, userData, showStatus);
+    }
+
+    console.log('Wallet section initialized with smart ad system');
 }
