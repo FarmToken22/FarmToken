@@ -1,11 +1,13 @@
-// profile.js - Profile Section Module (With Mobile-Friendly Ads)
+// profile.js - Profile Section Module (With Smart Ad Management)
 import { auth, database } from './config.js';
 import { ref, get, set, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
 // ========================================
-// LEVEL CONFIGURATION
+// AD CONFIGURATION
 // ========================================
-const LEVEL_THRESHOLDS = [0, 500, 1000, 2000]; // Level 1 to 4
+const AD_KEY = '78ade24182729fceea8e45203dad915b';
+const AD_URL = `//www.highperformanceformat.com/${AD_KEY}/invoke.js`;
+let adLoaded = false; // Global flag to ensure only ONE ad loads
 
 // ========================================
 // DYNAMIC SECTION RENDERING
@@ -35,11 +37,8 @@ export function renderProfileSection() {
             </div>
 
             <!-- Ad Space 1 -->
-            <div class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center" style="min-height: 50px;">
-                <script type="text/javascript">
-                atOptions = { 'key' : '78ade24182729fceea8e45203dad915b', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
-                </script>
-                <script type="text/javascript" src="//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js"></script>
+            <div id="adSpace1" class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center transition-all duration-300" style="min-height: 50px; display: none;">
+                <div id="adContainer1"></div>
             </div>
 
             <!-- Balance & Stats Card -->
@@ -66,11 +65,8 @@ export function renderProfileSection() {
             </div>
 
             <!-- Ad Space 2 -->
-            <div class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center" style="min-height: 50px;">
-                <script type="text/javascript">
-                atOptions = { 'key' : '78ade24182729fceea8e45203dad915b', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
-                </script>
-                <script type="text/javascript" src="//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js"></script>
+            <div id="adSpace2" class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center transition-all duration-300" style="min-height: 50px; display: none;">
+                <div id="adContainer2"></div>
             </div>
 
             <!-- Referral Code Card -->
@@ -112,47 +108,8 @@ export function renderProfileSection() {
             </div>
 
             <!-- Ad Space 3 -->
-            <div class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center" style="min-height: 50px;">
-                <script type="text/javascript">
-                atOptions = { 'key' : '78ade24182729fceea8e45203dad915b', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
-                </script>
-                <script type="text/javascript" src="//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js"></script>
-            </div>
-
-            <!-- Mining Progress Card -->
-            <div class="bg-white shadow rounded-xl p-4 sm:p-6">
-                <h3 class="text-lg font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                    Mining Progress
-                </h3>
-
-                <div class="w-full bg-gray-200 rounded-full h-4 sm:h-5 mb-2">
-                    <div id="progressBar" class="bg-gradient-to-r from-green-500 to-emerald-600 h-4 sm:h-5 rounded-full transition-all duration-500 flex items-center justify-end pr-2" style="width:0%">
-                        <span class="text-white text-xs font-bold" id="progressPercent">0%</span>
-                    </div>
-                </div>
-                <p class="text-xs sm:text-sm text-gray-500 mt-2" id="levelText">Level 1 / 4 (0/500 FZ)</p>
-
-                <!-- Level Milestones -->
-                <div class="mt-4 space-y-2">
-                    <p class="text-sm font-semibold text-gray-700">Level Milestones:</p>
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div class="bg-green-50 p-2 rounded border border-green-200">
-                            <span class="text-green-600 font-bold">Level 1:</span> 0 FZ
-                        </div>
-                        <div class="bg-blue-50 p-2 rounded border border-blue-200">
-                            <span class="text-blue-600 font-bold">Level 2:</span> 500 FZ
-                        </div>
-                        <div class="bg-purple-50 p-2 rounded border border-purple-200">
-                            <span class="text-purple-600 font-bold">Level 3:</span> 1000 FZ
-                        </div>
-                        <div class="bg-yellow-50 p-2 rounded border border-yellow-200">
-                            <span class="text-yellow-600 font-bold">Level 4:</span> 2000 FZ
-                        </div>
-                    </div>
-                </div>
+            <div id="adSpace3" class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center transition-all duration-300" style="min-height: 50px; display: none;">
+                <div id="adContainer3"></div>
             </div>
 
             <!-- Referral Input Card -->
@@ -182,11 +139,8 @@ export function renderProfileSection() {
             </div>
 
             <!-- Ad Space 4 -->
-            <div class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center" style="min-height: 50px;">
-                <script type="text/javascript">
-                atOptions = { 'key' : '78ade24182729fceea8e45203dad915b', 'format' : 'iframe', 'height' : 50, 'width' : 320, 'params' : {} };
-                </script>
-                <script type="text/javascript" src="//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js"></script>
+            <div id="adSpace4" class="bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center transition-all duration-300" style="min-height: 50px; display: none;">
+                <div id="adContainer4"></div>
             </div>
 
             <!-- Referral Stats Card -->
@@ -218,51 +172,54 @@ export function renderProfileSection() {
         </div>
     `;
 
-    console.log('Profile section rendered dynamically with mobile ads');
+    console.log('Profile section rendered with smart ad management');
+    loadSingleAd(); // Load only one ad
 }
 
 // ========================================
-// LEVEL UPDATE FUNCTION
+// SMART AD LOADER: Only ONE Ad Loads
 // ========================================
-export function updateLevelProgress(userData) {
-    const balance = userData.balance || 0;
-    let currentLevel = 1;
-    let prevThreshold = 0;
-    let nextThreshold = LEVEL_THRESHOLDS[1];
+function loadSingleAd() {
+    if (adLoaded) return; // Prevent multiple ads
 
-    for (let i = 0; i < LEVEL_THRESHOLDS.length; i++) {
-        if (balance >= LEVEL_THRESHOLDS[i]) {
-            currentLevel = i + 1;
-            prevThreshold = LEVEL_THRESHOLDS[i];
-            nextThreshold = LEVEL_THRESHOLDS[i + 1] || prevThreshold;
-        } else {
-            break;
-        }
-    }
+    const adSpaces = [
+        { space: document.getElementById('adSpace1'), container: 'adContainer1' },
+        { space: document.getElementById('adSpace2'), container: 'adContainer2' },
+        { space: document.getElementById('adSpace3'), container: 'adContainer3' },
+        { space: document.getElementById('adSpace4'), container: 'adContainer4' }
+    ].filter(item => item.space); // Filter valid spaces
 
-    const isMaxLevel = currentLevel === LEVEL_THRESHOLDS.length;
-    const range = isMaxLevel ? 1 : (nextThreshold - prevThreshold);
-    const progressPercent = isMaxLevel 
-        ? 100 
-        : range > 0 
-            ? ((balance - prevThreshold) / range) * 100 
-            : 0;
+    if (adSpaces.length === 0) return;
 
-    const progressBar = document.getElementById('progressBar');
-    const progressPercentEl = document.getElementById('progressPercent');
-    const levelText = document.getElementById('levelText');
+    // Randomly pick ONE ad space
+    const randomIndex = Math.floor(Math.random() * adSpaces.length);
+    const selected = adSpaces[randomIndex];
 
-    if (progressBar) {
-        progressBar.style.width = `${Math.min(Math.round(progressPercent), 100)}%`;
-    }
-    if (progressPercentEl) {
-        progressPercentEl.textContent = `${Math.round(progressPercent)}%`;
-    }
-    if (levelText) {
-        const displayNext = isMaxLevel ? 'Max' : nextThreshold;
-        const displayBalance = isMaxLevel && balance > prevThreshold ? `${prevThreshold}+` : balance;
-        levelText.textContent = `Level ${currentLevel} / 4 (${displayBalance}/${displayNext} FZ)`;
-    }
+    // Show the selected ad space
+    selected.space.style.display = 'flex';
+
+    // Inject ad script
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.onload = () => {
+        adLoaded = true;
+        console.log(`Ad loaded successfully in adSpace${randomIndex + 1}`);
+    };
+    script.onerror = () => {
+        selected.space.style.display = 'none'; // Hide on failure
+        console.warn(`Ad failed to load in adSpace${randomIndex + 1}, hiding space.`);
+    };
+
+    window.atOptions = {
+        'key': AD_KEY,
+        'format': 'iframe',
+        'height': 50,
+        'width': 320,
+        'params': {}
+    };
+
+    script.src = AD_URL;
+    document.getElementById(selected.container).appendChild(script);
 }
 
 // ========================================
@@ -434,12 +391,12 @@ export async function updateReferralsList(userData) {
 }
 
 // ========================================
-// MAIN INITIALIZER: initProfileSection (NEW EXPORT)
+// MAIN INITIALIZER
 // ========================================
 export function initProfileSection(currentUser, userData, appSettings, showNotification, showAdModal, logoutCallback) {
-    renderProfileSection(); // Render UI first
+    renderProfileSection();
 
-    // Update all dynamic data
+    // Update dynamic data
     const balanceEl = document.getElementById('profileBalance');
     const rewardsEl = document.getElementById('referralRewards');
     if (balanceEl) balanceEl.textContent = `${(userData.balance || 0).toFixed(2)} FZ`;
@@ -460,11 +417,10 @@ export function initProfileSection(currentUser, userData, appSettings, showNotif
         if (joinDateEl) joinDateEl.textContent = date;
     }
 
-    updateLevelProgress(userData);
     toggleReferralUI(!!userData.referredBy);
     updateReferralsList(userData);
 
-    // Attach event listeners
+    // Event listeners
     document.getElementById('copyCode')?.addEventListener('click', () => copyReferralCode(userData, showNotification));
     document.getElementById('shareWA')?.addEventListener('click', () => shareReferralCode(userData, 'whatsapp', appSettings, showNotification));
     document.getElementById('shareTG')?.addEventListener('click', () => shareReferralCode(userData, 'telegram', appSettings, showNotification));
