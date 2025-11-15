@@ -12,7 +12,7 @@
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
       overflow-x: hidden;
-      padding-bottom: 20px; /* Adjusted padding as nav bar is removed */
+      padding-bottom: 20px;
       min-height: 100vh;
       background: #f9fafb;
       transition: background 0.3s ease;
@@ -73,6 +73,18 @@
       border-color: #e5e7eb;
       background: #fff;
     }
+
+    .countdown-timer {
+      font-size: 18px;
+      font-weight: bold;
+      color: #28a745;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
@@ -82,9 +94,9 @@
 
   <!-- Header -->
   <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-40 border-b border-gray-200">
-    <a href="Bonus.html" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all">
+    <button id="backButton" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all">
       <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-    </a>
+    </button>
     <div>
       <h1 class="text-xl font-bold text-green-600">Extra Rewards</h1>
     </div>
@@ -142,22 +154,8 @@
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
     import { ref, get, update, runTransaction, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
-    // --- START: Integrated Ad System from ad.js ---
-
-    /**
-     * FarmZone Ad Management System
-     * Handles loading of mobile banner and rewarded ads
-     */
-
     // Ad Configuration
     const AD_CONFIG = {
-      mobileBanner: {
-        key: '78ade24182729fceea8e45203dad915b',
-        format: 'iframe',
-        height: 50,
-        width: 320,
-        invokeUrl: '//www.highperformanceformat.com/78ade24182729fceea8e45203dad915b/invoke.js'
-      },
       rewarded: {
         key: '53c6462d2fd5ad5b91686ca9561f79a2',
         format: 'iframe',
@@ -167,84 +165,13 @@
       }
     };
 
-    // Track loaded ads to prevent duplicates
-    const loadedAds = new Set();
+    const AD_WATCH_TIME = 10000; // 10 seconds
 
-    /**
-     * Show ad container with loaded class
-     * @param {HTMLElement} container - The container element
-     */
-    function showAdContainer(container) {
-      if (container) {
-        container.classList.add('loaded');
-      }
-    }
-
-    /**
-     * Load Rewarded Ad (728x90 - shown during reward claiming)
-     * @param {string} containerId - ID of the container element
-     * @param {function} callback - Callback function to signal success or failure
-     */
-    function loadRewardedAd(containerId, callback) {
-      const container = document.getElementById(containerId);
-      if (!container) {
-        console.warn(`⚠️ Container ${containerId} not found for rewarded ad`);
-        if (callback) callback(false);
-        return;
-      }
-
-      try {
-        container.innerHTML = '';
-        container.classList.remove('loaded');
-
-        window.atOptions = {
-          key: AD_CONFIG.rewarded.key,
-          format: AD_CONFIG.rewarded.format,
-          height: AD_CONFIG.rewarded.height,
-          width: AD_CONFIG.rewarded.width,
-          params: {}
-        };
-
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.src = AD_CONFIG.rewarded.invokeUrl;
-        script.async = true;
-        
-        script.onload = () => {
-          setTimeout(() => {
-            showAdContainer(container);
-            console.log('✅ Rewarded ad loaded successfully');
-            if (callback) callback(true);
-          }, 500);
-        };
-        
-        script.onerror = () => {
-          console.error('❌ Failed to load rewarded ad');
-          container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px; font-size: 14px;">Failed to load ad. Try again.</div>';
-          container.classList.add('loaded');
-          if (callback) callback(false);
-        };
-
-        container.appendChild(script);
-
-      } catch (error) {
-        console.error('❌ Error loading rewarded ad:', error);
-        container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px; font-size: 14px;">An error occurred.</div>';
-        container.classList.add('loaded');
-        if (callback) callback(false);
-      }
-    }
-    
-    console.log('🎯 FarmZone Ad System initialized');
-
-    // --- END: Integrated Ad System ---
-
-
-    // --- START: Application Logic ---
     let userData = null;
     let userId = null;
     let cooldownInterval = null;
     let currentAdStep = 0;
+    let adWatchTimer = null;
 
     const balanceEl = document.getElementById('balanceAmount');
     const toastContainer = document.getElementById('toastContainer');
@@ -263,6 +190,20 @@
       }
     }
 
+    // Back Button Handler - Fixed
+    document.getElementById('backButton').addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('Back button clicked');
+      
+      // Try to go back in history first
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        // If no history, go to index.html
+        window.location.href = 'index.html';
+      }
+    });
+
     async function loadExtraReward() {
       if (!userId) return;
       document.getElementById('extraLoading').style.display = 'none';
@@ -279,7 +220,8 @@
           updateExtraUI();
         }
       } catch (err) {
-        showToast('Failed to load extra reward data.', 'error');
+        console.error('Load error:', err);
+        showToast('Failed to load data.', 'error');
       }
     }
 
@@ -319,7 +261,7 @@
         const remaining = targetTime - Date.now();
         if (remaining <= 0) {
           clearInterval(cooldownInterval);
-          loadExtraReward(); // Reload data to reset the state
+          loadExtraReward();
           return;
         }
         const h = Math.floor(remaining / 3600000);
@@ -340,6 +282,56 @@
       }
     }
 
+    function loadRewardedAd(containerId, callback) {
+      const container = document.getElementById(containerId);
+      if (!container) {
+        console.warn('Container not found');
+        if (callback) callback(false);
+        return;
+      }
+
+      try {
+        container.innerHTML = '';
+        container.classList.remove('loaded');
+
+        window.atOptions = {
+          key: AD_CONFIG.rewarded.key,
+          format: AD_CONFIG.rewarded.format,
+          height: AD_CONFIG.rewarded.height,
+          width: AD_CONFIG.rewarded.width,
+          params: {}
+        };
+
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = AD_CONFIG.rewarded.invokeUrl;
+        script.async = true;
+        
+        script.onload = () => {
+          setTimeout(() => {
+            container.classList.add('loaded');
+            console.log('Ad loaded');
+            if (callback) callback(true);
+          }, 500);
+        };
+        
+        script.onerror = () => {
+          console.error('Ad load failed');
+          container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px; font-size: 14px;">Ad failed to load</div>';
+          container.classList.add('loaded');
+          if (callback) callback(false);
+        };
+
+        container.appendChild(script);
+
+      } catch (error) {
+        console.error('Ad error:', error);
+        container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px; font-size: 14px;">Error occurred</div>';
+        container.classList.add('loaded');
+        if (callback) callback(false);
+      }
+    }
+
     function startAdViewingProcess() {
       const btn = document.getElementById('adActionBtn');
       btn.disabled = true;
@@ -350,11 +342,10 @@
 
       loadRewardedAd('adViewer', async (success) => {
         if (success) {
-          showToast('Ad loaded. Watch for 5 seconds.', 'info');
-          await new Promise(r => setTimeout(r, 5000)); // Simulate watch time
-          await adViewCompleted();
+          showToast('Ad loaded! Watch for 10 seconds.', 'success');
+          startAdCountdown();
         } else {
-          showToast('Ad failed to load. Please try again.', 'error');
+          showToast('Ad failed to load. Try again.', 'error');
           setTimeout(() => {
             updateAdActionButton();
             viewer.innerHTML = '<p>Click "Watch Ad" to try again.</p>';
@@ -363,17 +354,51 @@
       });
     }
 
+    function startAdCountdown() {
+      let timeLeft = 10;
+      const viewer = document.getElementById('adViewer');
+      
+      // Create countdown display
+      const countdownDiv = document.createElement('div');
+      countdownDiv.className = 'countdown-timer';
+      countdownDiv.style.cssText = 'position: absolute; top: 10px; right: 10px; background: rgba(40, 167, 69, 0.9); color: white; padding: 8px 16px; border-radius: 20px; font-size: 16px; font-weight: bold; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.2);';
+      countdownDiv.textContent = `${timeLeft}s`;
+      viewer.style.position = 'relative';
+      viewer.appendChild(countdownDiv);
+
+      adWatchTimer = setInterval(() => {
+        timeLeft--;
+        countdownDiv.textContent = `${timeLeft}s`;
+        
+        if (timeLeft <= 0) {
+          clearInterval(adWatchTimer);
+          countdownDiv.remove();
+          adViewCompleted();
+        }
+      }, 1000);
+    }
+
     async function adViewCompleted() {
       currentAdStep++;
-      document.getElementById('adViewer').innerHTML = `<p>Ad ${currentAdStep}/4 Completed!</p>`;
+      const viewer = document.getElementById('adViewer');
+      viewer.innerHTML = `<div style="text-align: center; color: #28a745;">
+        <svg class="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+        <p class="font-bold">Ad ${currentAdStep}/4 Completed!</p>
+      </div>`;
       
       try {
         await update(ref(database, `users/${userId}/extraReward`), { adsWatched: currentAdStep });
         if(userData.extraReward) userData.extraReward.adsWatched = currentAdStep;
         document.getElementById('adsWatched').textContent = `${currentAdStep}/4`;
-        updateAdActionButton();
+        
+        setTimeout(() => {
+          updateAdActionButton();
+          viewer.innerHTML = '<p>Click button to continue</p>';
+        }, 2000);
+        
         showToast(`Ad ${currentAdStep}/4 watched!`, 'success');
       } catch (error) {
+        console.error('Save error:', error);
         showToast('Failed to save progress.', 'error');
         updateAdActionButton();
       }
@@ -391,16 +416,17 @@
               if (data.extraReward.adsWatched >= 4) {
                 data.balance = (data.balance || 0) + 5;
                 data.extraReward.lastRewardTime = Date.now();
-                data.extraReward.adsWatched = 4; // Set to 4 to indicate completion
+                data.extraReward.adsWatched = 4;
               }
           }
           return data;
         });
         await addTransaction('extra_reward', 5, 'Watched 4 Ads');
         showToast('+5 FZ Reward Claimed!', 'success');
-        await loadExtraReward(); // Reload to update UI and start cooldown
+        await loadExtraReward();
       } catch (error) {
-        showToast('Claim failed. Please try again.', 'error');
+        console.error('Claim error:', error);
+        showToast('Claim failed. Try again.', 'error');
         btn.innerHTML = 'Claim Failed';
         setTimeout(() => updateAdActionButton(), 2000);
       }
@@ -430,8 +456,10 @@
 
     window.addEventListener('beforeunload', () => {
       if(cooldownInterval) clearInterval(cooldownInterval);
+      if(adWatchTimer) clearInterval(adWatchTimer);
     });
 
+    console.log('Extra Rewards Page Initialized');
   </script>
 </body>
 </html>
