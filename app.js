@@ -1,7 +1,13 @@
-// app.js - Main application file (Ad-Free Version)
+// app.js - Main application file (Ad-Free Version - Fixed)
 import { auth, database } from './config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { ref, get, set, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+// Import menu module
+import { 
+    initMenuSection,
+    renderMenuSection
+} from './menu.js';
 
 // Import home module
 import { 
@@ -62,7 +68,8 @@ let sectionsRendered = {
     home: false,
     profile: false,
     wallet: false,
-    bonus: false
+    bonus: false,
+    menu: false
 };
 
 // App Settings
@@ -158,6 +165,10 @@ function ensureSectionRendered(section) {
             renderBonusSection();
             sectionsRendered.bonus = true;
             break;
+        case 'menu':
+            renderMenuSection();
+            sectionsRendered.menu = true;
+            break;
     }
 }
 
@@ -174,14 +185,16 @@ function switchSection(section) {
         'home': 'homeSection',
         'profile': 'profileSection',
         'wallet': 'walletSection',
-        'bonus': 'bonusSection'
+        'bonus': 'bonusSection',
+        'menu': 'menuSection'
     };
     
     const btnMap = {
         'home': 'homeBtn',
         'profile': 'profileBtn',
         'wallet': 'walletBtn',
-        'bonus': 'bonusBtn'
+        'bonus': 'bonusBtn',
+        'menu': null
     };
     
     const sectionEl = document.getElementById(sectionMap[section]);
@@ -190,15 +203,17 @@ function switchSection(section) {
     if (sectionEl) sectionEl.classList.add('active');
     if (btnEl) btnEl.classList.add('text-green-600', 'active');
     
-    if (section === 'wallet') {
+    if (section === 'wallet' && userData) {
         initWalletSection(userData);
         updateWalletDisplay(userData);
-    } else if (section === 'bonus') {
+    } else if (section === 'bonus' && userData) {
         initBonusSection(userData, getServerTime);
-    } else if (section === 'home') {
-        initHomeSection();
-    } else if (section === 'profile') {
+    } else if (section === 'home' && userData && appSettings) {
+        initHomeSection(userData, appSettings, getServerTime);
+    } else if (section === 'profile' && userData) {
         initProfileSection(currentUser, userData, appSettings, showNotification, null, logout);
+    } else if (section === 'menu') {
+        initMenuSection();
     }
     
     updateUI();
@@ -231,92 +246,100 @@ function getCurrentLevelProgress(totalMined) {
 // UI UPDATE
 // ========================================
 function updateUI() {
-    if (!userData) return;
-
-    const totalMined = userData.totalMined || 0;
-    const levelInfo = getCurrentLevelProgress(totalMined);
-    const referralCount = Object.keys(userData.referrals || {}).length;
-    const currentEarned = calculateCurrentEarned(userData, appSettings, getServerTime);
-
-    const miningRate = (appSettings.mining.totalReward / appSettings.mining.miningDuration).toFixed(4);
-    const balance = (userData.balance || 0).toFixed(2);
-    const referralRewards = (userData.referralRewards || 0).toFixed(2);
-
-    const updateElement = (id, value) => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = value;
-    };
-
-    updateElement('totalBalance', `${balance} FZ`);
-    updateElement('profileBalance', `${balance} FZ`);
-    updateElement('walletBalance', `${balance} FZ`);
-    updateElement('miningRate', `${miningRate}/hr`);
-    updateElement('referralCount', referralCount);
-    updateElement('totalMined', `${totalMined.toFixed(2)} FZ`);
-    updateElement('currentEarned', `${currentEarned.toFixed(6)} FZ`);
-    updateElement('earnedDisplay', `${currentEarned.toFixed(6)} FZ`);
-    updateElement('referralRewards', `${referralRewards} FZ`);
-    updateElement('refCode', userData.referralCode || '---');
-    updateElement('joinDate', userData.joinDate || '---');
-
-    const progressBar = document.getElementById('progressBar');
-    if (progressBar) progressBar.style.width = `${levelInfo.progress}%`;
-    
-    const levelText = document.getElementById('levelText');
-    if (levelText) {
-        levelText.textContent = `Level ${levelInfo.level} / ${MAX_LEVEL} (${levelInfo.current}/${levelInfo.required} FZ)`;
+    // Critical: Check if userData exists before updating UI
+    if (!userData || !appSettings) {
+        console.warn('updateUI called but userData or appSettings not ready');
+        return;
     }
 
-    const claimReferralBtn = document.getElementById('claimReferralBtn');
-    if (claimReferralBtn) {
-        claimReferralBtn.style.display = userData.referralRewards > 0 ? 'block' : 'none';
-    }
+    try {
+        const totalMined = (userData && userData.totalMined) || 0;
+        const levelInfo = getCurrentLevelProgress(totalMined);
+        const referralCount = Object.keys((userData && userData.referrals) || {}).length;
+        const currentEarned = calculateCurrentEarned(userData, appSettings, getServerTime);
 
-    const referralSubmitBox = document.getElementById('referralSubmitBox');
-    const referralSubmittedBox = document.getElementById('referralSubmittedBox');
-    if (referralSubmitBox && referralSubmittedBox) {
-        const isReferred = !!userData.referredBy;
-        referralSubmitBox.style.display = isReferred ? 'none' : 'block';
-        referralSubmittedBox.style.display = isReferred ? 'block' : 'none';
-    }
+        const miningRate = ((appSettings && appSettings.mining && appSettings.mining.totalReward) / (appSettings.mining.miningDuration)).toFixed(4);
+        const balance = ((userData && userData.balance) || 0).toFixed(2);
+        const referralRewards = ((userData && userData.referralRewards) || 0).toFixed(2);
 
-    const miningBtn = document.getElementById('miningBtn');
-    const miningStatus = document.getElementById('miningStatus');
-    const timerDisplay = document.querySelector('#miningBtn .timer-display');
-    
-    if (miningBtn && miningStatus && timerDisplay) {
-        const now = getServerTime();
-        if (userData.miningStartTime && now < userData.miningEndTime) {
-            miningBtn.disabled = true;
-            miningBtn.classList.remove('claim');
-            miningStatus.textContent = 'Active';
-            miningStatus.className = 'mining-status text-green-600';
-            startCountdownAndEarned(
-                userData.miningEndTime,
-                getServerTime,
-                appSettings,
-                userData,
-                stopMining,
-                showNotification
-            );
-        } else if (userData.miningStartTime && now >= userData.miningEndTime) {
-            miningBtn.classList.add('claim');
-            miningBtn.disabled = false;
-            timerDisplay.textContent = 'Claim';
-            miningStatus.textContent = 'Ready to Claim';
-            miningStatus.className = 'mining-status text-yellow-600';
-        } else {
-            miningBtn.classList.remove('claim');
-            miningBtn.disabled = false;
-            timerDisplay.textContent = 'Start Mining';
-            miningStatus.textContent = 'Inactive';
-            miningStatus.className = 'mining-status text-gray-600';
+        const updateElement = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        };
+
+        updateElement('totalBalance', `${balance} FZ`);
+        updateElement('profileBalance', `${balance} FZ`);
+        updateElement('walletBalance', `${balance} FZ`);
+        updateElement('miningRate', `${miningRate}/hr`);
+        updateElement('referralCount', referralCount);
+        updateElement('totalMined', `${totalMined.toFixed(2)} FZ`);
+        updateElement('currentEarned', `${currentEarned.toFixed(6)} FZ`);
+        updateElement('earnedDisplay', `${currentEarned.toFixed(6)} FZ`);
+        updateElement('referralRewards', `${referralRewards} FZ`);
+        updateElement('refCode', (userData && userData.referralCode) || '---');
+        updateElement('joinDate', (userData && userData.joinDate) || '---');
+
+        const progressBar = document.getElementById('progressBar');
+        if (progressBar) progressBar.style.width = `${levelInfo.progress}%`;
+        
+        const levelText = document.getElementById('levelText');
+        if (levelText) {
+            levelText.textContent = `Level ${levelInfo.level} / ${MAX_LEVEL} (${levelInfo.current}/${levelInfo.required} FZ)`;
         }
-    }
 
-    const bonusSection = document.getElementById('bonusSection');
-    if (bonusSection && bonusSection.classList.contains('active')) {
-        updateBonusTimer(userData, getServerTime);
+        const claimReferralBtn = document.getElementById('claimReferralBtn');
+        if (claimReferralBtn && userData) {
+            claimReferralBtn.style.display = (userData.referralRewards && userData.referralRewards > 0) ? 'block' : 'none';
+        }
+
+        const referralSubmitBox = document.getElementById('referralSubmitBox');
+        const referralSubmittedBox = document.getElementById('referralSubmittedBox');
+        if (referralSubmitBox && referralSubmittedBox && userData) {
+            const isReferred = !!(userData.referredBy);
+            referralSubmitBox.style.display = isReferred ? 'none' : 'block';
+            referralSubmittedBox.style.display = isReferred ? 'block' : 'none';
+        }
+
+        const miningBtn = document.getElementById('miningBtn');
+        const miningStatus = document.getElementById('miningStatus');
+        const timerDisplay = document.querySelector('#miningBtn .timer-display');
+        
+        if (miningBtn && miningStatus && timerDisplay && userData) {
+            const now = getServerTime();
+            if (userData.miningStartTime && now < userData.miningEndTime) {
+                miningBtn.disabled = true;
+                miningBtn.classList.remove('claim');
+                miningStatus.textContent = 'Active';
+                miningStatus.className = 'mining-status text-green-600';
+                startCountdownAndEarned(
+                    userData.miningEndTime,
+                    getServerTime,
+                    appSettings,
+                    userData,
+                    stopMining,
+                    showNotification
+                );
+            } else if (userData.miningStartTime && now >= userData.miningEndTime) {
+                miningBtn.classList.add('claim');
+                miningBtn.disabled = false;
+                timerDisplay.textContent = 'Claim';
+                miningStatus.textContent = 'Ready to Claim';
+                miningStatus.className = 'mining-status text-yellow-600';
+            } else {
+                miningBtn.classList.remove('claim');
+                miningBtn.disabled = false;
+                timerDisplay.textContent = 'Start Mining';
+                miningStatus.textContent = 'Inactive';
+                miningStatus.className = 'mining-status text-gray-600';
+            }
+        }
+
+        const bonusSection = document.getElementById('bonusSection');
+        if (bonusSection && bonusSection.classList.contains('active') && userData) {
+            updateBonusTimer(userData, getServerTime);
+        }
+    } catch (error) {
+        console.error('Error in updateUI:', error);
     }
 }
 
@@ -324,6 +347,11 @@ function updateUI() {
 // MINING WRAPPERS (Ad-Free)
 // ========================================
 async function startMining() {
+    if (!userData || !currentUser) {
+        showNotification("User data not loaded", "error");
+        return;
+    }
+    
     try {
         await startMiningFunc(
             currentUser, 
@@ -348,6 +376,11 @@ function stopMining() {
 }
 
 function claimMiningReward() {
+    if (!userData || !currentUser) {
+        showNotification("User data not loaded", "error");
+        return;
+    }
+    
     try {
         claimMiningRewardFunc(
             currentUser, 
@@ -377,7 +410,9 @@ async function initializeUserData(user) {
             if (!sectionsRendered.home) {
                 ensureSectionRendered('home');
             }
-            updateUI();
+            if (userData && appSettings) {
+                updateUI();
+            }
         }
     }, (error) => {
         console.error("User data load failed:", error);
@@ -429,34 +464,34 @@ function setupEventDelegation() {
         
         if (target.id === 'miningBtn' || target.closest('#miningBtn')) {
             const btn = document.getElementById('miningBtn');
-            if (btn.classList.contains('claim')) {
+            if (btn && btn.classList.contains('claim')) {
                 claimMiningReward();
             } else {
                 startMining();
             }
         }
         
-        if (target.id === 'claimReferralBtn') {
+        if (target.id === 'claimReferralBtn' && userData) {
             claimReferralRewards(currentUser, userData, showNotification);
         }
-        if (target.id === 'submitReferralBtn') {
+        if (target.id === 'submitReferralBtn' && userData) {
             submitReferralCode(currentUser, userData, appSettings, showStatus);
         }
-        if (target.id === 'copyCode') {
+        if (target.id === 'copyCode' && userData) {
             copyReferralCode(userData, showNotification);
         }
-        if (target.id === 'shareWA') {
+        if (target.id === 'shareWA' && userData) {
             shareReferralCode(userData, 'whatsapp', appSettings, showNotification);
         }
-        if (target.id === 'shareTG') {
+        if (target.id === 'shareTG' && userData) {
             shareReferralCode(userData, 'telegram', appSettings, showNotification);
         }
         
-        if (target.id === 'claimBonusBtn') {
+        if (target.id === 'claimBonusBtn' && userData) {
             claimBonus(currentUser, userData, getServerTime, showNotification);
         }
         
-        if (target.id === 'withdrawBtn') {
+        if (target.id === 'withdrawBtn' && userData) {
             handleWithdraw(currentUser, userData, showStatus);
         }
         
@@ -473,7 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loading = document.getElementById('loading');
     if (loading) loading.style.display = 'none';
     
-    console.log("App initialized - Ad-Free & Dynamic");
+    console.log("App initialized - Ad-Free & Dynamic - Fixed Version");
 
     setupEventDelegation();
 
