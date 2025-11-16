@@ -1,17 +1,27 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>রোডম্যাপ - FarmZone | এড রেভিনিউ শেয়ারিং প্ল্যাটফর্ম</title>
+  <title>Roadmap - FarmZone | Ad Revenue Sharing Platform</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Noto Sans Bengali', sans-serif;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
       background-color: #f9fafb;
       line-height: 1.7;
+      overflow-x: hidden;
     }
+
     .policy-card {
       background: #fff;
       border-radius: 16px;
@@ -47,45 +57,11 @@
       font-size: 0.875rem;
       margin-bottom: 12px;
     }
-    .phase-completed {
-      background: #28a745;
-      color: white;
-    }
-    .phase-ongoing {
-      background: #ffc107;
-      color: #000;
-    }
-    .phase-upcoming {
-      background: #17a2b8;
-      color: white;
-    }
-    .phase-future {
-      background: #6c757d;
-      color: white;
-    }
-    .stat-card {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      transition: all 0.3s ease;
-    }
-    .stat-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-    }
-    .stat-number {
-      font-size: 2.5rem;
-      font-weight: 700;
-      color: #28a745;
-    }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-      margin: 30px 0;
-    }
+    .phase-completed { background: #28a745; color: white; }
+    .phase-ongoing { background: #ffc107; color: #000; }
+    .phase-upcoming { background: #17a2b8; color: white; }
+    .phase-future { background: #6c757d; color: white; }
+
     .vision-card {
       text-align: center;
       padding: 24px;
@@ -106,245 +82,248 @@
       margin-bottom: 30px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
+
+    /* Fullscreen Layout */
+    .container-full {
+      width: 100%;
+      max-width: none !important;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    @media (min-width: 640px) {
+      .container-full {
+        padding-left: 2rem;
+        padding-right: 2rem;
+      }
+    }
+    @media (min-width: 1024px) {
+      .container-full {
+        padding-left: 4rem;
+        padding-right: 4rem;
+      }
+    }
+    @media (min-width: 1280px) {
+      .container-full {
+        padding-left: 6rem;
+        padding-right: 6rem;
+      }
+    }
+
+    header, main, footer {
+      width: 100%;
+    }
   </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col">
 
-  <header class="bg-white shadow-md sticky top-0 z-50">
-    <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-start gap-3">
+  <!-- Full Width Header -->
+  <header class="bg-white shadow-md sticky top-0 z-50 w-full">
+    <div class="container-full mx-auto px-4 py-4 flex items-center justify-start gap-3">
       <img src="Logo.png" alt="FarmZone Logo" class="h-10 w-10" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
       <h1 class="text-2xl font-bold text-green-600">FarmZone</h1>
     </div>
   </header>
 
-  <main class="max-w-4xl mx-auto px-4 py-8">
-    <div class="content-section">
-      <div class="text-center mb-8">
-        <h1 class="text-4xl font-bold text-gray-800 mb-3">🚀 FarmZone রোডম্যাপ</h1>
-        <p class="text-gray-600">আমাদের যাত্রা এবং ভবিষ্যৎ পরিকল্পনা</p>
-      </div>
+  <!-- Full Width Main Content -->
+  <main class="flex-1 w-full">
+    <div class="container-full py-8">
+      <div class="content-section">
+        <div class="text-center mb-8">
+          <h1 class="text-4xl font-bold text-gray-800 mb-3">FarmZone Roadmap</h1>
+          <p class="text-gray-600">Our Journey and Future Plans</p>
+        </div>
 
-      <!-- Important Notice -->
-      <div class="notice-banner">
-        <div class="flex items-start gap-3">
-          <span class="text-3xl">⚠️</span>
-          <div>
-            <h3 class="font-bold text-gray-800 text-lg mb-2">📌 গুরুত্বপূর্ণ নোটিস</h3>
-            <p class="text-gray-700 font-semibold">
-              এই রোডম্যাপ পরিবর্তনশীল এবং প্রজেক্টের প্রয়োজন অনুযায়ী যেকোনো সময় আপডেট হতে পারে। প্রযুক্তিগত উন্নয়ন, বাজার পরিস্থিতি এবং কমিউনিটি ফিডব্যাকের ভিত্তিতে সময়সীমা এবং ফিচারগুলো পরিবর্তন হতে পারে।
-            </p>
+        <!-- Important Notice -->
+        <div class="notice-banner">
+          <div class="flex items-start gap-3">
+            <span class="text-3xl">Warning</span>
+            <div>
+              <h3 class="font-bold text-gray-800 text-lg mb-2">Important Notice</h3>
+              <p class="text-gray-700 font-semibold">
+                This roadmap is subject to change and may be updated at any time based on project needs. Timelines and features may vary due to technical developments, market conditions, and community feedback.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="highlight-box">
-        <p class="font-semibold text-gray-800">
-          <strong>আমাদের ভিশন।</strong> FarmZone একটি উদ্ভাবনী এড রেভিনিউ শেয়ারিং প্ল্যাটফর্ম যেখানে ব্যবহারকারীরা বিজ্ঞাপন দেখে আয় করতে পারেন। ভবিষ্যতে আমরা এটিকে একটি সম্পূর্ণ ক্রিপ্টো ইকোসিস্টেমে রূপান্তরিত করার পরিকল্পনা করছি।
-        </p>
-      </div>
+        <div class="highlight-box">
+          <p class="font-semibold text-gray-800">
+            <strong>Our Vision.</strong> FarmZone is an innovative ad revenue sharing platform where users earn by watching ads. In the future, we plan to transform it into a full-fledged crypto ecosystem.
+          </p>
+        </div>
 
-      <!-- Current Stats -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="text-4xl mb-2">👥</div>
-          <div class="stat-number">10K+</div>
-          <p class="text-gray-600 font-semibold">সক্রিয় ব্যবহারকারী</p>
-        </div>
-        <div class="stat-card">
-          <div class="text-4xl mb-2">📺</div>
-          <div class="stat-number">500K+</div>
-          <p class="text-gray-600 font-semibold">বিজ্ঞাপন দেখা হয়েছে</p>
-        </div>
-        <div class="stat-card">
-          <div class="text-4xl mb-2">💰</div>
-          <div class="stat-number">2M+</div>
-          <p class="text-gray-600 font-semibold">FZ পয়েন্ট বিতরণ</p>
-        </div>
-        <div class="stat-card">
-          <div class="text-4xl mb-2">🌍</div>
-          <div class="stat-number">50+</div>
-          <p class="text-gray-600 font-semibold">দেশ থেকে ব্যবহারকারী</p>
-        </div>
-      </div>
-
-      <!-- Phase 1 -->
-      <div class="policy-card">
-        <span class="phase-badge phase-completed">✓ সম্পন্ন</span>
-        <h2 class="section-title">ফেজ ১: প্রতিষ্ঠা</h2>
-        <p class="text-gray-600 mb-3 font-semibold">Q4 2025 (অক্টোবর - ডিসেম্বর 2025)</p>
-        <ul class="list-disc list-inside text-gray-700 space-y-2">
-          <li>প্ল্যাটফর্ম ডেভেলপমেন্ট এবং টেস্টিং</li>
-          <li>এড রেভিনিউ শেয়ারিং সিস্টেম চালু</li>
-          <li>ব্যবহারকারী রেজিস্ট্রেশন এবং লগইন</li>
-          <li>রেফারেল প্রোগ্রাম চালু</li>
-          <li>বেসিক পয়েন্ট সিস্টেম</li>
-          <li>দৈনিক বোনাস এবং চেক-ইন</li>
-        </ul>
-        <div class="highlight-box mt-4">
-          <p class="text-green-700 font-semibold">🎉 লক্ষ্য অর্জিত: ১,০০০+ ব্যবহারকারী</p>
-        </div>
-      </div>
-
-      <!-- Phase 2 -->
-      <div class="policy-card">
-        <span class="phase-badge phase-ongoing">⚡ চলমান</span>
-        <h2 class="section-title">ফেজ ২: সম্প্রসারণ</h2>
-        <p class="text-gray-600 mb-3 font-semibold">Q1 2026 (জানুয়ারি - মার্চ 2026)</p>
-        <ul class="list-disc list-inside text-gray-700 space-y-2">
-          <li>লেভেল এবং র‍্যাঙ্ক সিস্টেম</li>
-          <li>উন্নত বিজ্ঞাপন বিতরণ সিস্টেম</li>
-          <li>এক্সট্রা রিওয়ার্ড এবং টাস্ক</li>
-          <li>আয় এবং পয়েন্ট হিস্ট্রি</li>
-          <li>কমিউনিটি ফোরাম চালু</li>
-        </ul>
-        <div class="highlight-box mt-4">
-          <p class="text-gray-700 font-semibold">🎯 লক্ষ্য: ৫,০০০+ ব্যবহারকারী</p>
-        </div>
-      </div>
-
-      <!-- Phase 3 -->
-      <div class="policy-card">
-        <span class="phase-badge phase-upcoming">🔜 আসছে</span>
-        <h2 class="section-title">ফেজ ৩: উন্নয়ন</h2>
-        <p class="text-gray-600 mb-3 font-semibold">Q3 2026 (জুলাই - সেপ্টেম্বর 2026)</p>
-        <ul class="list-disc list-inside text-gray-700 space-y-2">
-          <li>FZ পয়েন্ট থেকে ক্যাশ রূপান্তর সিস্টেম</li>
-          <li>মাল্টি-লেভেল রেফারেল বোনাস</li>
-          <li>মোবাইল অ্যাপ (অফিশিয়াল লঞ্চ)</li>
-          <li>লাইভ চ্যাট সাপোর্ট</li>
-          <li>কাস্টম অ্যাভাটার এবং প্রোফাইল</li>
-          <li>বিজ্ঞাপনদাতা পার্টনারশিপ বৃদ্ধি</li>
-        </ul>
-        <div class="highlight-box mt-4">
-          <p class="text-gray-700 font-semibold">🎯 লক্ষ্য: ১০,০০০+ ব্যবহারকারী</p>
-        </div>
-      </div>
-
-      <!-- Phase 4 -->
-      <div class="policy-card">
-        <span class="phase-badge phase-future">🌟 ভবিষ্যৎ</span>
-        <h2 class="section-title">ফেজ ৪: ক্রিপ্টো ট্রানজিশন প্রস্তুতি</h2>
-        <p class="text-gray-600 mb-3 font-semibold">Q4 2028 (অক্টোবর - ডিসেম্বর 2028)</p>
-        <ul class="list-disc list-inside text-gray-700 space-y-2">
-          <li>FZ পয়েন্ট থেকে FZ টোকেনে মাইগ্রেশন পরিকল্পনা</li>
-          <li>ক্রিপ্টো ওয়ালেট ইন্টিগ্রেশন</li>
-          <li>স্টেকিং সিস্টেম প্রস্তুতি</li>
-          <li>ব্লকচেইন পার্টনারশিপ</li>
-          <li>টোকেন ইকোনমিক্স ডিজাইন</li>
-          <li>কমিউনিটি ভোটিং সিস্টেম</li>
-          <li>এক্সচেঞ্জ লিস্টিং প্রস্তুতি</li>
-        </ul>
-        <div class="highlight-box mt-4">
-          <p class="text-gray-700 font-semibold">🎯 লক্ষ্য: ৫০,০০০+ ব্যবহারকারী</p>
-        </div>
-      </div>
-
-      <!-- Phase 5 -->
-      <div class="policy-card">
-        <span class="phase-badge phase-future">🚀 ক্রিপ্টো লঞ্চ</span>
-        <h2 class="section-title">ফেজ ৫: ব্লকচেইন ইন্টিগ্রেশন</h2>
-        <p class="text-gray-600 mb-3 font-semibold">Q4 2029 (অক্টোবর - ডিসেম্বর 2029)</p>
-        <ul class="list-disc list-inside text-gray-700 space-y-2">
-          <li>FZ টোকেন ব্লকচেইনে মাইগ্রেশন (TRC20/BEP20)</li>
-          <li>DEX এবং CEX লিস্টিং</li>
-          <li>NFT মার্কেটপ্লেস চালু</li>
-          <li>ডি-ফাই স্টেকিং পুল</li>
-          <li>ক্রস-চেইন ব্রিজ</li>
-          <li>গ্লোবাল মার্কেটিং ক্যাম্পেইন</li>
-          <li>মাল্টি-ল্যাঙ্গুয়েজ সাপোর্ট</li>
-        </ul>
-        <div class="highlight-box mt-4">
-          <p class="text-gray-700 font-semibold">🎯 লক্ষ্য: ১,০০,০০০+ ব্যবহারকারী</p>
-        </div>
-      </div>
-
-      <!-- Phase 6 -->
-      <div class="policy-card">
-        <span class="phase-badge phase-future">🌐 দূরদর্শী</span>
-        <h2 class="section-title">ফেজ ৬: ইকোসিস্টেম সম্প্রসারণ</h2>
-        <p class="text-gray-600 mb-3 font-semibold">২০৩০ এবং তার পরে</p>
-        <ul class="list-disc list-inside text-gray-700 space-y-2">
-          <li>FarmZone মেটাভার্স প্রজেক্ট</li>
-          <li>ভার্চুয়াল অ্যাসেট মার্কেটপ্লেস</li>
-          <li>এআই-পাওয়ার্ড স্মার্ট কন্ট্রাক্ট</li>
-          <li>ডিসেন্ট্রালাইজড এক্সচেঞ্জ (DEX)</li>
-          <li>গ্লোবাল পেমেন্ট গেটওয়ে</li>
-          <li>রিয়েল ওয়ার্ল্ড অ্যাসেট টোকেনাইজেশন</li>
-          <li>ব্লকচেইন-বেসড সোশ্যাল প্ল্যাটফর্ম</li>
-        </ul>
-        <div class="highlight-box mt-4">
-          <p class="text-gray-700 font-semibold">🎯 ভিশন: গ্লোবাল ক্রিপ্টো ইকোসিস্টেম লিডার</p>
-        </div>
-      </div>
-
-      <!-- Vision Section -->
-      <div class="policy-card">
-        <h2 class="section-title">আমাদের ভিশন</h2>
-        <p class="text-gray-700 mb-4">
-          FarmZone বর্তমানে একটি এড রেভিনিউ শেয়ারিং প্ল্যাটফর্ম যেখানে ব্যবহারকারীরা বিজ্ঞাপন দেখে আয় করতে পারেন। আমাদের দীর্ঘমেয়াদী লক্ষ্য হলো এটিকে একটি সম্পূর্ণ ক্রিপ্টো ইকোসিস্টেমে রূপান্তরিত করা। আমরা বিশ্বাস করি যে প্রত্যেক ব্যক্তি ডিজিটাল অর্থনীতিতে অংশগ্রহণ করে আর্থিক স্বাধীনতা অর্জন করতে পারে।
-        </p>
-        <div class="grid md:grid-cols-3 gap-6 mt-6">
-          <div class="vision-card">
-            <div class="text-4xl mb-3">🎯</div>
-            <h3 class="font-bold text-lg mb-2 text-gray-800">সহজলভ্যতা</h3>
-            <p class="text-gray-600">সবার জন্য সহজ এবং সুলভ আয়ের সুযোগ</p>
-          </div>
-          <div class="vision-card">
-            <div class="text-4xl mb-3">🔒</div>
-            <h3 class="font-bold text-lg mb-2 text-gray-800">নিরাপত্তা</h3>
-            <p class="text-gray-600">শীর্ষস্থানীয় নিরাপত্তা এবং স্বচ্ছতা</p>
-          </div>
-          <div class="vision-card">
-            <div class="text-4xl mb-3">🌍</div>
-            <h3 class="font-bold text-lg mb-2 text-gray-800">বৈশ্বিক</h3>
-            <p class="text-gray-600">ভবিষ্যতে ক্রিপ্টো ইকোসিস্টেম তৈরি</p>
+        <!-- Phase 1 -->
+        <div class="policy-card">
+          <span class="phase-badge phase-completed">Completed</span>
+          <h2 class="section-title">Phase 1: Foundation</h2>
+          <p class="text-gray-600 mb-3 font-semibold">Q4 2025 (October - December 2025)</p>
+          <ul class="list-disc list-inside text-gray-700 space-y-2">
+            <li>Platform development and testing</li>
+            <li>Launch of ad revenue sharing system</li>
+            <li>User registration and login</li>
+            <li>Referral program launch</li>
+            <li>Basic point system</li>
+            <li>Daily bonus and check-in</li>
+          </ul>
+          <div class="highlight-box mt-4">
+            <p class="text-green-700 font-semibold">Target Achieved: 1,000+ Users</p>
           </div>
         </div>
-      </div>
 
-      <!-- Disclaimer -->
-      <div class="policy-card" style="background: linear-gradient(135deg, #fff3cd, #ffeaa7); border-left: 5px solid #ffc107;">
-        <h2 class="section-title" style="color: #856404; border-bottom-color: #856404;">⚠️ ডিসক্লেইমার</h2>
-        <ul class="list-disc list-inside text-gray-800 space-y-2 font-semibold">
-          <li>এই রোডম্যাপ পরিবর্তনশীল এবং প্রজেক্টের অগ্রগতির সাথে আপডেট হবে</li>
-          <li>সময়সীমা আনুমানিক এবং বাজার পরিস্থিতি অনুযায়ী পরিবর্তন হতে পারে</li>
-          <li>নতুন ফিচার যোগ বা বাদ হতে পারে কমিউনিটি ফিডব্যাকের ভিত্তিতে</li>
-          <li>ক্রিপ্টো সংক্রান্ত সকল পরিকল্পনা স্থানীয় নিয়ম-কানুন মেনে বাস্তবায়িত হবে</li>
-        </ul>
-      </div>
-
-      <!-- Call to Action -->
-      <div class="policy-card text-center">
-        <h2 class="text-3xl font-bold mb-4 text-gray-800">আমাদের যাত্রায় অংশীদার হোন</h2>
-        <p class="text-gray-600 text-lg mb-6">
-          FarmZone এর সাথে আপনার আয়ের যাত্রা শুরু করুন এবং ভবিষ্যতের অংশ হয়ে উঠুন।
-        </p>
-        <div class="flex justify-center gap-4 flex-wrap">
-          <a href="index.html" class="px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-all shadow-lg">
-            এখনই শুরু করুন
-          </a>
-          <a href="Connect.html" class="px-8 py-3 bg-white border-2 border-green-600 text-green-600 font-bold rounded-lg hover:bg-green-50 transition-all">
-            যোগাযোগ করুন
-          </a>
+        <!-- Phase 2 -->
+        <div class="policy-card">
+          <span class="phase-badge phase-ongoing">Ongoing</span>
+          <h2 class="section-title">Phase 2: Expansion</h2>
+          <p class="text-gray-600 mb-3 font-semibold">Q1 2026 (January - March 2026)</p>
+          <ul class="list-disc list-inside text-gray-700 space-y-2">
+            <li>Level and rank system</li>
+            <li>Advanced ad distribution system</li>
+            <li>Extra rewards and tasks</li>
+            <li>Earnings and point history</li>
+            <li>Community forum launch</li>
+          </ul>
+          <div class="highlight-box mt-4">
+            <p class="text-gray-700 font-semibold">Target: 5,000+ Users</p>
+          </div>
         </div>
-      </div>
 
-      <!-- Footer -->
-      <div class="text-center mt-8 pt-6 border-t-2 border-gray-200">
-        <p class="text-gray-600 mb-4">
-          আমাদের সাথে থাকার জন্য ধন্যবাদ। একসাথে আমরা ভবিষ্যত তৈরি করছি।
-        </p>
-        <div class="flex justify-center gap-4 text-sm">
-          <a href="Usage Policy.html" class="text-green-600 hover:underline font-semibold">ব্যবহারের নীতিমালা</a>
-          <span class="text-gray-400">|</span>
-          <a href="Privacy Policy.html" class="text-green-600 hover:underline font-semibold">গোপনীয়তা নীতি</a>
-          <span class="text-gray-400">|</span>
-          <a href="Connect.html" class="text-green-600 hover:underline font-semibold">যোগাযোগ</a>
+        <!-- Phase 3 -->
+        <div class="policy-card">
+          <span class="phase-badge phase-upcoming">Upcoming</span>
+          <h2 class="section-title">Phase 3: Enhancement</h2>
+          <p class="text-gray-600 mb-3 font-semibold">Q3 2026 (July - September 2026)</p>
+          <ul class="list-disc list-inside text-gray-700 space-y-2">
+            <li>FZ Points to cash conversion system</li>
+            <li>Multi-level referral bonus</li>
+            <li>Mobile app (official launch)</li>
+            <li>Live chat support</li>
+            <li>Custom avatars and profiles</li>
+            <li>Advertiser partnership growth</li>
+          </ul>
+          <div class="highlight-box mt-4">
+            <p class="text-gray-700 font-semibold">Target: 10,000+ Users</p>
+          </div>
         </div>
-        <p class="text-gray-500 text-sm mt-4">© ২০২৫ FarmZone. সর্বস্বত্ব সংরক্ষিত।</p>
+
+        <!-- Phase 4 -->
+        <div class="policy-card">
+          <span class="phase-badge phase-future">Future</span>
+          <h2 class="section-title">Phase 4: Crypto Transition Prep</h2>
+          <p class="text-gray-600 mb-3 font-semibold">Q4 2028 (October - December 2028)</p>
+          <ul class="list-disc list-inside text-gray-700 space-y-2">
+            <li>FZ Points to FZ Token migration plan</li>
+            <li>Crypto wallet integration</li>
+            <li>Staking system preparation</li>
+            <li>Blockchain partnerships</li>
+            <li>Token economics design</li>
+            <li>Community voting system</li>
+            <li>Exchange listing preparation</li>
+          </ul>
+          <div class="highlight-box mt-4">
+            <p class="text-gray-700 font-semibold">Target: 50,000+ Users</p>
+          </div>
+        </div>
+
+        <!-- Phase 5 -->
+        <div class="policy-card">
+          <span class="phase-badge phase-future">Crypto Launch</span>
+          <h2 class="section-title">Phase 5: Blockchain Integration</h2>
+          <p class="text-gray-600 mb-3 font-semibold">Q4 2029 (October - December 2029)</p>
+          <ul class="list-disc list-inside text-gray-700 space-y-2">
+            <li>FZ Token migration to blockchain (TRC20/BEP20)</li>
+            <li>DEX and CEX listing</li>
+            <li>NFT marketplace launch</li>
+            <li>DeFi staking pools</li>
+            <li>Cross-chain bridge</li>
+            <li>Global marketing campaign</li>
+            <li>Multi-language support</li>
+          </ul>
+          <div class="highlight-box mt-4">
+            <p class="text-gray-700 font-semibold">Target: 100,000+ Users</p>
+          </div>
+        </div>
+
+        <!-- Phase 6 -->
+        <div class="policy-card">
+          <span class="phase-badge phase-future">Visionary</span>
+          <h2 class="section-title">Phase 6: Ecosystem Expansion</h2>
+          <p class="text-gray-600 mb-3 font-semibold">2030 and Beyond</p>
+          <ul class="list-disc list-inside text-gray-700 space-y-2">
+            <li>FarmZone metaverse project</li>
+            <li>Virtual asset marketplace</li>
+            <li>AI-powered smart contracts</li>
+            <li>Decentralized exchange (DEX)</li>
+            <li>Global payment gateway</li>
+            <li>Real-world asset tokenization</li>
+            <li>Blockchain-based social platform</li>
+          </ul>
+          <div class="highlight-box mt-4">
+            <p class="text-gray-700 font-semibold">Vision: Global Crypto Ecosystem Leader</p>
+          </div>
+        </div>
+
+        <!-- Vision Section -->
+        <div class="policy-card">
+          <h2 class="section-title">Our Vision</h2>
+          <p class="text-gray-700 mb-4">
+            FarmZone is currently an ad revenue sharing platform where users earn by watching ads. Our long-term goal is to transform it into a complete crypto ecosystem. We believe every individual can achieve financial freedom by participating in the digital economy.
+          </p>
+          <div class="grid md:grid-cols-3 gap-6 mt-6">
+            <div class="vision-card">
+              <div class="text-4xl mb-3">Target</div>
+              <h3 class="font-bold text-lg mb-2 text-gray-800">Accessibility</h3>
+              <p class="text-gray-600">Easy and affordable earning opportunities for all</p>
+            </div>
+            <div class="vision-card">
+              <div class="text-4xl mb-3">Lock</div>
+              <h3 class="font-bold text-lg mb-2 text-gray-800">Security</h3>
+              <p class="text-gray-600">Top-tier security and transparency</p>
+            </div>
+            <div class="vision-card">
+              <div class="text-4xl mb-3">Globe</div>
+              <h3 class="font-bold text-lg mb-2 text-gray-800">Global</h3>
+              <p class="text-gray-600">Building a future crypto ecosystem</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="policy-card" style="background: linear-gradient(135deg, #fff3cd, #ffeaa7); border-left: 5px solid #ffc107;">
+          <h2 class="section-title" style="color: #856404; border-bottom-color: #856404;">Disclaimer</h2>
+          <ul class="list-disc list-inside text-gray-800 space-y-2 font-semibold">
+            <li>This roadmap is subject to change and will be updated with project progress</li>
+            <li>Timelines are approximate and may change based on market conditions</li>
+            <li>New features may be added or removed based on community feedback</li>
+            <li>All crypto-related plans will comply with local laws and regulations</li>
+          </ul>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="policy-card text-center">
+          <h2 class="text-3xl font-bold mb-4 text-gray-800">Join Our Journey</h2>
+          <p class="text-gray-600 text-lg mb-6">
+            Start your earning journey with FarmZone and become part of the future.
+          </p>
+          <div class="flex justify-center gap-4 flex-wrap">
+            <a href="index.html" class="px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-all shadow-lg">
+              Get Started Now
+            </a>
+            <a href="Connect.html" class="px-8 py-3 bg-white border-2 border-green-600 text-green-600 font-bold rounded-lg hover:bg-green-50 transition-all">
+              Contact Us
+            </a>
+          </div>
+        </div>
+
       </div>
     </div>
   </main>
+
+  <!-- Minimal Footer -->
+  <footer class="w-full bg-white border-t-2 border-gray-200 mt-8">
+    <div class="container-full text-center py-6">
+      <p class="text-gray-500 text-sm">© 2025 FarmZone. All Rights Reserved.</p>
+    </div>
+  </footer>
 
 </body>
 </html>
