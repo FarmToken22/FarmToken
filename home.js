@@ -1,13 +1,30 @@
-// home.js - Home Section with Smart Single Ad System (100% Error-Free)
+// home.js - Home Section with Beautiful Mining Status (Color Matched)
 import { auth, database } from './config.js';
 import { ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
+
+// ========================================
+// COLOR CONFIGURATION - Matched with Logo
+// ========================================
+const COLORS = {
+    primary: '#1B5E20',      // গাঢ় সবুজ (লোগোর মূল রঙ)
+    secondary: '#2E7D32',    // মাঝারি গাঢ় সবুজ
+    darkGreen: '#1B5E20',    // একদম গাঢ় ফরেস্ট সবুজ
+    forestGreen: '#2E7D32',  // ফরেস্ট সবুজ (মাইনিং চলার জন্য)
+    light: '#43A047',        // হালকা সবুজ
+    accent: '#66BB6A',       // অ্যাকসেন্ট সবুজ
+    success: '#4CAF50',      // সাকসেস সবুজ
+    lightBg: '#E8F5E9',      // হালকা ব্যাকগ্রাউন্ড
+    mediumBg: '#C8E6C9',     // মিডিয়াম ব্যাকগ্রাউন্ড
+    orange: '#FF9800',       // কমপ্লিট স্ট্যাটাসের জন্য
+    gray: '#9E9E9E'          // ইনঅ্যাক্টিভ
+};
 
 // ========================================
 // AD CONFIGURATION
 // ========================================
 const AD_KEY = '78ade24182729fceea8e45203dad915b';
 const AD_URL = '//www.highperformanceformat.com/' + AD_KEY + '/invoke.js';
-let adLoaded = false; // Only one ad will load
+let adLoaded = false;
 
 // Mining state
 let miningInterval = null;
@@ -16,9 +33,9 @@ let countdownInterval = null;
 // Helper function to show notifications
 function showNotification(message, type = 'info') {
     const notificationEl = document.createElement('div');
-    notificationEl.className = 'fixed top-4 right-4 p-4 rounded-lg shadow-lg ' + 
-        (type === 'error' ? 'bg-red-500' : type === 'success' ? 'bg-green-500' : 'bg-blue-500') + 
-        ' text-white z-50';
+    const bgColor = type === 'error' ? 'bg-red-500' : 
+                    type === 'success' ? 'bg-green-600' : 'bg-blue-500';
+    notificationEl.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg ${bgColor} text-white z-50`;
     notificationEl.textContent = message;
     document.body.appendChild(notificationEl);
     setTimeout(() => notificationEl.remove(), 5000);
@@ -34,64 +51,72 @@ export function renderHomeSection() {
         return;
     }
     
-    container.innerHTML = 
-        '<div class="p-3 sm:p-4 max-w-lg mx-auto w-full">' +
-            '<!-- Stats Bar -->' +
-            '<div class="stats-bar flex justify-around p-4 bg-white rounded-xl shadow mb-4">' +
-                '<div class="text-center">' +
-                    '<h4 class="text-xs uppercase text-gray-600 font-semibold">Balance</h4>' +
-                    '<p id="totalBalance" class="text-lg font-bold text-green-600">0.00 FZ</p>' +
-                '</div>' +
-                '<div class="text-center">' +
-                    '<h4 class="text-xs uppercase text-gray-600 font-semibold">Mining Rate</h4>' +
-                    '<p id="miningRate" class="text-lg font-bold text-green-600">0.00/hr</p>' +
-                '</div>' +
-                '<div class="text-center">' +
-                    '<h4 class="text-xs uppercase text-gray-600 font-semibold">Referrals</h4>' +
-                    '<p id="referralCount" class="text-lg font-bold text-green-600">0</p>' +
-                '</div>' +
-            '</div>' +
+    container.innerHTML = `
+        <div class="p-3 sm:p-4 max-w-lg mx-auto w-full">
+            <!-- Stats Bar -->
+            <div class="stats-bar flex justify-around p-4 bg-white rounded-xl shadow mb-4">
+                <div class="text-center">
+                    <h4 class="text-xs uppercase text-gray-600 font-semibold">Balance</h4>
+                    <p id="totalBalance" class="text-lg font-bold" style="color: ${COLORS.primary};">0.00 FZ</p>
+                </div>
+                <div class="text-center">
+                    <h4 class="text-xs uppercase text-gray-600 font-semibold">Mining Rate</h4>
+                    <p id="miningRate" class="text-lg font-bold" style="color: ${COLORS.primary};">0.00/hr</p>
+                </div>
+                <div class="text-center">
+                    <h4 class="text-xs uppercase text-gray-600 font-semibold">Referrals</h4>
+                    <p id="referralCount" class="text-lg font-bold" style="color: ${COLORS.primary};">0</p>
+                </div>
+            </div>
             
-            '<!-- Ad Space 1 (Hidden by default) -->' +
-            '<div id="adSpaceHome1" class="ad-container mb-4 min-h-[50px] flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden transition-all duration-300" style="display: none;">' +
-                '<div id="adContainerHome1"></div>' +
-            '</div>' +
+            <!-- Ad Space 1 (Hidden by default) -->
+            <div id="adSpaceHome1" class="ad-container mb-4 min-h-[50px] flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden transition-all duration-300" style="display: none;">
+                <div id="adContainerHome1"></div>
+            </div>
             
-            '<!-- Mining Section -->' +
-            '<div class="mining text-center flex flex-col items-center">' +
-                '<div class="mining-container w-full">' +
-                    '<img src="Full.png" alt="Mining Animation" class="w-full rounded-xl shadow-lg mx-auto" onerror="this.onerror=null; this.src=\'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2UwZTBlMCIgcng9IjEyIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM2NjYiIGZvbnQtc2l6ZT0iMjAiIGR5PSIuM2VtIj5NaW5pbmcgQXJlYTwvdGV4dD48L3N2Zz4=\';">' +
-                    '<button class="mining-btn w-full mt-4 py-3 bg-green-500 text-white rounded-lg font-semibold disabled:bg-gray-400" id="miningBtn" disabled>' +
-                        '<span class="timer-display">Start Mining</span>' +
-                        '<span class="earned-display" id="earnedDisplay">0.000000 FZ</span>' +
-                    '</button>' +
-                '</div>' +
+            <!-- Mining Section -->
+            <div class="mining text-center flex flex-col items-center">
+                <div class="mining-container w-full relative">
+                    <img src="Full.png" alt="Mining Animation" class="w-full rounded-xl shadow-lg mx-auto" onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2UwZTBlMCIgcng9IjEyIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM2NjYiIGZvbnQtc2l6ZT0iMjAiIGR5PSIuM2VtIj5NaW5pbmcgQXJlYTwvdGV4dD48L3N2Zz4=';">
+                    <button class="mining-btn absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full text-white font-bold shadow-2xl disabled:bg-gray-400 transition-all duration-300 flex flex-col items-center justify-center" 
+                            id="miningBtn" 
+                            disabled
+                            style="background: linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%);">
+                        <span class="timer-display text-xs">Start Mining</span>
+                        <span class="earned-display text-[10px] mt-0.5" id="earnedDisplay">0.000000 FZ</span>
+                    </button>
+                </div>
                 
-                '<!-- Mining Info Card -->' +
-                '<div class="mining-info bg-white p-4 rounded-xl shadow w-full max-w-[400px] mt-4">' +
-                    '<div class="flex justify-between py-2 border-b">' +
-                        '<span class="text-gray-600">Mining Status</span>' +
-                        '<span class="mining-status" id="miningStatus">Inactive</span>' +
-                    '</div>' +
-                    '<div class="flex justify-between py-2 border-b">' +
-                        '<span class="text-gray-600">Current Earned</span>' +
-                        '<span class="text-green-600 font-semibold" id="currentEarned">0.000000 FZ</span>' +
-                    '</div>' +
-                    '<div class="flex justify-between py-2">' +
-                        '<span class="text-gray-600">Total Mined</span>' +
-                        '<span class="text-green-600 font-semibold" id="totalMined">0.00 FZ</span>' +
-                    '</div>' +
-                '</div>' +
+                <!-- Mining Info Card with Gradient -->
+                <div class="mining-info p-4 rounded-xl shadow-lg border w-full max-w-[400px] mt-4" 
+                     style="background: linear-gradient(135deg, ${COLORS.lightBg} 0%, #F1F8E9 50%, #E8F5E9 100%); border-color: ${COLORS.mediumBg};">
+                    <div class="flex justify-between py-3 px-2 border-b" style="border-color: ${COLORS.mediumBg};">
+                        <span class="text-gray-700 font-medium">Mining Status</span>
+                        <span class="mining-status px-3 py-1 rounded-full text-sm font-bold" 
+                              id="miningStatus" 
+                              style="background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%); color: white; box-shadow: 0 2px 8px rgba(156, 163, 175, 0.2);">
+                            Inactive
+                        </span>
+                    </div>
+                    <div class="flex justify-between py-3 px-2 border-b" style="border-color: ${COLORS.mediumBg};">
+                        <span class="text-gray-700 font-medium">Current Earned</span>
+                        <span class="font-semibold" id="currentEarned" style="color: ${COLORS.primary};">0.000000 FZ</span>
+                    </div>
+                    <div class="flex justify-between py-3 px-2">
+                        <span class="text-gray-700 font-medium">Total Mined</span>
+                        <span class="font-semibold" id="totalMined" style="color: ${COLORS.primary};">0.00 FZ</span>
+                    </div>
+                </div>
                 
-                '<!-- Ad Space 2 (Hidden by default) -->' +
-                '<div id="adSpaceHome2" class="ad-container mt-4 w-full min-h-[50px] flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden transition-all duration-300" style="display: none;">' +
-                    '<div id="adContainerHome2"></div>' +
-                '</div>' +
-            '</div>' +
-        '</div>';
+                <!-- Ad Space 2 (Hidden by default) -->
+                <div id="adSpaceHome2" class="ad-container mt-4 w-full min-h-[50px] flex items-center justify-center bg-gray-50 rounded-lg overflow-hidden transition-all duration-300" style="display: none;">
+                    <div id="adContainerHome2"></div>
+                </div>
+            </div>
+        </div>`;
 
-    console.log('Home section rendered with smart ad system');
-    loadSingleAd(); // Load only one ad
+    console.log('Home section rendered with smaller circular button and brand colors');
+    loadSingleAd();
 }
 
 // ========================================
@@ -138,7 +163,7 @@ function loadSingleAd() {
 // MINING CALCULATIONS
 // ========================================
 export function calculateCurrentEarned(userData, appSettings, getServerTime) {
-    if (!userData.miningStartTime) return 0;
+    if (!userData || !userData.miningStartTime || !appSettings || !appSettings.mining) return 0;
     
     const now = getServerTime();
     const elapsed = Math.min(now - userData.miningStartTime, appSettings.mining.miningDuration * 3600000);
@@ -148,7 +173,7 @@ export function calculateCurrentEarned(userData, appSettings, getServerTime) {
 }
 
 // ========================================
-// START COUNTDOWN AND EARNED DISPLAY (Fixed: timerDisplay)
+// START COUNTDOWN AND EARNED DISPLAY
 // ========================================
 export function startCountdownAndEarned(endTime, getServerTime, appSettings, userData, stopMining, showNotification) {
     const timerDisplay = document.querySelector('#miningBtn .timer-display');
@@ -164,7 +189,7 @@ export function startCountdownAndEarned(endTime, getServerTime, appSettings, use
         if (remainingMs <= 0) {
             clearInterval(countdownInterval);
             stopMining();
-            if (timerDisplay) timerDisplay.textContent = 'Claim'; // FIXED: timer|Display → timerDisplay
+            if (timerDisplay) timerDisplay.textContent = 'Claim';
             showNotification('Mining complete! Claim your reward.', 'success');
             return;
         }
@@ -208,7 +233,12 @@ async function startMining(userRef, appSettings, getServerTime) {
 function stopMining() {
     if (miningInterval) clearInterval(miningInterval);
     const statusEl = document.getElementById('miningStatus');
-    if (statusEl) statusEl.textContent = 'Inactive';
+    if (statusEl) {
+        statusEl.textContent = 'Inactive';
+        statusEl.style.background = 'linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%)';
+        statusEl.style.color = 'white';
+        statusEl.style.boxShadow = '0 2px 8px rgba(156, 163, 175, 0.2)';
+    }
     const btn = document.getElementById('miningBtn');
     if (btn) btn.disabled = false;
 }
@@ -258,39 +288,92 @@ async function claimReward(userRef, userData, appSettings, getServerTime) {
 }
 
 // ========================================
-// UPDATE UI
+// UPDATE UI WITH BRAND COLORS
 // ========================================
 export function updateUI(userData, appSettings, getServerTime) {
+    if (!userData || !appSettings) {
+        console.warn('updateUI called without userData or appSettings');
+        return;
+    }
+    
     try {
         const balEl = document.getElementById('totalBalance');
-        if (balEl) balEl.textContent = (userData.balance || 0).toFixed(2) + ' FZ';
+        if (balEl) {
+            balEl.textContent = ((userData && userData.balance) || 0).toFixed(2) + ' FZ';
+            balEl.style.color = COLORS.primary;
+        }
+        
         const rateEl = document.getElementById('miningRate');
-        if (rateEl) rateEl.textContent = (appSettings.mining.totalReward / appSettings.mining.miningDuration).toFixed(2) + '/hr';
+        if (rateEl && appSettings && appSettings.mining) {
+            rateEl.textContent = (appSettings.mining.totalReward / appSettings.mining.miningDuration).toFixed(2) + '/hr';
+            rateEl.style.color = COLORS.primary;
+        }
+        
         const refEl = document.getElementById('referralCount');
-        if (refEl) refEl.textContent = userData.referralCount || 0;
+        if (refEl) {
+            refEl.textContent = (userData && userData.referralCount) || 0;
+            refEl.style.color = COLORS.primary;
+        }
+        
         const minedEl = document.getElementById('totalMined');
-        if (minedEl) minedEl.textContent = (userData.totalMined || 0).toFixed(2) + ' FZ';
+        if (minedEl) {
+            minedEl.textContent = ((userData && userData.totalMined) || 0).toFixed(2) + ' FZ';
+            minedEl.style.color = COLORS.primary;
+        }
         
         const miningBtn = document.getElementById('miningBtn');
         const timerDisplay = document.querySelector('#miningBtn .timer-display');
         const statusEl = document.getElementById('miningStatus');
         
-        if (userData.miningStartTime && userData.miningEndTime > getServerTime()) {
-            if (statusEl) statusEl.textContent = 'Active';
-            if (miningBtn) miningBtn.disabled = true;
+        if (userData && userData.miningStartTime && userData.miningEndTime && userData.miningEndTime > getServerTime()) {
+            // Active Mining - Dark Forest Green (গাঢ় ফরেস্ট সবুজ)
+            if (statusEl) {
+                statusEl.textContent = 'Active';
+                statusEl.style.background = `linear-gradient(135deg, ${COLORS.darkGreen} 0%, ${COLORS.forestGreen} 100%)`;
+                statusEl.style.color = 'white';
+                statusEl.style.boxShadow = `0 2px 12px ${COLORS.darkGreen}80`;
+            }
+            if (miningBtn) {
+                miningBtn.disabled = true;
+                miningBtn.style.background = `linear-gradient(135deg, ${COLORS.darkGreen} 0%, ${COLORS.forestGreen} 100%)`;
+                miningBtn.style.boxShadow = `0 4px 20px ${COLORS.darkGreen}70`;
+            }
             startCountdownAndEarned(userData.miningEndTime, getServerTime, appSettings, userData, stopMining, showNotification);
-        } else if (userData.miningStartTime) {
-            if (statusEl) statusEl.textContent = 'Complete';
-            if (miningBtn) miningBtn.disabled = false;
+        } else if (userData && userData.miningStartTime) {
+            // Complete - Yellow (হলুদ)
+            if (statusEl) {
+                statusEl.textContent = 'Complete';
+                statusEl.style.background = 'linear-gradient(135deg, #FDD835 0%, #FBC02D 100%)';
+                statusEl.style.color = '#000';
+                statusEl.style.boxShadow = '0 2px 8px rgba(253, 216, 53, 0.5)';
+            }
+            if (miningBtn) {
+                miningBtn.disabled = false;
+                miningBtn.style.background = 'linear-gradient(135deg, #FDD835 0%, #FBC02D 100%)';
+                miningBtn.style.color = '#000';
+                miningBtn.style.boxShadow = '0 4px 15px rgba(253, 216, 53, 0.6)';
+            }
             if (timerDisplay) timerDisplay.textContent = 'Claim';
         } else {
-            if (statusEl) statusEl.textContent = 'Inactive';
-            if (miningBtn) miningBtn.disabled = false;
+            // Inactive - Dark Green (শুরু করার জন্য)
+            if (statusEl) {
+                statusEl.textContent = 'Inactive';
+                statusEl.style.background = 'linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%)';
+                statusEl.style.color = 'white';
+                statusEl.style.boxShadow = '0 2px 8px rgba(156, 163, 175, 0.2)';
+            }
+            if (miningBtn) {
+                miningBtn.disabled = false;
+                miningBtn.style.background = `linear-gradient(135deg, ${COLORS.darkGreen} 0%, ${COLORS.forestGreen} 100%)`;
+                miningBtn.style.color = 'white';
+                miningBtn.style.boxShadow = '0 4px 15px rgba(27, 94, 32, 0.5)';
+            }
             if (timerDisplay) timerDisplay.textContent = 'Start Mining';
         }
         
         updateRecentSessions(userData);
     } catch (error) {
+        console.error('Failed to update UI:', error);
         showNotification('Failed to update UI: ' + error.message, 'error');
     }
 }
@@ -300,7 +383,7 @@ export function updateUI(userData, appSettings, getServerTime) {
 // ========================================
 function updateRecentSessions(userData) {
     const sessionsEl = document.getElementById('recentSessions');
-    if (!sessionsEl) return;
+    if (!sessionsEl || !userData) return;
     
     const miningSessions = userData.miningSessions || [];
     
@@ -319,24 +402,25 @@ function updateRecentSessions(userData) {
         const startTime = startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         const endTime = endDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         
-        const statusIcon = session.claimed ? 'Checkmark' : 'Hourglass';
-        const statusColor = session.claimed ? 'text-green-600' : 'text-yellow-600';
-        const bgColor = session.claimed ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200';
+        const statusIcon = session.claimed ? '✓' : '⏳';
+        const statusColor = session.claimed ? COLORS.success : COLORS.orange;
+        const bgColor = session.claimed ? COLORS.lightBg : '#FFF3E0';
+        const borderColor = session.claimed ? COLORS.mediumBg : '#FFE0B2';
         
-        return '<div class="flex items-center justify-between p-3 ' + bgColor + ' rounded-lg border">' +
-            '<div class="flex items-center gap-3">' +
-                '<div class="bg-green-500 text-white rounded-full p-2">' +
-                    '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">' +
-                        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />' +
-                    '</svg>' +
-                '</div>' +
-                '<div>' +
-                    '<p class="font-semibold text-gray-800">+' + session.reward.toFixed(2) + ' FZ</p>' +
-                    '<p class="text-xs text-gray-500">' + formattedDate + ' • ' + startTime + ' - ' + endTime + '</p>' +
-                '</div>' +
-            '</div>' +
-            '<span class="' + statusColor + ' font-bold text-xl">' + statusIcon + '</span>' +
-        '</div>';
+        return `<div class="flex items-center justify-between p-3 rounded-lg border" style="background: ${bgColor}; border-color: ${borderColor};">
+            <div class="flex items-center gap-3">
+                <div class="text-white rounded-full p-2" style="background: ${COLORS.primary};">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                    </svg>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-800">+${session.reward.toFixed(2)} FZ</p>
+                    <p class="text-xs text-gray-500">${formattedDate} • ${startTime} - ${endTime}</p>
+                </div>
+            </div>
+            <span class="font-bold text-xl" style="color: ${statusColor};">${statusIcon}</span>
+        </div>`;
     }).join('');
 }
 
@@ -354,6 +438,11 @@ export function cleanupMining() {
 // INITIALIZE
 // ========================================
 export function initHomeSection(userData, appSettings, getServerTime) {
+    if (!userData || !appSettings) {
+        console.warn('initHomeSection called without userData or appSettings');
+        return;
+    }
+    
     renderHomeSection();
     
     const userRef = ref(database, 'users/' + auth.currentUser.uid);
@@ -363,7 +452,7 @@ export function initHomeSection(userData, appSettings, getServerTime) {
         miningBtn.addEventListener('click', async () => {
             if (miningBtn.disabled) return;
             
-            if (userData.miningStartTime && !(userData.miningEndTime > getServerTime())) {
+            if (userData && userData.miningStartTime && !(userData.miningEndTime > getServerTime())) {
                 await claimReward(userRef, userData, appSettings, getServerTime);
             } else {
                 await startMining(userRef, appSettings, getServerTime);
@@ -373,12 +462,17 @@ export function initHomeSection(userData, appSettings, getServerTime) {
     
     onValue(userRef, (snapshot) => {
         const updatedUserData = snapshot.val();
-        updateUI(updatedUserData, appSettings, getServerTime);
+        if (updatedUserData && appSettings) {
+            updateUI(updatedUserData, appSettings, getServerTime);
+        }
     }, (error) => {
+        console.error('Failed to load user data:', error);
         showNotification('Failed to load user data: ' + error.message, 'error');
     });
     
-    updateUI(userData, appSettings, getServerTime);
+    if (userData) {
+        updateUI(userData, appSettings, getServerTime);
+    }
 }
 
 export { updateRecentSessions };
