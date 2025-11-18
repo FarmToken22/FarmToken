@@ -55,7 +55,7 @@
     }
 
     .ad-viewer {
-      min-height: 90px;
+      min-height: 120px;
       background: #f8fafc;
       border: 2px dashed #cbd5e1;
       border-radius: 12px;
@@ -67,32 +67,54 @@
       font-size: 14px;
       color: #64748b;
       transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .ad-viewer.loading {
+      border-style: solid;
+      border-color: #e5e7eb;
+      background: #fff;
     }
     .ad-viewer.loaded {
       border-style: solid;
       border-color: #e5e7eb;
       background: #fff;
+      padding: 0;
+    }
+    .ad-viewer iframe, .ad-viewer ins {
+      max-width: 100% !important;
+      width: 100% !important;
+      height: auto !important;
+      min-height: 90px;
+      display: block;
+      margin: 0 auto;
     }
 
     .countdown-timer {
-      font-size: 18px;
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 14px;
       font-weight: bold;
-      color: #28a745;
-      animation: pulse 1s infinite;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      animation: pulse 1.5s infinite;
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
 
-  <!-- Toast Container -->
   <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
-  <!-- Header -->
   <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-40 border-b border-gray-200">
     <button id="backButton" class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-all">
       <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -106,7 +128,6 @@
     </div>
   </header>
 
-  <!-- Extra Reward Section -->
   <section id="extraRewardSection" class="p-4 max-w-md mx-auto w-full">
     <div id="extraLoading" class="text-center py-10">
       <div class="spinner mb-3"></div>
@@ -150,11 +171,12 @@
   </section>
 
   <script type="module">
+    // খুবই গুরুত্বপূর্ণ: নিশ্চিত করুন 'config.js' ফাইলটি সঠিক এবং এতে কোনো ভুল নেই।
+    // "Unexpected end of input" ত্রুটির প্রধান কারণ হতে পারে এই ফাইলটি।
     import { auth, database } from './config.js';
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
     import { ref, get, update, runTransaction, push } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
 
-    // Ad Configuration
     const AD_CONFIG = {
       rewarded: {
         key: '53c6462d2fd5ad5b91686ca9561f79a2',
@@ -164,8 +186,6 @@
         invokeUrl: '//www.highperformanceformat.com/53c6462d2fd5ad5b91686ca9561f79a2/invoke.js'
       }
     };
-
-    const AD_WATCH_TIME = 10000; // 10 seconds
 
     let userData = null;
     let userId = null;
@@ -190,16 +210,11 @@
       }
     }
 
-    // Back Button Handler - Fixed
     document.getElementById('backButton').addEventListener('click', function(e) {
       e.preventDefault();
-      console.log('Back button clicked');
-      
-      // Try to go back in history first
       if (window.history.length > 1) {
         window.history.back();
       } else {
-        // If no history, go to index.html
         window.location.href = 'index.html';
       }
     });
@@ -285,13 +300,13 @@
     function loadRewardedAd(containerId, callback) {
       const container = document.getElementById(containerId);
       if (!container) {
-        console.warn('Container not found');
         if (callback) callback(false);
         return;
       }
 
       try {
         container.innerHTML = '';
+        container.classList.add('loading');
         container.classList.remove('loaded');
 
         window.atOptions = {
@@ -309,25 +324,23 @@
         
         script.onload = () => {
           setTimeout(() => {
+            container.classList.remove('loading');
             container.classList.add('loaded');
-            console.log('Ad loaded');
             if (callback) callback(true);
           }, 500);
         };
         
         script.onerror = () => {
-          console.error('Ad load failed');
-          container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px; font-size: 14px;">Ad failed to load</div>';
-          container.classList.add('loaded');
+          container.classList.remove('loading', 'loaded');
+          container.innerHTML = `<div class="p-4 text-center text-red-600"><p class="font-bold">Ad failed to load</p><p class="text-xs">Please try again later.</p></div>`;
           if (callback) callback(false);
         };
 
         container.appendChild(script);
 
       } catch (error) {
-        console.error('Ad error:', error);
-        container.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 20px; font-size: 14px;">Error occurred</div>';
-        container.classList.add('loaded');
+        container.classList.remove('loading', 'loaded');
+        container.innerHTML = `<div class="p-4 text-center text-red-600"><p class="font-bold">An error occurred</p><p class="text-xs">Could not display the ad.</p></div>`;
         if (callback) callback(false);
       }
     }
@@ -335,12 +348,12 @@
     function startAdViewingProcess() {
       const btn = document.getElementById('adActionBtn');
       btn.disabled = true;
-      btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;"></div> Loading Ad...';
+      btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;"></div>';
       
       const viewer = document.getElementById('adViewer');
-      viewer.innerHTML = '<div class="spinner" style="width:32px;height:32px;border-width:3px;"></div><p>Loading ad...</p>';
+      viewer.innerHTML = `<div class="text-center"><div class="spinner mb-2" style="width:32px;height:32px;border-width:3px;"></div><p class="text-sm">Loading ad...</p></div>`;
 
-      loadRewardedAd('adViewer', async (success) => {
+      loadRewardedAd('adViewer', (success) => {
         if (success) {
           showToast('Ad loaded! Watch for 10 seconds.', 'success');
           startAdCountdown();
@@ -348,6 +361,7 @@
           showToast('Ad failed to load. Try again.', 'error');
           setTimeout(() => {
             updateAdActionButton();
+            viewer.classList.remove('loading', 'loaded');
             viewer.innerHTML = '<p>Click "Watch Ad" to try again.</p>';
           }, 2000);
         }
@@ -358,12 +372,9 @@
       let timeLeft = 10;
       const viewer = document.getElementById('adViewer');
       
-      // Create countdown display
       const countdownDiv = document.createElement('div');
       countdownDiv.className = 'countdown-timer';
-      countdownDiv.style.cssText = 'position: absolute; top: 10px; right: 10px; background: rgba(40, 167, 69, 0.9); color: white; padding: 8px 16px; border-radius: 20px; font-size: 16px; font-weight: bold; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,0.2);';
       countdownDiv.textContent = `${timeLeft}s`;
-      viewer.style.position = 'relative';
       viewer.appendChild(countdownDiv);
 
       adWatchTimer = setInterval(() => {
@@ -381,10 +392,8 @@
     async function adViewCompleted() {
       currentAdStep++;
       const viewer = document.getElementById('adViewer');
-      viewer.innerHTML = `<div style="text-align: center; color: #28a745;">
-        <svg class="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-        <p class="font-bold">Ad ${currentAdStep}/4 Completed!</p>
-      </div>`;
+      viewer.classList.remove('loaded');
+      viewer.innerHTML = `<div class="text-center text-green-600"><svg class="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><p class="font-bold">Ad ${currentAdStep}/4 Completed!</p></div>`;
       
       try {
         await update(ref(database, `users/${userId}/extraReward`), { adsWatched: currentAdStep });
@@ -393,7 +402,7 @@
         
         setTimeout(() => {
           updateAdActionButton();
-          viewer.innerHTML = '<p>Click button to continue</p>';
+          viewer.innerHTML = '<p>Click the button below to continue.</p>';
         }, 2000);
         
         showToast(`Ad ${currentAdStep}/4 watched!`, 'success');
@@ -458,8 +467,6 @@
       if(cooldownInterval) clearInterval(cooldownInterval);
       if(adWatchTimer) clearInterval(adWatchTimer);
     });
-
-    console.log('Extra Rewards Page Initialized');
   </script>
 </body>
-</html>
+</html>```
