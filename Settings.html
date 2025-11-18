@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="FarmToken - Settings">
-  <meta name="author" content="FarmToken Team">
-  <title>FarmToken - Settings</title>
+  <meta name="description" content="FZ Network - Settings">
+  <meta name="author" content="FZ Network Team">
+  <title>FZ Network - Settings</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     * {
@@ -96,8 +96,8 @@
 
   <header class="flex items-center justify-between px-4 py-3 shadow bg-white sticky top-0 z-10">
     <div class="flex items-center gap-2">
-      <img src="Logo.png" alt="FarmToken Logo" class="h-10 w-10 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
-      <h1 class="text-xl sm:text-2xl font-bold text-red-600">FarmToken Settings</h1>
+      <img src="Logo.png" alt="FZ Network Logo" class="h-10 w-10 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22%2328a745%22/></svg>'">
+      <h1 class="text-xl sm:text-2xl font-bold text-red-600">FZ Network Settings</h1>
     </div>
     <div class="flex items-center gap-2 sm:gap-3">
       <a href="index.html" class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
@@ -109,14 +109,14 @@
   </header>
 
   <section class="p-3 sm:p-4 max-w-lg mx-auto w-full space-y-4 sm:space-y-6">
-    <!-- Username Section -->
+    <!-- Name Section -->
     <div class="bg-white shadow rounded-xl p-4 sm:p-6">
-      <h2 class="text-lg sm:text-xl font-semibold mb-3">Username</h2>
+      <h2 class="text-lg sm:text-xl font-semibold mb-3">Name</h2>
       <div class="flex flex-col sm:flex-row gap-2">
-        <input id="usernameInput" type="text" placeholder="Enter your username" class="flex-1 border rounded-lg p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-green-500">
-        <button id="updateUsernameBtn" class="bg-green-500 text-white px-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base hover:bg-green-600 transition-colors">Update</button>
+        <input id="nameInput" type="text" placeholder="Enter your name" class="flex-1 border rounded-lg p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-green-500">
+        <button id="updateNameBtn" class="bg-green-500 text-white px-4 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base hover:bg-green-600 transition-colors">Update</button>
       </div>
-      <p id="usernameStatus" class="text-xs sm:text-sm mt-2 sm:mt-3 hidden"></p>
+      <p id="nameStatus" class="text-xs sm:text-sm mt-2 sm:mt-3 hidden"></p>
     </div>
 
     <!-- Email Section -->
@@ -131,7 +131,7 @@
       <h2 class="text-lg sm:text-xl font-semibold mb-3">Change Password</h2>
       <div class="space-y-3">
         <input id="currentPasswordInput" type="password" placeholder="Current Password" class="w-full border rounded-lg p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-green-500">
-        <input id="newPasswordInput" type="password" placeholder="New Password" class="w-full border rounded-lg p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-green-500">
+        <input id="newPasswordInput" type="password" placeholder="New Password (at least 6 characters)" class="w-full border rounded-lg p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-green-500">
         <input id="confirmPasswordInput" type="password" placeholder="Confirm New Password" class="w-full border rounded-lg p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-green-500">
         <button id="updatePasswordBtn" class="w-full bg-green-500 text-white py-2.5 sm:py-3 rounded-lg text-sm sm:text-base hover:bg-green-600 transition-colors">Update Password</button>
       </div>
@@ -142,14 +142,13 @@
     <div class="bg-white shadow rounded-xl p-4 sm:p-6">
       <h2 class="text-lg sm:text-xl font-semibold mb-3 text-red-600">Delete Account</h2>
       <p class="text-xs sm:text-sm text-gray-500 mb-3">Permanently delete your account and all associated data. This action cannot be undone.</p>
-      <input id="deletePasswordInput" type="password" placeholder="Enter your password to confirm" class="w-full border rounded-lg p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-red-500">
-      <button id="deleteAccountBtn" class="w-full bg-red-500 text-white py-2.5 sm:py-3 rounded-lg text-sm sm:text-base hover:bg-red-600 transition-colors mt-3">Delete Account</button>
+      <input id="deletePasswordInput" type="password" placeholder="Enter your password to confirm" class="w-full border rounded-lg p-2.5 sm:p-3 text-sm sm:text-base outline-none focus:ring-2 focus:ring-red-500 mb-3">
+      <button id="deleteAccountBtn" class="w-full bg-red-500 text-white py-2.5 sm:py-3 rounded-lg text-sm sm:text-base hover:bg-red-600 transition-colors">Delete Account</button>
       <p id="deleteStatus" class="text-xs sm:text-sm mt-2 sm:mt-3 hidden"></p>
     </div>
   </section>
 
   <script type="module">
-    // ✅ config.js থেকে import করুন (Firebase initialization বারবার হবে না)
     import { auth, database } from './config.js';
     import { onAuthStateChanged, reauthenticateWithCredential, EmailAuthProvider, updatePassword, deleteUser } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
     import { ref, get, update, remove } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js";
@@ -158,9 +157,9 @@
 
     const el = {
       loading: document.getElementById('loading'),
-      usernameInput: document.getElementById('usernameInput'),
-      updateUsernameBtn: document.getElementById('updateUsernameBtn'),
-      usernameStatus: document.getElementById('usernameStatus'),
+      nameInput: document.getElementById('nameInput'),
+      updateNameBtn: document.getElementById('updateNameBtn'),
+      nameStatus: document.getElementById('nameStatus'),
       userEmail: document.getElementById('userEmail'),
       currentPasswordInput: document.getElementById('currentPasswordInput'),
       newPasswordInput: document.getElementById('newPasswordInput'),
@@ -190,7 +189,7 @@
       element.classList.add(isError ? 'text-red-500' : 'text-green-500');
       setTimeout(() => {
         element.classList.add('hidden');
-      }, 3000);
+      }, 5000);
     }
 
     // Load user data
@@ -200,7 +199,7 @@
       get(userRef).then(snapshot => {
         if (snapshot.exists()) {
           const data = snapshot.val();
-          el.usernameInput.value = data.username || '';
+          el.nameInput.value = data.name || '';
         }
       }).catch(err => {
         console.error('Error fetching user data:', err);
@@ -208,27 +207,27 @@
       });
     }
 
-    // Update username
-    function updateUsername() {
-      const username = el.usernameInput.value.trim();
-      if (!username) {
-        showStatus(el.usernameStatus, 'Please enter a username.', true);
+    // Update name
+    function updateName() {
+      const name = el.nameInput.value.trim();
+      if (!name) {
+        showStatus(el.nameStatus, 'Please enter a name.', true);
         return;
       }
 
-      if (username.length < 3 || username.length > 20) {
-        showStatus(el.usernameStatus, 'Username must be between 3 and 20 characters.', true);
+      if (name.length < 2 || name.length > 50) {
+        showStatus(el.nameStatus, 'Name must be between 2 and 50 characters.', true);
         return;
       }
 
       const userRef = ref(database, `users/${currentUser.uid}`);
-      update(userRef, { username }).then(() => {
-        showStatus(el.usernameStatus, 'Username updated successfully!');
-        showNotification('Username updated!');
+      update(userRef, { name }).then(() => {
+        showStatus(el.nameStatus, 'Name updated successfully!');
+        showNotification('Name updated!');
       }).catch(err => {
-        console.error('Error updating username:', err);
-        showStatus(el.usernameStatus, 'Failed to update username. Try again.', true);
-        showNotification('Failed to update username.', 'error');
+        console.error('Error updating name:', err);
+        showStatus(el.nameStatus, 'Failed to update name. Try again.', true);
+        showNotification('Failed to update name.', 'error');
       });
     }
 
@@ -281,6 +280,10 @@
         return;
       }
 
+      if (!confirm('Are you sure you want to delete your account? This action cannot be undone!')) {
+        return;
+      }
+
       const credential = EmailAuthProvider.credential(currentUser.email, password);
       reauthenticateWithCredential(currentUser, credential).then(() => {
         const userRef = ref(database, `users/${currentUser.uid}`);
@@ -313,7 +316,7 @@
       el.loading.style.display = 'none';
     });
 
-    el.updateUsernameBtn.addEventListener('click', updateUsername);
+    el.updateNameBtn.addEventListener('click', updateName);
     el.updatePasswordBtn.addEventListener('click', updateUserPassword);
     el.deleteAccountBtn.addEventListener('click', deleteAccount);
 
@@ -323,7 +326,7 @@
         currentUser = user;
         loadUserData(user);
       } else {
-        window.location.href = 'login.html'; // Redirect to login if not authenticated
+        window.location.href = 'login.html';
       }
     });
   </script>
