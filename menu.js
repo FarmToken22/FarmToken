@@ -19,10 +19,10 @@ const menuItems = [
         isImage: false
     },
     {
-        name: 'Connect',
-        href: 'Connect.html',
+        name: 'FZ Connect',
+        href: 'https://farmtoken22.github.io/FZ-Network-Connect-/',
         icon: '🔗',
-        description: 'Connect your wallet',
+        description: 'Connect FZ Admin',
         color: 'from-blue-500 to-cyan-500',
         isImage: false
     },
